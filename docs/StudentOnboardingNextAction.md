@@ -1,0 +1,9 @@
+# StudentOnboardingNextAction
+
+## Properties
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**type** | **String** |  |
+**targetSectionKey** | [**StudentAnamnesisSectionKey**](StudentAnamnesisSectionKey.md) |  | [optional]
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
