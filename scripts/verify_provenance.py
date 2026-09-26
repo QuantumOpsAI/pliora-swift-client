@@ -42,6 +42,19 @@ def client_digest(root: Path = ROOT) -> str:
 
 def verify(root: Path = ROOT) -> str:
     provenance = json.loads((root / "PROVENANCE.json").read_text(encoding="utf-8"))
+    release_version = provenance["releaseVersion"]
+    semver = r"(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*)){2}(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
+    if not re.fullmatch(semver, release_version):
+        raise ValueError("releaseVersion is not exact SemVer")
+
+    overlay = provenance["overlay"]
+    overlay_files = overlay["files"]
+    if len(overlay_files) != 12 or len(set(overlay_files)) != 12:
+        raise ValueError("overlay must name exactly twelve unique generated models")
+    models = root / "FitAppClientSwift/Classes/OpenAPIs/Models"
+    if any(not (models / name).is_file() for name in overlay_files):
+        raise ValueError("overlay names a generated model that is not published")
+
     expected = provenance["swiftClientSha256"]
     actual = client_digest(root)
     if actual != expected:

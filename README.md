@@ -5,10 +5,13 @@ Pliora Experience API. This repository contains generated API client artifacts o
 does not contain backend implementation, credentials, production configuration, or user
 data.
 
-Release `0.43.1` is copied byte-for-byte from `QuantumOpsAI/pliora-contracts` commit
-`b16e387f2a68fb59d6a23ae9f314b9c52435f145`. Machine-readable source, generator, spec,
-bundle, and client digests are recorded in [`PROVENANCE.json`](PROVENANCE.json) and checked
-by `scripts/verify_provenance.py`.
+Release `0.43.1-personal-home.1` reproduces the reviewed iOS client composition: the
+`0.43.1` tree from `QuantumOpsAI/pliora-contracts` commit
+`b16e387f2a68fb59d6a23ae9f314b9c52435f145`, plus exactly twelve generated Personal Home
+report models from commit `04ac7b558cac8ab23afe064879b31ffa611b38ad`. This bounded overlay
+avoids importing the unrelated invitation-breaking changes in the complete `0.44.0` client.
+Machine-readable source, generator, spec, bundle, overlay, and client digests are recorded
+in [`PROVENANCE.json`](PROVENANCE.json) and checked by `scripts/verify_provenance.py`.
 
 Consumers should use an exact SemVer release or commit. Floating branches and version
 ranges are not supported.

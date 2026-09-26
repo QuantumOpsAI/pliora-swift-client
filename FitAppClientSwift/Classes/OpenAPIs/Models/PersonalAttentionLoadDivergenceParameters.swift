@@ -18,13 +18,19 @@ public struct PersonalAttentionLoadDivergenceParameters: Codable, JSONEncodable,
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let exerciseLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let variantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let variantLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let equipmentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public var reasonCode: ReasonCode
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var exerciseId: String
+    /** Nome canônico do exercício resolvido pelo servidor no catálogo, preservado sem tradução e sem substituir `exerciseId`. */
+    public var exerciseLabel: String
     /** Variante do exercício. Ela faz parte da chave de comparabilidade: carga de variantes diferentes não é equivalente e nunca entra na mesma janela. */
     public var variantId: String
+    /** Nome canônico da variante resolvido pelo servidor no catálogo, preservado sem tradução e sem substituir `variantId`. */
+    public var variantLabel: String
     /** Equipamento, quando ele for materialmente relevante para a comparação. Ausente quando não discrimina; ausência aqui é ausência, e nunca um equipamento padrão presumido. */
     public var equipmentId: String?
     /** Carga prescrita da sessão na unidade canônica, reusando a representação já publicada na execução. Comparação é por igualdade exata, sem tolerância. */
@@ -32,10 +38,12 @@ public struct PersonalAttentionLoadDivergenceParameters: Codable, JSONEncodable,
     /** Carga executada da sessão, na mesma unidade canônica. */
     public var performedLoad: WorkoutLoad
 
-    public init(reasonCode: ReasonCode, exerciseId: String, variantId: String, equipmentId: String? = nil, prescribedLoad: WorkoutLoad, performedLoad: WorkoutLoad) {
+    public init(reasonCode: ReasonCode, exerciseId: String, exerciseLabel: String, variantId: String, variantLabel: String, equipmentId: String? = nil, prescribedLoad: WorkoutLoad, performedLoad: WorkoutLoad) {
         self.reasonCode = reasonCode
         self.exerciseId = exerciseId
+        self.exerciseLabel = exerciseLabel
         self.variantId = variantId
+        self.variantLabel = variantLabel
         self.equipmentId = equipmentId
         self.prescribedLoad = prescribedLoad
         self.performedLoad = performedLoad
@@ -44,7 +52,9 @@ public struct PersonalAttentionLoadDivergenceParameters: Codable, JSONEncodable,
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case reasonCode
         case exerciseId
+        case exerciseLabel
         case variantId
+        case variantLabel
         case equipmentId
         case prescribedLoad
         case performedLoad
@@ -56,7 +66,9 @@ public struct PersonalAttentionLoadDivergenceParameters: Codable, JSONEncodable,
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(reasonCode, forKey: .reasonCode)
         try container.encode(exerciseId, forKey: .exerciseId)
+        try container.encode(exerciseLabel, forKey: .exerciseLabel)
         try container.encode(variantId, forKey: .variantId)
+        try container.encode(variantLabel, forKey: .variantLabel)
         try container.encodeIfPresent(equipmentId, forKey: .equipmentId)
         try container.encode(prescribedLoad, forKey: .prescribedLoad)
         try container.encode(performedLoad, forKey: .performedLoad)

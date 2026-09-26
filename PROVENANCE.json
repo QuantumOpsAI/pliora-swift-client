@@ -1,6 +1,7 @@
 {
   "bundleSha256": "bf9b36502cd1f39dc2c501fed9055c00685e27a2720c6d8212b81e51be66fc13",
   "contractVersion": "0.43.1",
+  "releaseVersion": "0.43.1-personal-home.1",
   "generator": {
     "additionalProperties": "projectName=FitAppClientSwift,library=alamofire,podVersion=0.43.1,useSPM=true,enumUnknownDefaultCase=true",
     "tool": "openapi-generator-cli",
@@ -10,5 +11,27 @@
   "sourceRepository": "https://github.com/QuantumOpsAI/pliora-contracts",
   "specPath": "openapi/fitapp-experience-api-v1.yaml",
   "specSha256": "4f6c2ca90387950dc25f1e253e5351749ab4964d69615892876c83523b35dfca",
-  "swiftClientSha256": "81eb561ec93db896404cdd83fee2f0df18c03f9b2341198da7ccb5f3ea738f32"
+  "baseSwiftClientSha256": "81eb561ec93db896404cdd83fee2f0df18c03f9b2341198da7ccb5f3ea738f32",
+  "overlay": {
+    "bundleSha256": "299fed50201b7f37d51f2bf27200432abda0859bfd7ca5d335fe594e50abc7b8",
+    "contractVersion": "0.44.0",
+    "files": [
+      "PersonalAttentionLoadDivergenceParameters.swift",
+      "PersonalAttentionSubstitutionParameters.swift",
+      "PersonalStudentComparableExerciseKey.swift",
+      "PersonalStudentExerciseLastComparableProjection.swift",
+      "PersonalStudentExerciseLoadDivergenceProjection.swift",
+      "PersonalStudentExerciseLoadProgressionProjection.swift",
+      "PersonalStudentExerciseLoadRegressionProjection.swift",
+      "PersonalStudentExerciseProjection.swift",
+      "PersonalStudentExerciseProjectionWindow.swift",
+      "PersonalStudentExerciseSessionHistoryEntry.swift",
+      "PersonalStudentExerciseSessionHistoryPage.swift",
+      "PersonalStudentExerciseSubstitutionRecurringProjection.swift"
+    ],
+    "sourceCommit": "04ac7b558cac8ab23afe064879b31ffa611b38ad",
+    "specSha256": "35571f0f45c9ae971dfac7132c5e1efc8a9a1e8d6c9d953949db123cd5b5670e",
+    "swiftClientSha256": "7dbd32a66a3683f799e8b4c0d268280c2f4ac61ea3ca7e49b45719c851d096e9"
+  },
+  "swiftClientSha256": "24b5fcb8dab96c09f94cd627ce16feaaa068f59e61dc1069535c0b3bef39abe6"
 }
