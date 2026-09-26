@@ -14,24 +14,34 @@ import AnyCodable
 public struct PersonalStudentComparableExerciseKey: Codable, JSONEncodable, Hashable {
 
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let exerciseLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let variantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let variantLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let equipmentContextKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var exerciseId: String
+    /** Nome canônico do exercício, preservado do catálogo pelo servidor. */
+    public var exerciseLabel: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var variantId: String
+    /** Nome canônico da variante, preservado do catálogo pelo servidor. */
+    public var variantLabel: String
     /** Terceiro membro da chave, quando ele discrimina. Código de máquina estável, **nunca nome de aparelho exibível**. Ausente quando não discrimina. */
     public var equipmentContextKey: String?
 
-    public init(exerciseId: String, variantId: String, equipmentContextKey: String? = nil) {
+    public init(exerciseId: String, exerciseLabel: String, variantId: String, variantLabel: String, equipmentContextKey: String? = nil) {
         self.exerciseId = exerciseId
+        self.exerciseLabel = exerciseLabel
         self.variantId = variantId
+        self.variantLabel = variantLabel
         self.equipmentContextKey = equipmentContextKey
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case exerciseId
+        case exerciseLabel
         case variantId
+        case variantLabel
         case equipmentContextKey
     }
 
@@ -40,7 +50,9 @@ public struct PersonalStudentComparableExerciseKey: Codable, JSONEncodable, Hash
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(exerciseId, forKey: .exerciseId)
+        try container.encode(exerciseLabel, forKey: .exerciseLabel)
         try container.encode(variantId, forKey: .variantId)
+        try container.encode(variantLabel, forKey: .variantLabel)
         try container.encodeIfPresent(equipmentContextKey, forKey: .equipmentContextKey)
     }
 }

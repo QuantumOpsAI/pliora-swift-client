@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Uma sessão da série histórica daquela chave comparável: o instante terminal, a carga **prescrita** e a **executada** como fatos separados, o estado da sessão, e a variante e o contexto de equipamento efetivamente usados. **Nenhum campo aqui é projeção, juízo ou estatística.** Não há delta calculado, percentual, média, tendência, escore, classificação, aderência nem rótulo de melhor ou pior execução: &#x60;30 kg x 3&#x60; e &#x60;25 kg x 12&#x60; não são ordenáveis pelo produto, e ordenar seria interpretação, que o contrato não transporta. */
+/** Uma sessão da série histórica daquela chave comparável: o instante terminal, o estado da sessão, a variante e o contexto de equipamento efetivamente usados e as séries que preservam **prescrito**, **alvo** e **realizado** separadamente. Carga e repetições permanecem fatos por série; nenhuma das duas é resumida pelo cliente. **Nenhum campo aqui é projeção, juízo ou estatística.** Não há delta calculado, percentual, média, tendência, escore, classificação, aderência nem rótulo de melhor ou pior execução: &#x60;30 kg x 3&#x60; e &#x60;25 kg x 12&#x60; não são ordenáveis pelo produto, e ordenar seria interpretação, que o contrato não transporta. */
 public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable, Hashable {
 
     public enum SessionStatus: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -22,7 +22,9 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     }
     public static let sessionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let executedVariantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let executedVariantLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let equipmentContextKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
+    public static let setsRule = ArrayRule(minItems: nil, maxItems: 100, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var sessionId: String
     /** Estado da sessão, com os mesmos valores que a execução já publica em `WorkoutSessionSyncView.status`; o conjunto é reusado sem alteração. */
@@ -31,23 +33,23 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     public var occurredAt: Date
     /** Variante efetivamente executada nesta sessão. Ela pertence à chave: uma variante diferente não entra nesta série. */
     public var executedVariantId: String
+    /** Nome canônico da variante executada, preservado do catálogo pelo servidor e nunca usado no lugar de `executedVariantId`. */
+    public var executedVariantLabel: String
     /** Contexto de equipamento efetivamente usado, quando conhecido. Código de máquina estável, **nunca nome de aparelho exibível**. */
     public var equipmentContextKey: String?
-    /** Carga prescrita da sessão, na unidade canônica. `null` quando o exercício não tem carga prescrita: a comparação simplesmente não existe, e **nenhum valor presumido é preenchido para destravá-la**. */
-    public var prescribedLoad: WorkoutLoad?
-    /** Carga executada da sessão, na mesma unidade canônica. `null` quando não houve registro. Unidade divergente não é comparável e **nunca é convertida**. */
-    public var performedLoad: WorkoutLoad?
+    /** Séries na ordem de execução, reusando a mesma forma que preserva prescrito, alvo e realizado. `actual.reps` é o número executado quando registrado; `null` é ausência de fato e nunca zero presumido. Nenhum limiar ou julgamento é derivado das repetições nesta leitura. */
+    public var sets: [PersonalStudentExerciseSetContextView]
     /** Substituição daquele exercício naquela sessão, quando houve, com o motivo estruturado. Ausente quando não houve. */
     public var substitution: PersonalStudentExerciseSubstitutionView?
 
-    public init(sessionId: String, sessionStatus: SessionStatus, occurredAt: Date, executedVariantId: String, equipmentContextKey: String? = nil, prescribedLoad: WorkoutLoad?, performedLoad: WorkoutLoad?, substitution: PersonalStudentExerciseSubstitutionView? = nil) {
+    public init(sessionId: String, sessionStatus: SessionStatus, occurredAt: Date, executedVariantId: String, executedVariantLabel: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil) {
         self.sessionId = sessionId
         self.sessionStatus = sessionStatus
         self.occurredAt = occurredAt
         self.executedVariantId = executedVariantId
+        self.executedVariantLabel = executedVariantLabel
         self.equipmentContextKey = equipmentContextKey
-        self.prescribedLoad = prescribedLoad
-        self.performedLoad = performedLoad
+        self.sets = sets
         self.substitution = substitution
     }
 
@@ -56,9 +58,9 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
         case sessionStatus
         case occurredAt
         case executedVariantId
+        case executedVariantLabel
         case equipmentContextKey
-        case prescribedLoad
-        case performedLoad
+        case sets
         case substitution
     }
 
@@ -70,9 +72,9 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
         try container.encode(sessionStatus, forKey: .sessionStatus)
         try container.encode(occurredAt, forKey: .occurredAt)
         try container.encode(executedVariantId, forKey: .executedVariantId)
+        try container.encode(executedVariantLabel, forKey: .executedVariantLabel)
         try container.encodeIfPresent(equipmentContextKey, forKey: .equipmentContextKey)
-        try container.encode(prescribedLoad, forKey: .prescribedLoad)
-        try container.encode(performedLoad, forKey: .performedLoad)
+        try container.encode(sets, forKey: .sets)
         try container.encodeIfPresent(substitution, forKey: .substitution)
     }
 }

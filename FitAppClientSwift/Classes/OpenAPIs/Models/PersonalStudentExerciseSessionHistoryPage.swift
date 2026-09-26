@@ -21,14 +21,17 @@ public struct PersonalStudentExerciseSessionHistoryPage: Codable, JSONEncodable,
     public var comparisonStatus: ComparisonStatus
     /** Sessões da chave comparável, da mais recente para a mais antiga. Todas pertencem à mesma chave: a série nunca mistura variantes ou contextos de equipamento diferentes. */
     public var sessions: [PersonalStudentExerciseSessionHistoryEntry]
+    /** Projeções determinísticas e reconstruíveis daquela chave comparável no mesmo `asOf`. O servidor calcula cada uma e declara a sua janela; o cliente não infere projeções a partir das páginas nem soma contagens entre elas. */
+    public var projections: [PersonalStudentExerciseProjection]
     /** Cursor opaco da próxima página, **nulo na última**. Nunca é offset, índice ou dado a ser interpretado pelo cliente. O formato é base64url — **sem espaço, sem pontuação e limitado** —, e isso é restrição de contrato, não detalhe de implementação: nesta superfície não pode existir folha de texto capaz de carregar frase, e um cursor que aceitasse espaço seria exatamente essa folha. `scripts/check-personal-attention-destinations.mjs` reprova **por forma, não por nome**, toda folha de texto que consiga carregar prosa. */
     public var nextCursor: String?
 
-    public init(asOf: Date, comparableKey: PersonalStudentComparableExerciseKey, comparisonStatus: ComparisonStatus, sessions: [PersonalStudentExerciseSessionHistoryEntry], nextCursor: String?) {
+    public init(asOf: Date, comparableKey: PersonalStudentComparableExerciseKey, comparisonStatus: ComparisonStatus, sessions: [PersonalStudentExerciseSessionHistoryEntry], projections: [PersonalStudentExerciseProjection], nextCursor: String?) {
         self.asOf = asOf
         self.comparableKey = comparableKey
         self.comparisonStatus = comparisonStatus
         self.sessions = sessions
+        self.projections = projections
         self.nextCursor = nextCursor
     }
 
@@ -37,6 +40,7 @@ public struct PersonalStudentExerciseSessionHistoryPage: Codable, JSONEncodable,
         case comparableKey
         case comparisonStatus
         case sessions
+        case projections
         case nextCursor
     }
 
@@ -48,6 +52,7 @@ public struct PersonalStudentExerciseSessionHistoryPage: Codable, JSONEncodable,
         try container.encode(comparableKey, forKey: .comparableKey)
         try container.encode(comparisonStatus, forKey: .comparisonStatus)
         try container.encode(sessions, forKey: .sessions)
+        try container.encode(projections, forKey: .projections)
         try container.encode(nextCursor, forKey: .nextCursor)
     }
 }

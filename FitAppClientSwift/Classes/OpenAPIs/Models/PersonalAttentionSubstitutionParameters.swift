@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Parâmetros da substituição recorrente. Viaja o exercício e o motivo estruturado, reusando o enum já canônico da execução. Esta projeção **não** publica o catálogo de opções de substituição nem a alternativa escolhida: a lista de opções continua sem superfície, e o que o item afirma é o fato agregado de que o mesmo exercício foi substituído pelo mesmo motivo dentro da janela. */
+/** Parâmetros da substituição recorrente. Viajam o exercício, a **variante prescrita** que participa da chave de deduplicação e o motivo estruturado, reusando o enum já canônico da execução. Assim, duas variantes prescritas do mesmo exercício não produzem itens visualmente indistinguíveis. Esta projeção **não** publica o catálogo de opções de substituição nem a alternativa escolhida: a lista de opções continua sem superfície, e o que o item afirma é o fato agregado de que a mesma variante prescrita foi substituída pelo mesmo motivo dentro da janela. */
 public struct PersonalAttentionSubstitutionParameters: Codable, JSONEncodable, Hashable {
 
     public enum ReasonCode: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -18,20 +18,35 @@ public struct PersonalAttentionSubstitutionParameters: Codable, JSONEncodable, H
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let exerciseLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let prescribedVariantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let prescribedVariantLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public var reasonCode: ReasonCode
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var exerciseId: String
+    /** Nome canônico do exercício resolvido pelo servidor no catálogo, preservado sem tradução e sem substituir `exerciseId`. */
+    public var exerciseLabel: String
+    /** Variante prescrita que participa da chave de deduplicação do item. O cliente usa o identificador, nunca o rótulo, para navegar e distinguir os itens. */
+    public var prescribedVariantId: String
+    /** Nome canônico da variante prescrita resolvido pelo servidor no catálogo, preservado sem tradução e sem substituir `prescribedVariantId`. */
+    public var prescribedVariantLabel: String
     public var substitutionReason: SubstitutionReason
 
-    public init(reasonCode: ReasonCode, exerciseId: String, substitutionReason: SubstitutionReason) {
+    public init(reasonCode: ReasonCode, exerciseId: String, exerciseLabel: String, prescribedVariantId: String, prescribedVariantLabel: String, substitutionReason: SubstitutionReason) {
         self.reasonCode = reasonCode
         self.exerciseId = exerciseId
+        self.exerciseLabel = exerciseLabel
+        self.prescribedVariantId = prescribedVariantId
+        self.prescribedVariantLabel = prescribedVariantLabel
         self.substitutionReason = substitutionReason
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case reasonCode
         case exerciseId
+        case exerciseLabel
+        case prescribedVariantId
+        case prescribedVariantLabel
         case substitutionReason
     }
 
@@ -41,6 +56,9 @@ public struct PersonalAttentionSubstitutionParameters: Codable, JSONEncodable, H
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(reasonCode, forKey: .reasonCode)
         try container.encode(exerciseId, forKey: .exerciseId)
+        try container.encode(exerciseLabel, forKey: .exerciseLabel)
+        try container.encode(prescribedVariantId, forKey: .prescribedVariantId)
+        try container.encode(prescribedVariantLabel, forKey: .prescribedVariantLabel)
         try container.encode(substitutionReason, forKey: .substitutionReason)
     }
 }
