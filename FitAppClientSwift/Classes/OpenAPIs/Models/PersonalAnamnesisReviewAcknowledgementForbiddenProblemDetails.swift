@@ -18,7 +18,6 @@ public struct PersonalAnamnesisReviewAcknowledgementForbiddenProblemDetails: Cod
     }
     public enum Code: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case forbidden = "FORBIDDEN"
-        case relationshipAccessRevoked = "RELATIONSHIP_ACCESS_REVOKED"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)

@@ -12,7 +12,7 @@ Method | HTTP request | Description
 [**listPersonalStudentInvitations**](StudentInvitationsAPI.md#listpersonalstudentinvitations) | **GET** /personal/student-invitations | Listar convites de aluno emitidos pelo personal
 [**removePersonalStudentInvitation**](StudentInvitationsAPI.md#removepersonalstudentinvitation) | **POST** /personal/student-invitations/{invitationId}/removal | Arquivar um convite terminal da lista do personal
 [**resendPersonalStudentInvitation**](StudentInvitationsAPI.md#resendpersonalstudentinvitation) | **POST** /personal/student-invitations/{invitationId}/resend | Reenviar um convite de aluno pelo personal
-[**resolveStudentInvitation**](StudentInvitationsAPI.md#resolvestudentinvitation) | **POST** /student-invitations/resolve | Resolver um convite de aluno por token opaco
+[**resolveStudentInvitation**](StudentInvitationsAPI.md#resolvestudentinvitation) | **POST** /student-invitations/resolve | Resolver um convite de aluno por credencial curta de jornada
 [**startInvitationEmailOwnershipChallenge**](StudentInvitationsAPI.md#startinvitationemailownershipchallenge) | **POST** /student-invitations/email-ownership-challenges | Emitir o código de posse do endereço convidado, no escopo daquele convite
 [**verifyInvitationEmailOwnershipChallenge**](StudentInvitationsAPI.md#verifyinvitationemailownershipchallenge) | **POST** /student-invitations/email-ownership-challenges/{challengeId}/verification | Verificar o código de posse do endereço convidado
 
@@ -456,9 +456,9 @@ Name | Type | Description  | Notes
     open class func resolveStudentInvitation(resolveStudentInvitationRequest: ResolveStudentInvitationRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: StudentInvitationView?, _ error: Error?) -> Void)
 ```
 
-Resolver um convite de aluno por token opaco
+Resolver um convite de aluno por credencial curta de jornada
 
-Projeta somente os dados seguros necessários para o aluno reconhecer e aceitar um convite. **`INV-CONVITE-GET`: resolver NUNCA consome o convite.** Esta rota, a landing page e o scanner de e-mail do provedor apenas apresentam o segredo; o único consumo é o commit atômico único do aceite, e por isso `status` aqui só pode ser `PENDING` ou `OPENED` — `OPENED` registra apresentação, não consumo, e nenhum caminho desta operação leva a `ACCEPTED`. A resolução não cria sessão nem relação e nunca devolve nome do aluno ou destino sem máscara. `destinationMasked` vem em todo convite emitido a partir da v2, que é `email-bound` (`DEC-CONV-2`), e continua estruturalmente opcional por causa dos convites de link emitidos antes dela, que não têm destino algum — exigi-lo aqui quebraria a decodificação do cliente antes de o aluno ver o convite. Ele é irreversivelmente mascarado e o endereço em claro nunca sai por aqui.
+Leitura autenticada que projeta somente os dados seguros necessários para o aluno reconhecer e aceitar um convite. **`INV-CONVITE-GET`: resolver NUNCA consome o convite.** Esta rota aceita somente o `journeyToken` curto emitido por `createInvitationJourney`; o token bruto de convites beta anteriores deixa de resolver no cutover. O único consumo é o commit atômico único do aceite, e por isso `status` aqui só pode ser `PENDING` ou `OPENED` — `OPENED` registra apresentação, não consumo, e nenhum caminho desta operação leva a `ACCEPTED`. A resolução não cria sessão nem relação e nunca devolve nome do aluno ou destino sem máscara. `destinationMasked` vem em todo convite emitido a partir da v2, que é `email-bound` (`DEC-CONV-2`), e continua estruturalmente opcional por causa dos convites de link emitidos antes dela, que não têm destino algum. Ele é irreversivelmente mascarado e o endereço em claro nunca sai por aqui.
 
 ### Example
 ```swift
@@ -468,7 +468,7 @@ import FitAppClientSwift
 let resolveStudentInvitationRequest = ResolveStudentInvitationRequest(token: "token_example") // ResolveStudentInvitationRequest |
 let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
 
-// Resolver um convite de aluno por token opaco
+// Resolver um convite de aluno por credencial curta de jornada
 StudentInvitationsAPI.resolveStudentInvitation(resolveStudentInvitationRequest: resolveStudentInvitationRequest, acceptLanguage: acceptLanguage) { (response, error) in
     guard error == nil else {
         print(error)
@@ -494,7 +494,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-No authorization required
+[BearerAuth](../README.md#BearerAuth)
 
 ### HTTP request headers
 

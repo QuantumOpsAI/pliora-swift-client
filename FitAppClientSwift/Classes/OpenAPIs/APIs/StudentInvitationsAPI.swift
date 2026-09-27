@@ -452,7 +452,7 @@ open class StudentInvitationsAPI {
     }
 
     /**
-     Resolver um convite de aluno por token opaco
+     Resolver um convite de aluno por credencial curta de jornada
 
      - parameter resolveStudentInvitationRequest: (body)
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
@@ -472,9 +472,12 @@ open class StudentInvitationsAPI {
     }
 
     /**
-     Resolver um convite de aluno por token opaco
+     Resolver um convite de aluno por credencial curta de jornada
      - POST /student-invitations/resolve
-     - Projeta somente os dados seguros necessários para o aluno reconhecer e aceitar um convite. **`INV-CONVITE-GET`: resolver NUNCA consome o convite.** Esta rota, a landing page e o scanner de e-mail do provedor apenas apresentam o segredo; o único consumo é o commit atômico único do aceite, e por isso `status` aqui só pode ser `PENDING` ou `OPENED` — `OPENED` registra apresentação, não consumo, e nenhum caminho desta operação leva a `ACCEPTED`. A resolução não cria sessão nem relação e nunca devolve nome do aluno ou destino sem máscara. `destinationMasked` vem em todo convite emitido a partir da v2, que é `email-bound` (`DEC-CONV-2`), e continua estruturalmente opcional por causa dos convites de link emitidos antes dela, que não têm destino algum — exigi-lo aqui quebraria a decodificação do cliente antes de o aluno ver o convite. Ele é irreversivelmente mascarado e o endereço em claro nunca sai por aqui.
+     - Leitura autenticada que projeta somente os dados seguros necessários para o aluno reconhecer e aceitar um convite. **`INV-CONVITE-GET`: resolver NUNCA consome o convite.** Esta rota aceita somente o `journeyToken` curto emitido por `createInvitationJourney`; o token bruto de convites beta anteriores deixa de resolver no cutover. O único consumo é o commit atômico único do aceite, e por isso `status` aqui só pode ser `PENDING` ou `OPENED` — `OPENED` registra apresentação, não consumo, e nenhum caminho desta operação leva a `ACCEPTED`. A resolução não cria sessão nem relação e nunca devolve nome do aluno ou destino sem máscara. `destinationMasked` vem em todo convite emitido a partir da v2, que é `email-bound` (`DEC-CONV-2`), e continua estruturalmente opcional por causa dos convites de link emitidos antes dela, que não têm destino algum. Ele é irreversivelmente mascarado e o endereço em claro nunca sai por aqui.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
      - responseHeaders: [Content-Language(Locale), Vary(String)]
      - parameter resolveStudentInvitationRequest: (body)
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
@@ -496,7 +499,7 @@ open class StudentInvitationsAPI {
 
         let localVariableRequestBuilder: RequestBuilder<StudentInvitationView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
-        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false)
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
 
     /**

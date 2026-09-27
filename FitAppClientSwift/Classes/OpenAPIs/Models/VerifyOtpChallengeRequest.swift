@@ -12,8 +12,8 @@ import AnyCodable
 
 public struct VerifyOtpChallengeRequest: Codable, JSONEncodable, Hashable {
 
-    public static let codeRule = StringRule(minLength: nil, maxLength: nil, pattern: "/^[0-9]{6,8}$/")
-    /** Código numérico de uso único com o tamanho emitido pelo provedor. */
+    public static let codeRule = StringRule(minLength: nil, maxLength: nil, pattern: "/^[0-9]{8}$/")
+    /** Código numérico de uso único com exatamente oito dígitos. */
     public var code: String
     public var device: DeviceContext
 

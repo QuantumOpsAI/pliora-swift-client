@@ -14,7 +14,7 @@ public struct StudentInvitationAcceptanceContextRequest: Codable, JSONEncodable,
 
     public static let tokenRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let invitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
-    /** Bearer secret opaco do convite; nunca deve ser enviado em path, query, logs ou analytics. Apresentá-lo aqui não consome o convite. */
+    /** Credencial curta da jornada; nunca deve ser enviada em path, query, logs ou analytics. Apresentá-la aqui não consome o convite. */
     public var token: String
     /** Conferência cruzada **opcional**. Quando presente tem de ser o convite daquele token; divergir responde `404 INVITATION_NOT_FOUND`. */
     public var invitationId: String?

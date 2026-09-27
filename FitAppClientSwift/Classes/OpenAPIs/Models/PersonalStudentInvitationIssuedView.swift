@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Projeção do convite no ato de EMITIR — criação e reenvio. Espelha &#x60;PersonalStudentInvitationView&#x60; e acrescenta o segredo de &#x60;DEC-CONV-1&#x60;. &#x60;shareableUrl&#x60; é obrigatório semanticamente em toda emissão NOVA, mas estruturalmente opcional para que o replay idempotente valide sem persistir nem reapresentar o bearer secret. Todos os exemplos desta projeção representam emissões novas e, portanto, carregam o link. &#x60;additionalProperties: false&#x60; impede qualquer outro campo, e nenhuma outra operação publica esta projeção. */
+/** Projeção do convite no ato de EMITIR — criação e reenvio. Espelha &#x60;PersonalStudentInvitationView&#x60; e acrescenta a URL pública com &#x60;linkCode&#x60;. &#x60;shareableUrl&#x60; é obrigatório semanticamente em toda emissão NOVA, mas estruturalmente opcional para que o replay idempotente valide sem persistir nem reapresentar o código público. Todos os exemplos desta projeção representam emissões novas e, portanto, carregam o link. &#x60;additionalProperties: false&#x60; impede qualquer outro campo, e nenhuma outra operação publica esta projeção. */
 public struct PersonalStudentInvitationIssuedView: Codable, JSONEncodable, Hashable {
 
     public static let invitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -29,7 +29,7 @@ public struct PersonalStudentInvitationIssuedView: Codable, JSONEncodable, Hasha
     public var destinationMasked: String?
     /** Tentativas de entrega do e-mail transacional, da mais recente para a mais antiga, como o servidor as observou. Estruturalmente ausente enquanto nenhuma tentativa foi registrada — `DO_NOT_SEND` não gera tentativa — e nunca `null`. É histórico de ENTREGA: nenhuma tentativa altera o ciclo de vida do convite, e nenhuma afirma recebimento ou leitura pelo aluno. */
     public var deliveryAttempts: [StudentInvitationDeliveryAttemptView]?
-    /** Cópia em claro do segredo DESTE convite, e não de um convite paralelo (`INV-CONVITE-UNICO`). É obrigatório em toda emissão ou reenvio NOVO e devolvido uma única vez; fica estruturalmente ausente no replay da mesma Idempotency-Key, no cancelamento e na listagem. É um bearer secret: clientes nunca devem registrar em log, persistir, indexar ou compartilhar este valor, e o servidor não o reapresenta — obtê-lo de novo implica reenviar, o que gera novo segredo e revoga o anterior. */
+    /** URL pública canônica `https://join.pliora.com/i/{linkCode}`. O código é opaco, redigido, não é token de aceite e é obrigatório em toda emissão ou reenvio NOVO. Fica ausente no replay da mesma Idempotency-Key, cancelamento e listagem. Reenviar cria outro código e revoga o anterior. */
     public var shareableUrl: String?
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var sentAt: Date

@@ -1,9 +1,9 @@
-# VerifyOtpChallengeRequest
+# PersonalStudentExerciseProjectionWindow
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**code** | **String** | Código numérico de uso único com exatamente oito dígitos. |
-**device** | [**DeviceContext**](DeviceContext.md) |  |
+**size** | **Int** | Tamanho da janela na unidade declarada. |
+**unit** | [**PersonalAttentionWindowUnit**](PersonalAttentionWindowUnit.md) |  |
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

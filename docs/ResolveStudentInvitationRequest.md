@@ -3,6 +3,6 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**token** | **String** | Bearer secret opaco de uso único, válido por no máximo sete dias; nunca deve ser enviado em path, logs ou analytics. |
+**token** | **String** | Credencial curta da jornada, válida por no máximo trinta minutos e limitada pela validade do convite; nunca deve ser enviada em path, query, logs ou analytics. Ela não é o &#x60;linkCode&#x60; público. |
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
