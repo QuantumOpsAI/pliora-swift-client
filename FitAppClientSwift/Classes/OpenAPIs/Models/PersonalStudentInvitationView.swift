@@ -29,7 +29,7 @@ public struct PersonalStudentInvitationView: Codable, JSONEncodable, Hashable {
     public var destinationMasked: String?
     /** Tentativas de entrega do e-mail transacional, da mais recente para a mais antiga, como o servidor as observou. Estruturalmente ausente enquanto nenhuma tentativa foi registrada — `DO_NOT_SEND` não gera tentativa — e nunca `null`. É histórico de ENTREGA: nenhuma tentativa altera o ciclo de vida do convite, e nenhuma afirma recebimento ou leitura pelo aluno. */
     public var deliveryAttempts: [StudentInvitationDeliveryAttemptView]?
-    /** Cópia em claro do segredo DESTE convite, e não de um convite paralelo (`INV-CONVITE-UNICO`). É devolvido na emissão e no reenvio, uma única vez, e é estruturalmente ausente no cancelamento e na listagem. É um bearer secret: clientes nunca devem registrar em log, persistir, indexar ou compartilhar este valor, e o servidor não o reapresenta — obtê-lo de novo implica reenviar, o que gera novo segredo e revoga o anterior. */
+    /** URL pública canônica `https://join.pliora.com/i/{linkCode}`. O código é opaco, redigido e não autoriza aceite. É devolvida na emissão e no reenvio, uma única vez, e fica estruturalmente ausente no cancelamento, listagem e replay. O servidor não reapresenta o código: reenviar cria outro e revoga o anterior. */
     public var shareableUrl: String?
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var sentAt: Date

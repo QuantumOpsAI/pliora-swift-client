@@ -14,7 +14,7 @@ public struct StartInvitationEmailOwnershipChallengeRequest: Codable, JSONEncoda
 
     public static let tokenRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let invitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
-    /** Bearer secret opaco do convite. O desafio nasce escopado ao convite daquele token e a nenhum outro. */
+    /** Credencial curta da jornada. O desafio nasce escopado ao convite daquela jornada e a nenhum outro. */
     public var token: String
     /** Conferência cruzada **opcional**, com a mesma regra do aceite. */
     public var invitationId: String?

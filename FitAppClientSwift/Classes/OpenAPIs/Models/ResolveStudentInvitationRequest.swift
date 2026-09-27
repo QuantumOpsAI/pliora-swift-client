@@ -13,7 +13,7 @@ import AnyCodable
 public struct ResolveStudentInvitationRequest: Codable, JSONEncodable, Hashable {
 
     public static let tokenRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
-    /** Bearer secret opaco de uso único, válido por no máximo sete dias; nunca deve ser enviado em path, logs ou analytics. */
+    /** Credencial curta da jornada, válida por no máximo trinta minutos e limitada pela validade do convite; nunca deve ser enviada em path, query, logs ou analytics. Ela não é o `linkCode` público. */
     public var token: String
 
     public init(token: String) {

@@ -3,7 +3,7 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**token** | **String** | Bearer secret opaco de uso único que prova a posse do convite; nunca deve ser enviado em path, logs ou analytics. |
+**token** | **String** | Credencial curta da jornada que referencia o convite sem expor o token de aceite; nunca deve ser enviada em path, query, logs ou analytics. |
 **invitationId** | **String** | Conferência cruzada **opcional**. Quando presente tem de ser o convite daquele token; divergir responde &#x60;404 INVITATION_NOT_FOUND&#x60;. Não substitui o token e não identifica o convite sozinho. | [optional]
 **emailOwnershipProofId** | **String** | Prova de posse do endereço convidado, obtida em &#x60;verifyInvitationEmailOwnershipChallenge&#x60; **para este convite**. Exigida quando houve divergência; ausente quando não houve. Uma prova de outro convite é recusada, e nenhuma prova altera o e-mail da conta. | [optional]
 **ageAssurance** | [**StudentAgeAssuranceEvidenceInput**](StudentAgeAssuranceEvidenceInput.md) |  | [optional]

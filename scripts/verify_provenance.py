@@ -47,13 +47,12 @@ def verify(root: Path = ROOT) -> str:
     if not re.fullmatch(semver, release_version):
         raise ValueError("releaseVersion is not exact SemVer")
 
-    overlay = provenance["overlay"]
-    overlay_files = overlay["files"]
-    if len(overlay_files) != 12 or len(set(overlay_files)) != 12:
-        raise ValueError("overlay must name exactly twelve unique generated models")
-    models = root / "FitAppClientSwift/Classes/OpenAPIs/Models"
-    if any(not (models / name).is_file() for name in overlay_files):
-        raise ValueError("overlay names a generated model that is not published")
+    source_commit = provenance["sourceCommit"]
+    if not re.fullmatch(r"[0-9a-f]{40}", source_commit):
+        raise ValueError("sourceCommit must be a full lowercase Git SHA")
+
+    if provenance["sourceRepository"] != "https://github.com/QuantumOpsAI/pliora-contracts":
+        raise ValueError("sourceRepository is not the canonical contracts repository")
 
     expected = provenance["swiftClientSha256"]
     actual = client_digest(root)

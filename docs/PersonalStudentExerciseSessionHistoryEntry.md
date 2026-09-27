@@ -7,9 +7,9 @@ Name | Type | Description | Notes
 **sessionStatus** | **String** | Estado da sessão, com os mesmos valores que a execução já publica em &#x60;WorkoutSessionSyncView.status&#x60;; o conjunto é reusado sem alteração. |
 **occurredAt** | **Date** | Instante terminal da sessão, do servidor. |
 **executedVariantId** | **String** | Variante efetivamente executada nesta sessão. Ela pertence à chave: uma variante diferente não entra nesta série. |
+**executedVariantLabel** | **String** | Nome canônico da variante executada, preservado do catálogo pelo servidor e nunca usado no lugar de &#x60;executedVariantId&#x60;. |
 **equipmentContextKey** | **String** | Contexto de equipamento efetivamente usado, quando conhecido. Código de máquina estável, **nunca nome de aparelho exibível**. | [optional]
-**prescribedLoad** | [**WorkoutLoad**](WorkoutLoad.md) | Carga prescrita da sessão, na unidade canônica. &#x60;null&#x60; quando o exercício não tem carga prescrita: a comparação simplesmente não existe, e **nenhum valor presumido é preenchido para destravá-la**. |
-**performedLoad** | [**WorkoutLoad**](WorkoutLoad.md) | Carga executada da sessão, na mesma unidade canônica. &#x60;null&#x60; quando não houve registro. Unidade divergente não é comparável e **nunca é convertida**. |
+**sets** | [PersonalStudentExerciseSetContextView] | Séries na ordem de execução, reusando a mesma forma que preserva prescrito, alvo e realizado. &#x60;actual.reps&#x60; é o número executado quando registrado; &#x60;null&#x60; é ausência de fato e nunca zero presumido. Nenhum limiar ou julgamento é derivado das repetições nesta leitura. |
 **substitution** | [**PersonalStudentExerciseSubstitutionView**](PersonalStudentExerciseSubstitutionView.md) | Substituição daquele exercício naquela sessão, quando houve, com o motivo estruturado. Ausente quando não houve. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

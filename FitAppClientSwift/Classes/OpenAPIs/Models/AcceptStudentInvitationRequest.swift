@@ -17,7 +17,7 @@ public struct AcceptStudentInvitationRequest: Codable, JSONEncodable, Hashable {
     public static let emailOwnershipProofIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let privacyDecisionsRule = ArrayRule(minItems: 1, maxItems: nil, uniqueItems: false)
     public static let timeZoneRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
-    /** Bearer secret opaco de uso único que prova a posse do convite; nunca deve ser enviado em path, logs ou analytics. */
+    /** Credencial curta da jornada que referencia o convite sem expor o token de aceite; nunca deve ser enviada em path, query, logs ou analytics. */
     public var token: String
     /** Conferência cruzada **opcional**. Quando presente tem de ser o convite daquele token; divergir responde `404 INVITATION_NOT_FOUND`. Não substitui o token e não identifica o convite sozinho. */
     public var invitationId: String?

@@ -13,7 +13,7 @@ import AnyCodable
 public struct DeclineStudentInvitationRequest: Codable, JSONEncodable, Hashable {
 
     public static let tokenRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
-    /** Bearer secret opaco; nunca deve ser enviado em path, logs ou analytics. */
+    /** Credencial curta da jornada, recebida por HTTPS e nunca enviada em path, query, logs ou analytics. Ela não é o `linkCode` público. */
     public var token: String
 
     public init(token: String) {

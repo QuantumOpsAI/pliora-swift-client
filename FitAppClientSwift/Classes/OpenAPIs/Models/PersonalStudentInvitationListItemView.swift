@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Projeção de um convite dentro da coleção do personal. Espelha &#x60;PersonalStudentInvitationView&#x60;, porém SEM &#x60;shareableUrl&#x60; e sem qualquer token: o bearer secret de aceite é devolvido uma única vez na criação e é estruturalmente impossível nesta coleção. &#x60;additionalProperties: false&#x60; impede a reintrodução do segredo por qualquer campo extra. */
+/** Projeção de um convite dentro da coleção do personal. Espelha &#x60;PersonalStudentInvitationView&#x60;, porém SEM &#x60;shareableUrl&#x60; e sem qualquer token: o código público do link é devolvido uma única vez na criação e é estruturalmente impossível nesta coleção. &#x60;additionalProperties: false&#x60; impede a reintrodução do segredo por qualquer campo extra. */
 public struct PersonalStudentInvitationListItemView: Codable, JSONEncodable, Hashable {
 
     public static let invitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
