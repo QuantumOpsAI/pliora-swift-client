@@ -10,22 +10,27 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Página estável do catálogo canônico, paginada exclusivamente por cursor opaco. */
+/** Página estável da busca de exercícios, paginada exclusivamente por cursor opaco. Página vazia é \&quot;nenhum exercício com esses critérios\&quot; e nunca \&quot;catálogo indisponível\&quot;, que é &#x60;503 EXERCISE_CATALOG_UNAVAILABLE&#x60;. */
 public struct ExerciseCatalogPage: Codable, JSONEncodable, Hashable {
 
     public static let nextCursorRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let totalRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public var items: [ExerciseCatalogItem]
     /** Cursor opaco da próxima página; nulo quando não há continuação. */
     public var nextCursor: String?
+    /** Quantos exercícios a combinação atual de busca e filtros traz, **quando a origem informa**. Ausente significa \"não sei\" e nunca vale zero. */
+    public var total: Int?
 
-    public init(items: [ExerciseCatalogItem], nextCursor: String?) {
+    public init(items: [ExerciseCatalogItem], nextCursor: String?, total: Int? = nil) {
         self.items = items
         self.nextCursor = nextCursor
+        self.total = total
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case items
         case nextCursor
+        case total
     }
 
     // Encodable protocol methods
@@ -34,5 +39,6 @@ public struct ExerciseCatalogPage: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(items, forKey: .items)
         try container.encode(nextCursor, forKey: .nextCursor)
+        try container.encodeIfPresent(total, forKey: .total)
     }
 }

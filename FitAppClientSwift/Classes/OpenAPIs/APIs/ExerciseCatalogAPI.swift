@@ -13,18 +13,71 @@ import AnyCodable
 open class ExerciseCatalogAPI {
 
     /**
-     Listar o catálogo canônico de exercícios para autoria do personal
+     Desfavoritar um exercício
 
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ref: (path) Referência do exercício a favoritar ou desfavoritar: &#x60;exerciseId&#x60; ou &#x60;catalogRef&#x60;.
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
-     - parameter query: (query) Busca textual opcional; texto em branco equivale a ausência de filtro. (optional)
-     - parameter cursor: (query) Cursor opaco da página anterior; nunca é offset nem ID interpretável pelo cliente. (optional)
-     - parameter limit: (query) Tamanho solicitado; padrão 50, máximo 100. (optional, default to 50)
      - parameter apiResponseQueue: The queue on which api response is dispatched.
      - parameter completion: completion handler to receive the data and the error objects
      */
     @discardableResult
-    open class func listExerciseCatalog(acceptLanguage: String? = nil, query: String? = nil, cursor: String? = nil, limit: Int? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: ExerciseCatalogPage?, _ error: Error?) -> Void)) -> RequestTask {
-        return listExerciseCatalogWithRequestBuilder(acceptLanguage: acceptLanguage, query: query, cursor: cursor, limit: limit).execute(apiResponseQueue) { result in
+    open class func deletePersonalExerciseFavorite(idempotencyKey: String, ref: String, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: Void?, _ error: Error?) -> Void)) -> RequestTask {
+        return deletePersonalExerciseFavoriteWithRequestBuilder(idempotencyKey: idempotencyKey, ref: ref, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case .success:
+                completion((), nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Desfavoritar um exercício
+     - DELETE /personal/exercise-favorites/{ref}
+     - Remove o exercício dos favoritos do personal autenticado, de forma idempotente: desfavoritar o que não é favorito responde `204` outra vez, sem efeito. Não apaga o exercício nem a referência dele, e nenhuma prescrição muda. Uma referência que o servidor não reconhece é `404 EXERCISE_NOT_FOUND`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale)]
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ref: (path) Referência do exercício a favoritar ou desfavoritar: &#x60;exerciseId&#x60; ou &#x60;catalogRef&#x60;.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<Void>
+     */
+    open class func deletePersonalExerciseFavoriteWithRequestBuilder(idempotencyKey: String, ref: String, acceptLanguage: String? = nil) -> RequestBuilder<Void> {
+        var localVariablePath = "/personal/exercise-favorites/{ref}"
+        let refPreEscape = "\(APIHelper.mapValueToPathItem(ref))"
+        let refPostEscape = refPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{ref}", with: refPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<Void>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getNonDecodableBuilder()
+
+        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Ler as opções de cada filtro de exercício
+
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getExerciseCatalogFilters(acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: ExerciseCatalogFilters?, _ error: Error?) -> Void)) -> RequestTask {
+        return getExerciseCatalogFiltersWithRequestBuilder(acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
             switch result {
             case let .success(response):
                 completion(response.body, nil)
@@ -35,20 +88,194 @@ open class ExerciseCatalogAPI {
     }
 
     /**
-     Listar o catálogo canônico de exercícios para autoria do personal
+     Ler as opções de cada filtro de exercício
+     - GET /exercises/filters
+     - Devolve, para cada filtro de `listExerciseCatalog`, as opções que a origem oferece: `code` opaco, que o app repassa no parâmetro do filtro, e `label` `server_localized`, que o app exibe como veio. Os códigos são **vocabulário aberto** lido da origem: nenhum deles é enum do contrato, e o app nunca os interpreta nem os traduz. Cada filtro aparece no máximo uma vez, e uma opção existe no máximo uma vez dentro do seu filtro. `count` é a contagem **global** da opção, no catálogo inteiro, e só vem quando a origem a informa; ela não considera os outros filtros selecionados — quem diz quantos exercícios a combinação atual traz é `total` em `listExerciseCatalog`. Ausência de `count` significa \"não sei\", nunca zero. Os rótulos seguem o idioma que a origem serve; `Content-Language` declara o locale das opções, que pode ser `en-US` com `Accept-Language: pt-BR` enquanto a origem só servir inglês. O `label` de cada grupo segue o mesmo locale das opções daquele grupo, e o app pode localizar o nome do grupo pelo enum `filter` se preferir. Origem fora do ar ou cota esgotada respondem `503 EXERCISE_CATALOG_UNAVAILABLE`, e nunca uma lista de filtros vazia.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<ExerciseCatalogFilters>
+     */
+    open class func getExerciseCatalogFiltersWithRequestBuilder(acceptLanguage: String? = nil) -> RequestBuilder<ExerciseCatalogFilters> {
+        let localVariablePath = "/exercises/filters"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<ExerciseCatalogFilters>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Ler o detalhe de um exercício
+
+     - parameter ref: (path) Referência do exercício: o &#x60;exerciseId&#x60; quando o item o traz, ou o &#x60;catalogRef&#x60; quando ainda não há referência. Opaca nos dois casos.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getExerciseCatalogItem(ref: String, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: ExerciseCatalogDetail?, _ error: Error?) -> Void)) -> RequestTask {
+        return getExerciseCatalogItemWithRequestBuilder(ref: ref, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Ler o detalhe de um exercício
+     - GET /exercises/{ref}
+     - Detalhe sem efeito colateral de um exercício: nome, atributos, `steps[]` em ordem, a mídia com `angle` e `demonstrator` por asset e `similarQuery`, o conjunto de filtros que reproduz \"similares\" na busca — o servidor não devolve lista montada de substitutos. Músculos secundários só existem em exercício próprio. Cada atributo vem só quando a origem o informa. `media` lista os assets disponíveis com a mesma forma de `ExerciseMediaAsset` que o aluno recebe; vídeo nunca é pré-requisito de prescrever, e nenhuma mídia é pedida à origem antes de o app iniciar a reprodução. Um exercício que não existe, que a identidade autenticada não pode ler ou cuja referência é malformada respondem de forma indistinguível, `404 EXERCISE_NOT_FOUND`. Origem fora do ar ou cota esgotada respondem `503 EXERCISE_CATALOG_UNAVAILABLE` com o motivo, e o app mantém utilizável o exercício que já está num plano, porque o rótulo é da prescrição. Os textos de um exercício do catálogo seguem o idioma que a origem serve, e `Content-Language` declara o locale desse texto, como em `listExerciseCatalog`; o texto autoral de um exercício próprio é `authored_preserved` e não segue o cabeçalho.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - parameter ref: (path) Referência do exercício: o &#x60;exerciseId&#x60; quando o item o traz, ou o &#x60;catalogRef&#x60; quando ainda não há referência. Opaca nos dois casos.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<ExerciseCatalogDetail>
+     */
+    open class func getExerciseCatalogItemWithRequestBuilder(ref: String, acceptLanguage: String? = nil) -> RequestBuilder<ExerciseCatalogDetail> {
+        var localVariablePath = "/exercises/{ref}"
+        let refPreEscape = "\(APIHelper.mapValueToPathItem(ref))"
+        let refPostEscape = refPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{ref}", with: refPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<ExerciseCatalogDetail>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Ler a preferência de vídeo do personal
+
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getPersonalExerciseMediaPreference(acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: ExerciseMediaPreferenceView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getPersonalExerciseMediaPreferenceWithRequestBuilder(acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Ler a preferência de vídeo do personal
+     - GET /personal/exercise-media-preference
+     - O `demonstrator` e o `angle` padrão do personal para o vídeo de exercício. Os dois são opcionais e valem como **preferência**, nunca como filtro: um exercício que não tem o asset preferido mostra o que tem. Quem nunca escolheu recebe os dois nulos, com uma `revision` ainda assim. O aluno não usa esta preferência: ele troca no player.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String)]
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<ExerciseMediaPreferenceView>
+     */
+    open class func getPersonalExerciseMediaPreferenceWithRequestBuilder(acceptLanguage: String? = nil) -> RequestBuilder<ExerciseMediaPreferenceView> {
+        let localVariablePath = "/personal/exercise-media-preference"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<ExerciseMediaPreferenceView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     * enum for parameter origin
+     */
+    public enum Origin_listExerciseCatalog: String, CaseIterable {
+        case catalog = "CATALOG"
+        case personal = "PERSONAL"
+    }
+
+    /**
+     Buscar exercícios, com filtros, para a autoria do personal
+
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter query: (query) Busca textual opcional; texto em branco equivale a ausência de filtro. (optional)
+     - parameter muscle: (query) Código opaco da opção de músculo, de &#x60;getExerciseCatalogFilters&#x60;. Um valor. (optional)
+     - parameter equipment: (query) Código opaco da opção de equipamento, de &#x60;getExerciseCatalogFilters&#x60;. Um valor. (optional)
+     - parameter grip: (query) Código opaco da opção de pegada, de &#x60;getExerciseCatalogFilters&#x60;. Um valor. (optional)
+     - parameter difficulty: (query) Código opaco da opção de dificuldade, de &#x60;getExerciseCatalogFilters&#x60;. Um valor. (optional)
+     - parameter mechanic: (query) Código opaco da opção de mecânica, de &#x60;getExerciseCatalogFilters&#x60;. Um valor. (optional)
+     - parameter force: (query) Código opaco da opção de tipo de força, de &#x60;getExerciseCatalogFilters&#x60;. Um valor. (optional)
+     - parameter origin: (query) Onde buscar: &#x60;CATALOG&#x60; (padrão), o catálogo consultado na hora, ou &#x60;PERSONAL&#x60;, os exercícios do próprio personal. (optional, default to .catalog)
+     - parameter cursor: (query) Cursor opaco da página anterior; nunca é offset nem ID interpretável pelo cliente. (optional)
+     - parameter limit: (query) Tamanho solicitado; padrão 50, máximo 100. (optional, default to 50)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func listExerciseCatalog(acceptLanguage: String? = nil, query: String? = nil, muscle: String? = nil, equipment: String? = nil, grip: String? = nil, difficulty: String? = nil, mechanic: String? = nil, force: String? = nil, origin: Origin_listExerciseCatalog? = nil, cursor: String? = nil, limit: Int? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: ExerciseCatalogPage?, _ error: Error?) -> Void)) -> RequestTask {
+        return listExerciseCatalogWithRequestBuilder(acceptLanguage: acceptLanguage, query: query, muscle: muscle, equipment: equipment, grip: grip, difficulty: difficulty, mechanic: mechanic, force: force, origin: origin, cursor: cursor, limit: limit).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Buscar exercícios, com filtros, para a autoria do personal
      - GET /exercises
-     - Coleção autenticada e exclusiva do papel PERSONAL. A busca cobre nome do exercício, nome da variante, grupo muscular e contexto de equipamento. A paginação usa cursor opaco e ordem estável definida pelo servidor. O contrato nunca expõe nome, ID, payload ou credencial de provider. A mídia está ligada à ExerciseVariant; sua ausência não impede prescrever ou executar o exercício. `assetId + mediaVersion`, e nunca a URL de entrega, formam a identidade estável para cache. `expiresAt` expira apenas a URL; `offlineValidUntil` limita o direito de retenção offline e possui semântica independente.
+     - Busca autenticada e exclusiva do papel PERSONAL, declarado em `security` (`BearerAuth` com o papel `PERSONAL`); qualquer outra identidade autenticada recebe `403 FORBIDDEN`. O contrato é **agnóstico de origem**: os mesmos parâmetros e o mesmo item servem a consulta feita na hora à origem do catálogo e qualquer catálogo próprio futuro. O que a origem não entrega na linha da lista **vem ausente, nunca inventado**. Nenhum nome, ID, payload ou credencial de provider aparece aqui, e nenhum vocabulário de provider é enum. `origin=CATALOG` (padrão) consulta o catálogo, e a ordem é a da origem: relevância quando há `query`; não existe parâmetro de ordenação. `origin=PERSONAL` busca nos exercícios do próprio personal, ignorando acento e caixa, em ordem de nome; nela só `query` se aplica, e um filtro informado é `422 VALIDATION_FAILED` em vez de ser ignorado em silêncio. `muscle`, `equipment`, `grip`, `difficulty`, `mechanic` e `force` recebem **um código opaco por filtro**, copiado das opções de `getExerciseCatalogFilters`; os informados valem juntos. O cursor é opaco e carrega a posição na origem. `total` só vem quando a origem informa a contagem da combinação atual; sua ausência significa \"não sei\", nunca zero. **A lista nunca devolve mídia, URL ou imagem**: vídeo e passos pertencem a `getExerciseCatalogItem`. **Catálogo indisponível não é lista vazia.** Origem fora do ar ou cota esgotada respondem `503 EXERCISE_CATALOG_UNAVAILABLE` com o motivo; `items: []` com `200` significa somente \"nenhum exercício com esses critérios\". **Idioma.** Os textos de um exercício do catálogo vêm no idioma que a origem serve, e `Content-Language` declara o locale desse texto: enquanto a origem só serve inglês, a resposta declara `en-US` mesmo com `Accept-Language: pt-BR`. O texto autoral — o nome e os atributos de um exercício próprio — é `authored_preserved` e **não segue o cabeçalho**, inclusive quando a mesma resposta mistura exercício próprio com item do catálogo. O app exibe o texto como veio, sem traduzir e sem compará-lo com rótulo de filtro.
      - Bearer Token:
        - type: http
        - name: BearerAuth
      - responseHeaders: [Content-Language(Locale), Vary(String)]
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
      - parameter query: (query) Busca textual opcional; texto em branco equivale a ausência de filtro. (optional)
+     - parameter muscle: (query) Código opaco da opção de músculo, de &#x60;getExerciseCatalogFilters&#x60;. Um valor. (optional)
+     - parameter equipment: (query) Código opaco da opção de equipamento, de &#x60;getExerciseCatalogFilters&#x60;. Um valor. (optional)
+     - parameter grip: (query) Código opaco da opção de pegada, de &#x60;getExerciseCatalogFilters&#x60;. Um valor. (optional)
+     - parameter difficulty: (query) Código opaco da opção de dificuldade, de &#x60;getExerciseCatalogFilters&#x60;. Um valor. (optional)
+     - parameter mechanic: (query) Código opaco da opção de mecânica, de &#x60;getExerciseCatalogFilters&#x60;. Um valor. (optional)
+     - parameter force: (query) Código opaco da opção de tipo de força, de &#x60;getExerciseCatalogFilters&#x60;. Um valor. (optional)
+     - parameter origin: (query) Onde buscar: &#x60;CATALOG&#x60; (padrão), o catálogo consultado na hora, ou &#x60;PERSONAL&#x60;, os exercícios do próprio personal. (optional, default to .catalog)
      - parameter cursor: (query) Cursor opaco da página anterior; nunca é offset nem ID interpretável pelo cliente. (optional)
      - parameter limit: (query) Tamanho solicitado; padrão 50, máximo 100. (optional, default to 50)
      - returns: RequestBuilder<ExerciseCatalogPage>
      */
-    open class func listExerciseCatalogWithRequestBuilder(acceptLanguage: String? = nil, query: String? = nil, cursor: String? = nil, limit: Int? = nil) -> RequestBuilder<ExerciseCatalogPage> {
+    open class func listExerciseCatalogWithRequestBuilder(acceptLanguage: String? = nil, query: String? = nil, muscle: String? = nil, equipment: String? = nil, grip: String? = nil, difficulty: String? = nil, mechanic: String? = nil, force: String? = nil, origin: Origin_listExerciseCatalog? = nil, cursor: String? = nil, limit: Int? = nil) -> RequestBuilder<ExerciseCatalogPage> {
         let localVariablePath = "/exercises"
         let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
         let localVariableParameters: [String: Any]? = nil
@@ -56,6 +283,13 @@ open class ExerciseCatalogAPI {
         var localVariableUrlComponents = URLComponents(string: localVariableURLString)
         localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
             "query": (wrappedValue: query?.encodeToJSON(), isExplode: true),
+            "muscle": (wrappedValue: muscle?.encodeToJSON(), isExplode: true),
+            "equipment": (wrappedValue: equipment?.encodeToJSON(), isExplode: true),
+            "grip": (wrappedValue: grip?.encodeToJSON(), isExplode: true),
+            "difficulty": (wrappedValue: difficulty?.encodeToJSON(), isExplode: true),
+            "mechanic": (wrappedValue: mechanic?.encodeToJSON(), isExplode: true),
+            "force": (wrappedValue: force?.encodeToJSON(), isExplode: true),
+            "origin": (wrappedValue: origin?.encodeToJSON(), isExplode: true),
             "cursor": (wrappedValue: cursor?.encodeToJSON(), isExplode: true),
             "limit": (wrappedValue: limit?.encodeToJSON(), isExplode: true),
         ])
@@ -69,5 +303,284 @@ open class ExerciseCatalogAPI {
         let localVariableRequestBuilder: RequestBuilder<ExerciseCatalogPage>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Listar os exercícios favoritos do personal
+
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter cursor: (query) Cursor opaco da página anterior. (optional)
+     - parameter limit: (query) Tamanho solicitado; padrão 20, máximo 20. (optional, default to 20)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func listPersonalExerciseFavorites(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalExerciseFavoritesPage?, _ error: Error?) -> Void)) -> RequestTask {
+        return listPersonalExerciseFavoritesWithRequestBuilder(acceptLanguage: acceptLanguage, cursor: cursor, limit: limit).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Listar os exercícios favoritos do personal
+     - GET /personal/exercise-favorites
+     - Lista paginada, até 20 por página. Para exercício do catálogo o nome é lido da origem a cada página — é o preço de não guardá-lo. **Quando a origem não responde por um item**, o item continua na lista com `availability: UNAVAILABLE` e sem `exercise`, para o app mostrar \"Exercício indisponível agora\" e não permitir selecioná-lo; a página inteira só falha por problema do próprio Pliora. `availability` é explícito e nunca se infere da ausência de campo. Como a página mistura exercício próprio com item do catálogo, `Content-Language` declara o locale do texto do catálogo, e o texto autoral não o segue (`authored_preserved`).
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter cursor: (query) Cursor opaco da página anterior. (optional)
+     - parameter limit: (query) Tamanho solicitado; padrão 20, máximo 20. (optional, default to 20)
+     - returns: RequestBuilder<PersonalExerciseFavoritesPage>
+     */
+    open class func listPersonalExerciseFavoritesWithRequestBuilder(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil) -> RequestBuilder<PersonalExerciseFavoritesPage> {
+        let localVariablePath = "/personal/exercise-favorites"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "cursor": (wrappedValue: cursor?.encodeToJSON(), isExplode: true),
+            "limit": (wrappedValue: limit?.encodeToJSON(), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalExerciseFavoritesPage>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Listar os exercícios que o personal já prescreveu
+
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter cursor: (query) Cursor opaco da página anterior. (optional)
+     - parameter limit: (query) Tamanho solicitado; padrão 20, máximo 50. (optional, default to 20)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func listPersonalRecentExercises(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalRecentExercisesPage?, _ error: Error?) -> Void)) -> RequestTask {
+        return listPersonalRecentExercisesWithRequestBuilder(acceptLanguage: acceptLanguage, cursor: cursor, limit: limit).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Listar os exercícios que o personal já prescreveu
+     - GET /personal/recent-exercises
+     - Os exercícios das versões **publicadas pelo próprio personal**, do mais recente ao mais antigo, **um item por exercício**, com o **rótulo que ele usou na prescrição** e o instante da publicação mais recente em que o usou. É dado do Pliora: **não consulta a origem do catálogo** e continua funcionando com ela fora do ar. Atributos só vêm quando o Pliora os tem, o que hoje acontece para exercício próprio.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter cursor: (query) Cursor opaco da página anterior. (optional)
+     - parameter limit: (query) Tamanho solicitado; padrão 20, máximo 50. (optional, default to 20)
+     - returns: RequestBuilder<PersonalRecentExercisesPage>
+     */
+    open class func listPersonalRecentExercisesWithRequestBuilder(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil) -> RequestBuilder<PersonalRecentExercisesPage> {
+        let localVariablePath = "/personal/recent-exercises"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "cursor": (wrappedValue: cursor?.encodeToJSON(), isExplode: true),
+            "limit": (wrappedValue: limit?.encodeToJSON(), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalRecentExercisesPage>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Favoritar um exercício
+
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ref: (path) Referência do exercício a favoritar ou desfavoritar: &#x60;exerciseId&#x60; ou &#x60;catalogRef&#x60;.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func putPersonalExerciseFavorite(idempotencyKey: String, ref: String, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalExerciseFavoriteView?, _ error: Error?) -> Void)) -> RequestTask {
+        return putPersonalExerciseFavoriteWithRequestBuilder(idempotencyKey: idempotencyKey, ref: ref, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Favoritar um exercício
+     - PUT /personal/exercise-favorites/{ref}
+     - Marca o exercício como favorito do personal autenticado, de forma idempotente: favoritar de novo o que já é favorito responde o mesmo `200`, sem efeito. Favoritar um exercício do catálogo por `catalogRef` **cria a referência dele** (só a referência, como em `resolveExerciseReferences`), e a resposta devolve o `exerciseId` e, quando o servidor já tem, o `variantId`. Um exercício que o servidor não reconhece é `404 EXERCISE_NOT_FOUND`, indistinguível de um que pertence a outro personal.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ref: (path) Referência do exercício a favoritar ou desfavoritar: &#x60;exerciseId&#x60; ou &#x60;catalogRef&#x60;.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<PersonalExerciseFavoriteView>
+     */
+    open class func putPersonalExerciseFavoriteWithRequestBuilder(idempotencyKey: String, ref: String, acceptLanguage: String? = nil) -> RequestBuilder<PersonalExerciseFavoriteView> {
+        var localVariablePath = "/personal/exercise-favorites/{ref}"
+        let refPreEscape = "\(APIHelper.mapValueToPathItem(ref))"
+        let refPostEscape = refPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{ref}", with: refPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalExerciseFavoriteView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Salvar a preferência de vídeo do personal
+
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) ETag exata da revisão lida pelo cliente; impede last-write-wins.
+     - parameter putExerciseMediaPreferenceRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func putPersonalExerciseMediaPreference(idempotencyKey: String, ifMatch: String, putExerciseMediaPreferenceRequest: PutExerciseMediaPreferenceRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: ExerciseMediaPreferenceView?, _ error: Error?) -> Void)) -> RequestTask {
+        return putPersonalExerciseMediaPreferenceWithRequestBuilder(idempotencyKey: idempotencyKey, ifMatch: ifMatch, putExerciseMediaPreferenceRequest: putExerciseMediaPreferenceRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Salvar a preferência de vídeo do personal
+     - PUT /personal/exercise-media-preference
+     - Substitui a preferência inteira por compare-and-set: `If-Match` com a `revision` lida é obrigatório, e uma edição sobre revisão velha é `412 PRECONDITION_FAILED`, sem gravar nada. `null` num campo limpa aquele campo. O valor é um código opaco que o app leu de um asset (`ExerciseMediaAsset.angle` ou `.demonstrator`); o servidor não valida contra uma lista fechada, porque o vocabulário é aberto.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String)]
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) ETag exata da revisão lida pelo cliente; impede last-write-wins.
+     - parameter putExerciseMediaPreferenceRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<ExerciseMediaPreferenceView>
+     */
+    open class func putPersonalExerciseMediaPreferenceWithRequestBuilder(idempotencyKey: String, ifMatch: String, putExerciseMediaPreferenceRequest: PutExerciseMediaPreferenceRequest, acceptLanguage: String? = nil) -> RequestBuilder<ExerciseMediaPreferenceView> {
+        let localVariablePath = "/personal/exercise-media-preference"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: putExerciseMediaPreferenceRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+            "If-Match": ifMatch.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<ExerciseMediaPreferenceView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Resolver referências opacas de catálogo em exercício e variante prescritíveis
+
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter resolveExerciseReferencesRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func resolveExerciseReferences(idempotencyKey: String, resolveExerciseReferencesRequest: ResolveExerciseReferencesRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: ExerciseReferencesView?, _ error: Error?) -> Void)) -> RequestTask {
+        return resolveExerciseReferencesWithRequestBuilder(idempotencyKey: idempotencyKey, resolveExerciseReferencesRequest: resolveExerciseReferencesRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Resolver referências opacas de catálogo em exercício e variante prescritíveis
+     - POST /exercises/references
+     - Recebe até 60 `catalogRef` e devolve, para cada um, o `exerciseId` e o `variantId` que a prescrição usa, **criando a referência do exercício quando ela ainda não existe**. O app a chama ao confirmar a seleção do seletor, antes de gravar os exercícios no rascunho: o conteúdo da prescrição continua usando só `exerciseId` e `prescribedVariantId`, e `catalogRef` nunca entra nele. A operação é **idempotente**: o mesmo `catalogRef` devolve sempre o mesmo par, em qualquer repetição, e `Idempotency-Key` com corpo diferente é `409 IDEMPOTENCY_CONFLICT`. A resposta traz um item por `catalogRef`, **na ordem do pedido**. Uma referência que o servidor não reconhece — inexistente, malformada ou emitida a outro personal, todas indistinguíveis — vem como `NOT_FOUND` no seu item, sem derrubar as demais, e **nada é criado para ela**. Nada do exercício é gravado além da referência: nenhum nome, passo ou atributo. O rótulo da prescrição é texto do personal e vive no rascunho. `catalogRef` não é estável como identidade: depois de resolvido, o app usa `exerciseId`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter resolveExerciseReferencesRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<ExerciseReferencesView>
+     */
+    open class func resolveExerciseReferencesWithRequestBuilder(idempotencyKey: String, resolveExerciseReferencesRequest: ResolveExerciseReferencesRequest, acceptLanguage: String? = nil) -> RequestBuilder<ExerciseReferencesView> {
+        let localVariablePath = "/exercises/references"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: resolveExerciseReferencesRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<ExerciseReferencesView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
 }

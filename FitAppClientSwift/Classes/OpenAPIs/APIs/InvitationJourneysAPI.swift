@@ -35,7 +35,7 @@ open class InvitationJourneysAPI {
     /**
      Trocar um código público por uma jornada curta
      - POST /invitation-journeys
-     - Recebe somente o `linkCode` da URL first-party `https://join.pliora.com/i/{linkCode}` e devolve uma credencial curta. Não aceita, recusa, abre ou consome convite. A resposta desconhecida é indistinguível de código revogado e não publica e-mail ou PII. `journeyToken` nunca entra em URL, logs ou analytics e expira em no máximo trinta minutos, limitado pela validade do convite.
+     - Recebe somente o `linkCode` da URL first-party `https://join.pliora.quantumopsai.com/i/{linkCode}` e devolve uma credencial curta. Não aceita, recusa, abre ou consome convite. A resposta desconhecida é indistinguível de código revogado e não publica e-mail ou PII. `journeyToken` nunca entra em URL, logs ou analytics e expira em no máximo trinta minutos, limitado pela validade do convite.
      - responseHeaders: [Content-Language(Locale), Vary(String)]
      - parameter createInvitationJourneyRequest: (body)
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
@@ -66,12 +66,13 @@ open class InvitationJourneysAPI {
      - parameter invitationId: (path)
      - parameter createPendingInvitationJourneyRequest: (body)
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica. Obrigatória quando o corpo traz &#x60;emailDiscoveryProofId&#x60;; sem ela, a recusa é &#x60;422 VALIDATION_ERROR&#x60;. (optional)
      - parameter apiResponseQueue: The queue on which api response is dispatched.
      - parameter completion: completion handler to receive the data and the error objects
      */
     @discardableResult
-    open class func createPendingStudentInvitationJourney(invitationId: String, createPendingInvitationJourneyRequest: CreatePendingInvitationJourneyRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: InvitationJourneyView?, _ error: Error?) -> Void)) -> RequestTask {
-        return createPendingStudentInvitationJourneyWithRequestBuilder(invitationId: invitationId, createPendingInvitationJourneyRequest: createPendingInvitationJourneyRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+    open class func createPendingStudentInvitationJourney(invitationId: String, createPendingInvitationJourneyRequest: CreatePendingInvitationJourneyRequest, acceptLanguage: String? = nil, idempotencyKey: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: InvitationJourneyView?, _ error: Error?) -> Void)) -> RequestTask {
+        return createPendingStudentInvitationJourneyWithRequestBuilder(invitationId: invitationId, createPendingInvitationJourneyRequest: createPendingInvitationJourneyRequest, acceptLanguage: acceptLanguage, idempotencyKey: idempotencyKey).execute(apiResponseQueue) { result in
             switch result {
             case let .success(response):
                 completion(response.body, nil)
@@ -84,7 +85,7 @@ open class InvitationJourneysAPI {
     /**
      Criar jornada para um convite pendente escolhido
      - POST /student-invitations/pending/{invitationId}/journey
-     - Cria a credencial curta somente se o destino do convite corresponder a um e-mail verificado da sessão. Inexistente, alheio e inelegível respondem de forma indistinguível. Não aceita, abre nem consome o convite.
+     - Cria a credencial curta para o convite escolhido. O convite é elegível por um de dois caminhos, e só por eles: o destino corresponde a um e-mail verificado da sessão, ou o corpo traz `emailDiscoveryProofId`, uma prova de endereço desta conta, ainda válida e não usada, cujo endereço provado é o destino deste convite. Inexistente, alheio e inelegível respondem de forma indistinguível. Não aceita, abre nem consome o convite. **A prova de posse nasce aqui, e só para este convite.** Com `emailDiscoveryProofId`, a operação consome a prova de endereço — que é de uso único, presa à conta e válida por 30 minutos — e grava a prova de posse **somente** do convite do path, no mesmo registro do desafio de posse do convite (`DEC-CONV-7`, sem emenda). Daí em diante o caminho é o de sempre: o contexto de aceite responde `emailOwnership.status = PROVEN` e o aceite segue pela única porta que existe. Outro convite do mesmo endereço exige novo código. Nada aqui altera o e-mail da conta. **Prova alheia, vencida, já usada ou de outro destino** responde o mesmo `404` indistinguível de um convite inexistente, e esse `404` **não consome** a prova: só a criação da jornada a consome. **`Idempotency-Key` é obrigatória quando `emailDiscoveryProofId` vem no corpo**, e a falta dela é `422 VALIDATION_ERROR`. A repetição com a mesma chave e o mesmo corpo devolve a mesma jornada, de modo que uma resposta perdida não queima a prova de uso único. A mesma chave com outro `invitationId` ou outro corpo responde `409 IDEMPOTENCY_CONFLICT` e nada é consumido. Sem a prova, a chave é aceita e ignorada.
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -92,9 +93,10 @@ open class InvitationJourneysAPI {
      - parameter invitationId: (path)
      - parameter createPendingInvitationJourneyRequest: (body)
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica. Obrigatória quando o corpo traz &#x60;emailDiscoveryProofId&#x60;; sem ela, a recusa é &#x60;422 VALIDATION_ERROR&#x60;. (optional)
      - returns: RequestBuilder<InvitationJourneyView>
      */
-    open class func createPendingStudentInvitationJourneyWithRequestBuilder(invitationId: String, createPendingInvitationJourneyRequest: CreatePendingInvitationJourneyRequest, acceptLanguage: String? = nil) -> RequestBuilder<InvitationJourneyView> {
+    open class func createPendingStudentInvitationJourneyWithRequestBuilder(invitationId: String, createPendingInvitationJourneyRequest: CreatePendingInvitationJourneyRequest, acceptLanguage: String? = nil, idempotencyKey: String? = nil) -> RequestBuilder<InvitationJourneyView> {
         var localVariablePath = "/student-invitations/pending/{invitationId}/journey"
         let invitationIdPreEscape = "\(APIHelper.mapValueToPathItem(invitationId))"
         let invitationIdPostEscape = invitationIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
@@ -107,6 +109,7 @@ open class InvitationJourneysAPI {
         let localVariableNillableHeaders: [String: Any?] = [
             "Content-Type": "application/json",
             "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey?.encodeToJSON(),
         ]
 
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
@@ -162,5 +165,118 @@ open class InvitationJourneysAPI {
         let localVariableRequestBuilder: RequestBuilder<PendingStudentInvitationPage>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Pedir um código para provar a posse de um endereço digitado (\"Tenho um convite\")
+
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter startInvitationEmailDiscoveryChallengeRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func startInvitationEmailDiscoveryChallenge(idempotencyKey: String, startInvitationEmailDiscoveryChallengeRequest: StartInvitationEmailDiscoveryChallengeRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: InvitationEmailDiscoveryChallengeView?, _ error: Error?) -> Void)) -> RequestTask {
+        return startInvitationEmailDiscoveryChallengeWithRequestBuilder(idempotencyKey: idempotencyKey, startInvitationEmailDiscoveryChallengeRequest: startInvitationEmailDiscoveryChallengeRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Pedir um código para provar a posse de um endereço digitado (\"Tenho um convite\")
+     - POST /student-invitations/email-discovery-challenges
+     - Fluxo \"Tenho um convite\": a pessoa já entrou, não tem o link à mão e informa o e-mail para o qual o convite foi enviado. Só existe com sessão: antes do login não há conta a que prender a prova, e a operação viraria um disparador público de e-mail. **Nenhuma resposta depende de existir convite** para o endereço: nem este pedido, nem as recusas da verificação, nem o `429`. O `202` é idêntico, com os mesmos campos e a mesma latência, haja ou não convite pendente para o endereço, porque o envio é assíncrono, por fila. Só depois do código certo a verificação mostra o resultado. **O desafio é sempre persistido**, com ou sem convite, num registro que não depende de convite. **Sem convite, nenhum código é enviado**; mesmo assim **o desafio sem convite segue o mesmo ciclo de tentativas e validade de um real**: cada código digitado conta tentativa, a última esgota o desafio e, depois da validade, ele expira. Um desafio que nunca se esgotasse nem expirasse revelaria o resultado em poucas tentativas. **Limites contam pedidos, nunca envios**: por conta, por endereço (somando contas), por aparelho e um teto global. Pedir de novo antes de `resendAvailableAt` responde `429` com `Retry-After`. `422 VALIDATION_ERROR` depende só do endereço e da própria conta: endereço malformado, ou igual ao e-mail verificado da conta, caso que a descoberta comum já cobre. **Os parâmetros do desafio são do servidor.** `expiresAt`, `resendAvailableAt` e `maxAttempts` chegam prontos; quantas tentativas restam não é publicado. O endereço digitado não é adicionado à conta, não troca o e-mail principal e nunca é devolvido em claro: a resposta publica só `destinationMasked`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [X-Correlation-Id(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter startInvitationEmailDiscoveryChallengeRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<InvitationEmailDiscoveryChallengeView>
+     */
+    open class func startInvitationEmailDiscoveryChallengeWithRequestBuilder(idempotencyKey: String, startInvitationEmailDiscoveryChallengeRequest: StartInvitationEmailDiscoveryChallengeRequest, acceptLanguage: String? = nil) -> RequestBuilder<InvitationEmailDiscoveryChallengeView> {
+        let localVariablePath = "/student-invitations/email-discovery-challenges"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: startInvitationEmailDiscoveryChallengeRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<InvitationEmailDiscoveryChallengeView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Verificar o código do endereço digitado e ver os convites pendentes dele
+
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter challengeId: (path)
+     - parameter verifyInvitationEmailDiscoveryChallengeRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func verifyInvitationEmailDiscoveryChallenge(idempotencyKey: String, challengeId: String, verifyInvitationEmailDiscoveryChallengeRequest: VerifyInvitationEmailDiscoveryChallengeRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: InvitationEmailDiscoveryVerificationView?, _ error: Error?) -> Void)) -> RequestTask {
+        return verifyInvitationEmailDiscoveryChallengeWithRequestBuilder(idempotencyKey: idempotencyKey, challengeId: challengeId, verifyInvitationEmailDiscoveryChallengeRequest: verifyInvitationEmailDiscoveryChallengeRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Verificar o código do endereço digitado e ver os convites pendentes dele
+     - POST /student-invitations/email-discovery-challenges/{challengeId}/verification
+     - Confere o código enviado ao endereço digitado e, em caso de acerto, devolve os convites pendentes daquele endereço e uma **prova de endereço**. Quem prova a posse vê o mesmo que veria entrando por \"e-mail com código\" com aquele endereço; lista vazia é resposta válida. **Nenhuma resposta de recusa depende de existir convite.** Num desafio sem convite, a sequência é a de um desafio real com código errado: `403 OTP_CODE_INVALID` a cada tentativa, `403 OTP_ATTEMPTS_EXHAUSTED` na última e `410 OTP_CODE_EXPIRED` depois da validade. O `429` é o mesmo nos dois casos. `challengeId` de outra conta responde `404`, indistinguível de um inexistente. **A prova de endereço é de uso único, presa à conta e válida por 30 minutos, e não autoriza aceite.** Ela serve só para abrir, em `createPendingStudentInvitationJourney`, a jornada de **um** convite daquele endereço. **A prova de posse nasce só na jornada do convite escolhido**: esta operação não grava prova de posse de convite, não altera o e-mail da conta e não devolve token de aceite, `linkCode` nem `journeyToken`. **Quantas tentativas restam não é publicado.**
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [X-Correlation-Id(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter challengeId: (path)
+     - parameter verifyInvitationEmailDiscoveryChallengeRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<InvitationEmailDiscoveryVerificationView>
+     */
+    open class func verifyInvitationEmailDiscoveryChallengeWithRequestBuilder(idempotencyKey: String, challengeId: String, verifyInvitationEmailDiscoveryChallengeRequest: VerifyInvitationEmailDiscoveryChallengeRequest, acceptLanguage: String? = nil) -> RequestBuilder<InvitationEmailDiscoveryVerificationView> {
+        var localVariablePath = "/student-invitations/email-discovery-challenges/{challengeId}/verification"
+        let challengeIdPreEscape = "\(APIHelper.mapValueToPathItem(challengeId))"
+        let challengeIdPostEscape = challengeIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{challengeId}", with: challengeIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: verifyInvitationEmailDiscoveryChallengeRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<InvitationEmailDiscoveryVerificationView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
 }

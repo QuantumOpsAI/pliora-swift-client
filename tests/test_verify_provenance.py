@@ -12,7 +12,7 @@ class VerifyProvenanceTests(unittest.TestCase):
     def test_published_tree_matches_the_upstream_digest(self) -> None:
         self.assertEqual(
             verify(),
-            "926091252894d64ba61b0e7e71f0bc4baf757fe04abddf7b1808481019fe3883",
+            "b7af6b8dfdf5b2be581553d6eb386ac2ff6b4f20d119776ccdfe0cdaa9ddb424",
         )
 
     def test_any_generated_source_change_is_rejected(self) -> None:
@@ -43,7 +43,7 @@ class VerifyProvenanceTests(unittest.TestCase):
             provenance = copy / "PROVENANCE.json"
             provenance.write_text(
                 provenance.read_text(encoding="utf-8").replace(
-                    "7d1b89f0d7791c2e07aef0f2c6cec0493a154dc2", "7d1b89f0"
+                    "90ce702f78178761cf74a82fed6fd929445ceddf", "7d1b89f0"
                 ),
                 encoding="utf-8",
             )

@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 **revision** | **String** | Validador opaco deste contexto. O cliente o ecoa em &#x60;If-Match&#x60; ao confirmar e nunca o interpreta, ordena ou constrói. |
 **personal** | [**InvitationPersonalView**](InvitationPersonalView.md) |  |
 **emailOwnership** | [**InvitationEmailOwnershipContextView**](InvitationEmailOwnershipContextView.md) |  |
+**authenticatedIdentity** | [**InvitationAuthenticatedIdentityView**](InvitationAuthenticatedIdentityView.md) |  |
 **ageAssurance** | [**StudentAgeAssuranceContextView**](StudentAgeAssuranceContextView.md) |  |
 **privacyCatalog** | [StudentPrivacyCatalogItemView] | Catálogo vigente, na íntegra. O aceite exige decisão explícita para **cada** item desta lista; cobri-la parcialmente é &#x60;422 PRIVACY_DECISIONS_INCOMPLETE&#x60;. |
 **replacement** | [**StudentRelationshipReplacementContextView**](StudentRelationshipReplacementContextView.md) |  |

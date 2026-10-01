@@ -10,21 +10,26 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Cria uma jornada depois da autenticação; o destino é derivado dos e-mails verificados da sessão e não pode ser informado pelo cliente. */
+/** Cria uma jornada depois da autenticação. O destino nunca é informado pelo cliente: ele é derivado dos e-mails verificados da sessão ou, com &#x60;emailDiscoveryProofId&#x60;, do endereço que aquela prova de endereço provou. */
 public struct CreatePendingInvitationJourneyRequest: Codable, JSONEncodable, Hashable {
 
+    public static let emailDiscoveryProofIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let appInstallationIdRule = StringRule(minLength: 16, maxLength: 128, pattern: "/^[A-Za-z0-9._~-]+$/")
     public var platform: InvitationJourneyPlatform
+    /** Prova de endereço devolvida por `verifyInvitationEmailDiscoveryChallenge` em `discoveryProofId`. Opcional. De uso único, presa à conta e válida por 30 minutos; esta operação a consome e grava a prova de posse somente do convite do path. Exige `Idempotency-Key`. */
+    public var emailDiscoveryProofId: String?
     /** Identificador opaco opcional; nunca IDFA, AAID, e-mail ou fingerprint. */
     public var appInstallationId: String?
 
-    public init(platform: InvitationJourneyPlatform, appInstallationId: String? = nil) {
+    public init(platform: InvitationJourneyPlatform, emailDiscoveryProofId: String? = nil, appInstallationId: String? = nil) {
         self.platform = platform
+        self.emailDiscoveryProofId = emailDiscoveryProofId
         self.appInstallationId = appInstallationId
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case platform
+        case emailDiscoveryProofId
         case appInstallationId
     }
 
@@ -33,6 +38,7 @@ public struct CreatePendingInvitationJourneyRequest: Codable, JSONEncodable, Has
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(platform, forKey: .platform)
+        try container.encodeIfPresent(emailDiscoveryProofId, forKey: .emailDiscoveryProofId)
         try container.encodeIfPresent(appInstallationId, forKey: .appInstallationId)
     }
 }
@@ -43,4 +49,9 @@ extension CreatePendingInvitationJourneyRequest: UnknownCaseCheckable {
         if platform == .unknownDefaultOpenApi { return true }
         return false
     }
+}
+
+/// Prevent credentials and identity proofs from leaking through logs.
+extension CreatePendingInvitationJourneyRequest: CustomStringConvertible {
+    public var description: String { "CreatePendingInvitationJourneyRequest([REDACTED])" }
 }

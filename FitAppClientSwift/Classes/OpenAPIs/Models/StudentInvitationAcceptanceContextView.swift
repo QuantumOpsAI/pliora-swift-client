@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Tudo o que precede o vínculo, numa leitura só: quem convidou, o que falta provar sobre o endereço convidado, o veredito de idade, o catálogo de privacidade vigente e a troca, quando houver. **Nada aqui cria, consome ou altera estado.** &#x60;revision&#x60; é a revisão opaca deste contexto, idêntica ao &#x60;ETag&#x60; da resposta e exatamente o que &#x60;If-Match&#x60; do aceite exige. */
+/** Tudo o que precede o vínculo, numa leitura só: quem convidou, o que falta provar sobre o endereço convidado, com que conta a pessoa entrou, o veredito de idade, o catálogo de privacidade vigente e a troca, quando houver. **Nada aqui cria, consome ou altera estado.** &#x60;revision&#x60; é a revisão opaca deste contexto, idêntica ao &#x60;ETag&#x60; da resposta e exatamente o que &#x60;If-Match&#x60; do aceite exige. */
 public struct StudentInvitationAcceptanceContextView: Codable, JSONEncodable, Hashable {
 
     public static let invitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -22,16 +22,18 @@ public struct StudentInvitationAcceptanceContextView: Codable, JSONEncodable, Ha
     public var revision: String
     public var personal: InvitationPersonalView
     public var emailOwnership: InvitationEmailOwnershipContextView
+    public var authenticatedIdentity: InvitationAuthenticatedIdentityView
     public var ageAssurance: StudentAgeAssuranceContextView
     /** Catálogo vigente, na íntegra. O aceite exige decisão explícita para **cada** item desta lista; cobri-la parcialmente é `422 PRIVACY_DECISIONS_INCOMPLETE`. */
     public var privacyCatalog: [StudentPrivacyCatalogItemView]
     public var replacement: StudentRelationshipReplacementContextView
 
-    public init(invitationId: String, revision: String, personal: InvitationPersonalView, emailOwnership: InvitationEmailOwnershipContextView, ageAssurance: StudentAgeAssuranceContextView, privacyCatalog: [StudentPrivacyCatalogItemView], replacement: StudentRelationshipReplacementContextView) {
+    public init(invitationId: String, revision: String, personal: InvitationPersonalView, emailOwnership: InvitationEmailOwnershipContextView, authenticatedIdentity: InvitationAuthenticatedIdentityView, ageAssurance: StudentAgeAssuranceContextView, privacyCatalog: [StudentPrivacyCatalogItemView], replacement: StudentRelationshipReplacementContextView) {
         self.invitationId = invitationId
         self.revision = revision
         self.personal = personal
         self.emailOwnership = emailOwnership
+        self.authenticatedIdentity = authenticatedIdentity
         self.ageAssurance = ageAssurance
         self.privacyCatalog = privacyCatalog
         self.replacement = replacement
@@ -42,6 +44,7 @@ public struct StudentInvitationAcceptanceContextView: Codable, JSONEncodable, Ha
         case revision
         case personal
         case emailOwnership
+        case authenticatedIdentity
         case ageAssurance
         case privacyCatalog
         case replacement
@@ -55,6 +58,7 @@ public struct StudentInvitationAcceptanceContextView: Codable, JSONEncodable, Ha
         try container.encode(revision, forKey: .revision)
         try container.encode(personal, forKey: .personal)
         try container.encode(emailOwnership, forKey: .emailOwnership)
+        try container.encode(authenticatedIdentity, forKey: .authenticatedIdentity)
         try container.encode(ageAssurance, forKey: .ageAssurance)
         try container.encode(privacyCatalog, forKey: .privacyCatalog)
         try container.encode(replacement, forKey: .replacement)

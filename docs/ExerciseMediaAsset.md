@@ -16,5 +16,7 @@ Name | Type | Description | Notes
 **byteSize** | **Int64** |  | [optional]
 **expiresAt** | **Date** | Expiração da URL de entrega, independente do direito offline. | [optional]
 **offlineValidUntil** | **Date** | Limite de retenção offline; nulo para STREAM_ONLY. | [optional]
+**angle** | **String** | Ângulo de câmera do asset, quando a origem o informa. Código de máquina de vocabulário **aberto**, emitido pelo servidor: não é enum, o app mostra com o seu catálogo de textos os valores que conhece e com um rótulo genérico os demais, e só o compara por igualdade. É o valor que a preferência de vídeo guarda. | [optional]
+**demonstrator** | **String** | Quem demonstra o exercício no asset, quando a origem o informa. Código de máquina de vocabulário **aberto**, com a mesma regra de &#x60;ExerciseMediaAngle&#x60;. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

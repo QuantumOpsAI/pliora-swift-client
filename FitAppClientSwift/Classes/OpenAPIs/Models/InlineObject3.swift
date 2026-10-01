@@ -11,13 +11,13 @@ import AnyCodable
 #endif
 
 public enum InlineObject3: Codable, JSONEncodable, Hashable {
-    case typePersonalHomeUnavailableProblemDetails(PersonalHomeUnavailableProblemDetails)
+    case typePersonalStudentOperationsUnavailableProblemDetails(PersonalStudentOperationsUnavailableProblemDetails)
     case typeServiceUnavailableProblemDetails(ServiceUnavailableProblemDetails)
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
-        case .typePersonalHomeUnavailableProblemDetails(let value):
+        case .typePersonalStudentOperationsUnavailableProblemDetails(let value):
             try container.encode(value)
         case .typeServiceUnavailableProblemDetails(let value):
             try container.encode(value)
@@ -26,8 +26,8 @@ public enum InlineObject3: Codable, JSONEncodable, Hashable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        if let value = try? container.decode(PersonalHomeUnavailableProblemDetails.self), (value as? UnknownCaseCheckable)?.containsUnknownDefaultOpenApiCase != true {
-            self = .typePersonalHomeUnavailableProblemDetails(value)
+        if let value = try? container.decode(PersonalStudentOperationsUnavailableProblemDetails.self), (value as? UnknownCaseCheckable)?.containsUnknownDefaultOpenApiCase != true {
+            self = .typePersonalStudentOperationsUnavailableProblemDetails(value)
         } else if let value = try? container.decode(ServiceUnavailableProblemDetails.self), (value as? UnknownCaseCheckable)?.containsUnknownDefaultOpenApiCase != true {
             self = .typeServiceUnavailableProblemDetails(value)
         } else {
