@@ -14,12 +14,15 @@ import AnyCodable
 public struct PrescriptionDraftAlternative: Codable, JSONEncodable, Hashable {
 
     public static let alternativeIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let displayNameRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let variantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let priorityRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var alternativeId: String
     public var alternativeType: PrescribedAlternativeType
+    /** Rótulo da alternativa na prescrição, autorado pelo personal e preservado verbatim UTF-8, **obrigatório**. Nasce preenchido pelo app com o nome exibido na busca no momento em que o personal autoriza a alternativa, e é o nome que a tela de troca do aluno mostra e que o histórico guarda. O catálogo não é guardado: para uma alternativa que vem dele, este é o **único nome que o servidor tem**, e nada do texto da origem do catálogo trafega aqui. É obrigatório em toda alternativa, qualquer que seja a origem do exercício, porque o conteúdo da alternativa não carrega essa origem; de um exercício próprio o app o preenche com o nome autorado do exercício, e o servidor nunca o completa nem o reescreve. */
+    public var displayName: String
     /** Variante autorizada; em `ALTERNATIVE_EXERCISE` é a variante do exercício alternativo. */
     public var variantId: String
     /** Exercício alternativo; presente somente quando `alternativeType` é `ALTERNATIVE_EXERCISE`. */
@@ -27,9 +30,10 @@ public struct PrescriptionDraftAlternative: Codable, JSONEncodable, Hashable {
     public var priority: Int?
     public var authorizationScope: PrescribedAuthorizationScope
 
-    public init(alternativeId: String, alternativeType: PrescribedAlternativeType, variantId: String, exerciseId: String? = nil, priority: Int? = nil, authorizationScope: PrescribedAuthorizationScope) {
+    public init(alternativeId: String, alternativeType: PrescribedAlternativeType, displayName: String, variantId: String, exerciseId: String? = nil, priority: Int? = nil, authorizationScope: PrescribedAuthorizationScope) {
         self.alternativeId = alternativeId
         self.alternativeType = alternativeType
+        self.displayName = displayName
         self.variantId = variantId
         self.exerciseId = exerciseId
         self.priority = priority
@@ -39,6 +43,7 @@ public struct PrescriptionDraftAlternative: Codable, JSONEncodable, Hashable {
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case alternativeId
         case alternativeType
+        case displayName
         case variantId
         case exerciseId
         case priority
@@ -51,6 +56,7 @@ public struct PrescriptionDraftAlternative: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(alternativeId, forKey: .alternativeId)
         try container.encode(alternativeType, forKey: .alternativeType)
+        try container.encode(displayName, forKey: .displayName)
         try container.encode(variantId, forKey: .variantId)
         try container.encodeIfPresent(exerciseId, forKey: .exerciseId)
         try container.encodeIfPresent(priority, forKey: .priority)

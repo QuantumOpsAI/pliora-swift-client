@@ -10,6 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
+/** Série executada, com o alvo apresentado e o realizado em vigor separados. Na série **por tempo**, &#x60;target.durationSeconds&#x60; é a duração alvo, &#x60;actual.durationSeconds&#x60; é a duração realizada em vigor — com &#x60;reps&#x60; nulas nos dois —, &#x60;measuredDurationSeconds&#x60; é a medida pelo cronômetro e **nunca muda**, e &#x60;adjustedDurationSeconds&#x60; existe somente quando o aluno corrigiu a duração para um valor diferente da medida: o valor em vigor é o ajustado, quando há, senão o medido. Série pulada não tem realizado nem medida. */
 public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
 
     public enum ViewType: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -20,6 +21,8 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
     public static let exerciseExecutionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescribedSetIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let setIndexRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let measuredDurationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let adjustedDurationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let executedVariantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let equipmentInstanceIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let observationRule = StringRule(minLength: nil, maxLength: 500, pattern: nil)
@@ -34,6 +37,10 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
     public var status: ExecutedSetStatus
     public var target: ExecutionTargetValues
     public var actual: WorkoutSetValues?
+    /** Duração medida pelo cronômetro da série por tempo, em segundos; nunca é sobrescrita. Ausente fora da série por tempo e na série pulada. */
+    public var measuredDurationSeconds: Int?
+    /** Duração que o aluno corrigiu, em segundos; existe somente quando é **diferente** de `measuredDurationSeconds` e então é igual a `actual.durationSeconds`. Ausente quer dizer que o aluno não corrigiu, e nunca zero. */
+    public var adjustedDurationSeconds: Int?
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var executedVariantId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -44,7 +51,7 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var completedAt: Date
 
-    public init(viewType: ViewType, setExecutionId: String, exerciseExecutionId: String, prescribedSetId: String, setIndex: Int, status: ExecutedSetStatus, target: ExecutionTargetValues, actual: WorkoutSetValues?, executedVariantId: String, equipmentInstanceId: String?, observation: String?, startedAt: Date, completedAt: Date) {
+    public init(viewType: ViewType, setExecutionId: String, exerciseExecutionId: String, prescribedSetId: String, setIndex: Int, status: ExecutedSetStatus, target: ExecutionTargetValues, actual: WorkoutSetValues?, measuredDurationSeconds: Int? = nil, adjustedDurationSeconds: Int? = nil, executedVariantId: String, equipmentInstanceId: String?, observation: String?, startedAt: Date, completedAt: Date) {
         self.viewType = viewType
         self.setExecutionId = setExecutionId
         self.exerciseExecutionId = exerciseExecutionId
@@ -53,6 +60,8 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
         self.status = status
         self.target = target
         self.actual = actual
+        self.measuredDurationSeconds = measuredDurationSeconds
+        self.adjustedDurationSeconds = adjustedDurationSeconds
         self.executedVariantId = executedVariantId
         self.equipmentInstanceId = equipmentInstanceId
         self.observation = observation
@@ -69,6 +78,8 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
         case status
         case target
         case actual
+        case measuredDurationSeconds
+        case adjustedDurationSeconds
         case executedVariantId
         case equipmentInstanceId
         case observation
@@ -88,6 +99,8 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(status, forKey: .status)
         try container.encode(target, forKey: .target)
         try container.encode(actual, forKey: .actual)
+        try container.encodeIfPresent(measuredDurationSeconds, forKey: .measuredDurationSeconds)
+        try container.encodeIfPresent(adjustedDurationSeconds, forKey: .adjustedDurationSeconds)
         try container.encode(executedVariantId, forKey: .executedVariantId)
         try container.encode(equipmentInstanceId, forKey: .equipmentInstanceId)
         try container.encode(observation, forKey: .observation)

@@ -21,7 +21,7 @@ public struct AcceptStudentInvitationRequest: Codable, JSONEncodable, Hashable {
     public var token: String
     /** Conferência cruzada **opcional**. Quando presente tem de ser o convite daquele token; divergir responde `404 INVITATION_NOT_FOUND`. Não substitui o token e não identifica o convite sozinho. */
     public var invitationId: String?
-    /** Prova de posse do endereço convidado, obtida em `verifyInvitationEmailOwnershipChallenge` **para este convite**. Exigida quando houve divergência; ausente quando não houve. Uma prova de outro convite é recusada, e nenhuma prova altera o e-mail da conta. */
+    /** Prova de posse do endereço convidado **para este convite**: o `proofId` que o contexto pré-aceite publica com `emailOwnership.status = PROVEN`. Ela nasce por um de dois caminhos, e só por eles: o desafio de posse do convite (`verifyInvitationEmailOwnershipChallenge`) ou a jornada criada com `emailDiscoveryProofId` em `createPendingStudentInvitationJourney`. Exigida quando houve divergência; ausente quando não houve. A prova de endereço (`discoveryProofId`, de `verifyInvitationEmailDiscoveryChallenge`) **nunca** é aceita aqui: ela não autoriza aceite. Uma prova de outro convite é recusada, e nenhuma prova altera o e-mail da conta. */
     public var emailOwnershipProofId: String?
     public var ageAssurance: StudentAgeAssuranceEvidenceInput?
     /** Decisão explícita `GRANTED` ou `DECLINED` para **cada** item do catálogo que o contexto pré-aceite serviu. Cobrir o catálogo parcialmente é `422 PRIVACY_DECISIONS_INCOMPLETE`; a lista vazia não é representável e **deixou de provar conclusão da etapa**. Tipos repetidos recusam o pedido. */

@@ -10,15 +10,13 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Resposta correlacionada que vincula próxima etapa, convite e sessão. Confirmação e divergência preservam o convite e exigem ação posterior; autenticação e correspondência de e-mail nunca autorizam vínculo. **A escolha de jornada não é campo de conta.** Não existe papel único ou global previamente salvo: o servidor resolve o contexto de entrada a cada entrada e, havendo convite válido, &#x60;ENTRY_JOURNEY_CHOICE_REQUIRED&#x60; pede a escolha sem pré-selecionar nenhuma jornada e sem inferi-la do provedor de identidade usado. **Seguir pela jornada profissional não consome nem cancela o convite**: por isso &#x60;ONBOARDING_REQUIRED&#x60; admite contexto preservado, e não apenas ausente. Falha de rede ou resposta inconclusiva é estado indeterminado **do cliente** e **nunca** pode ser lida como ausência de convite; ela não é emitida aqui, porque uma resposta desta operação é, por definição, conclusiva. */
+/** Resposta correlacionada que vincula próxima etapa, convite e sessão. A escolha de jornada preserva o convite e exige ação posterior; autenticação e correspondência de e-mail nunca autorizam vínculo. **A escolha de jornada não é campo de conta.** Não existe papel único ou global previamente salvo: o servidor resolve o contexto de entrada a cada entrada e, havendo convite válido, &#x60;ENTRY_JOURNEY_CHOICE_REQUIRED&#x60; pede a escolha sem pré-selecionar nenhuma jornada e sem inferi-la do provedor de identidade usado. **Seguir pela jornada profissional não consome nem cancela o convite**: por isso &#x60;ONBOARDING_REQUIRED&#x60; admite contexto preservado, e não apenas ausente. Falha de rede ou resposta inconclusiva é estado indeterminado **do cliente** e **nunca** pode ser lida como ausência de convite; ela não é emitida aqui, porque uma resposta desta operação é, por definição, conclusiva. */
 public struct IdentityJourneyResponse: Codable, JSONEncodable, Hashable {
 
     public enum NextStep: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case otpRequired = "OTP_REQUIRED"
         case onboardingRequired = "ONBOARDING_REQUIRED"
         case sessionIssued = "SESSION_ISSUED"
-        case invitationConfirmationRequired = "INVITATION_CONFIRMATION_REQUIRED"
-        case invitationIdentityMismatchConfirmationRequired = "INVITATION_IDENTITY_MISMATCH_CONFIRMATION_REQUIRED"
         case entryJourneyChoiceRequired = "ENTRY_JOURNEY_CHOICE_REQUIRED"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
@@ -30,7 +28,7 @@ public struct IdentityJourneyResponse: Codable, JSONEncodable, Hashable {
     }
     public static let continuationRule = StringRule(minLength: 32, maxLength: nil, pattern: nil)
     public var continuation: String
-    /** Próxima etapa decidida pelo servidor. `ENTRY_JOURNEY_CHOICE_REQUIRED` publica o momento em que a pessoa escolhe, com o mesmo peso, entre a jornada de aluno daquele convite e a jornada profissional; a escolha não é persistida como papel e a entrada seguinte com convite válido volta a perguntar. */
+    /** Próxima etapa decidida pelo servidor. `ENTRY_JOURNEY_CHOICE_REQUIRED` publica o momento em que a pessoa escolhe, com o mesmo peso, entre a jornada de aluno daquele convite e a jornada profissional; a escolha não é persistida como papel e a entrada seguinte com convite válido volta a perguntar. **Não existe passo de confirmação de convite nem de divergência de e-mail.** Sob `DEC-CONV-2`, a conta cujo e-mail diverge do destino do convite resolve a divergência por prova de posse do endereço convidado, que o contexto de aceite publica em `emailOwnership.status = PROOF_REQUIRED`; nunca por uma tela de \"confirmar que sou eu\" depois do login. */
     public var nextStep: NextStep
     /** Ausência, preservação de um convite ou preservação de mais de um. Preservado significa que o convite permanece utilizável e não foi consumido por esta etapa; multiplicidade não elege convite nem cria relação. */
     public var invitationContext: InvitationContext

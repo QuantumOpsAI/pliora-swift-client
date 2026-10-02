@@ -20,11 +20,11 @@ public struct PersonalStudentComparableExerciseKey: Codable, JSONEncodable, Hash
     public static let equipmentContextKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var exerciseId: String
-    /** Nome canônico do exercício, preservado do catálogo pelo servidor. */
+    /** Rótulo do exercício na prescrição — o `displayName` que o personal deu —, preservado verbatim. O catálogo não é guardado (ADR-0014): nenhum nome vem dele. */
     public var exerciseLabel: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var variantId: String
-    /** Nome canônico da variante, preservado do catálogo pelo servidor. */
+    /** Rótulo da variante, preservado verbatim; para exercício do catálogo, que tem uma variante só, é o `displayName` da prescrição. O catálogo não é guardado (ADR-0014): nenhum nome vem dele. */
     public var variantLabel: String
     /** Terceiro membro da chave, quando ele discrimina. Código de máquina estável, **nunca nome de aparelho exibível**. Ausente quando não discrimina. */
     public var equipmentContextKey: String?

@@ -26,6 +26,7 @@ public struct PrescribedAlternativeSyncView: Codable, JSONEncodable, Hashable {
     public static let prescribedExerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let variantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let displayNameRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public var viewType: ViewType
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var alternativeId: String
@@ -35,14 +36,17 @@ public struct PrescribedAlternativeSyncView: Codable, JSONEncodable, Hashable {
     public var exerciseId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var variantId: String
+    /** Rótulo da alternativa na prescrição, o mesmo de `PrescriptionDraftAlternative`, preservado verbatim. É o nome que o aluno vê na tela de troca e que o histórico guarda, independentemente de o exercício continuar na origem do catálogo. */
+    public var displayName: String
     public var scope: Scope
 
-    public init(viewType: ViewType, alternativeId: String, prescribedExerciseId: String, exerciseId: String, variantId: String, scope: Scope) {
+    public init(viewType: ViewType, alternativeId: String, prescribedExerciseId: String, exerciseId: String, variantId: String, displayName: String, scope: Scope) {
         self.viewType = viewType
         self.alternativeId = alternativeId
         self.prescribedExerciseId = prescribedExerciseId
         self.exerciseId = exerciseId
         self.variantId = variantId
+        self.displayName = displayName
         self.scope = scope
     }
 
@@ -52,6 +56,7 @@ public struct PrescribedAlternativeSyncView: Codable, JSONEncodable, Hashable {
         case prescribedExerciseId
         case exerciseId
         case variantId
+        case displayName
         case scope
     }
 
@@ -64,6 +69,7 @@ public struct PrescribedAlternativeSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(prescribedExerciseId, forKey: .prescribedExerciseId)
         try container.encode(exerciseId, forKey: .exerciseId)
         try container.encode(variantId, forKey: .variantId)
+        try container.encode(displayName, forKey: .displayName)
         try container.encode(scope, forKey: .scope)
     }
 }

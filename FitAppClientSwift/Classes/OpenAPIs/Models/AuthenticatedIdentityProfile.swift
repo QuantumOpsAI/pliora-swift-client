@@ -10,6 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
+/** As duas combinações que o servidor nunca emite, declaradas como proibição e não como &#x60;if&#x60;/&#x60;then&#x60;: o e-mail oculto acompanhado de endereço, e o e-mail comum sem ele. A forma é a que o gate de compatibilidade percorre — ele recursa em &#x60;allOf&#x60;, &#x60;anyOf&#x60; e &#x60;not&#x60; e nunca em &#x60;if&#x60;/&#x60;then&#x60;/&#x60;else&#x60; —, como em &#x60;AccountUnifiedView&#x60;. */
 public struct AuthenticatedIdentityProfile: Codable, JSONEncodable, Hashable {
 
     public enum Provider: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -18,25 +19,40 @@ public struct AuthenticatedIdentityProfile: Codable, JSONEncodable, Hashable {
         case email = "EMAIL"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
+    public enum LinkedProviders: String, Codable, CaseIterable, CaseIterableDefaultsLast {
+        case apple = "APPLE"
+        case google = "GOOGLE"
+        case email = "EMAIL"
+        case unknownDefaultOpenApi = "unknown_default_open_api"
+    }
     public static let displayNameRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let emailRule = StringRule(minLength: nil, maxLength: 320, pattern: nil)
+    public static let linkedProvidersRule = ArrayRule(minItems: 1, maxItems: nil, uniqueItems: true)
     /** Nome autorado pelo próprio profissional; ausente quando ainda não informado. */
     public var displayName: String?
-    /** E-mail verificado da conta autenticada. */
-    public var email: String
+    /** E-mail verificado da conta autenticada. Presente **somente** quando `emailKind = EMAIL`, e então sempre presente. Com `HIDDEN_EMAIL` a chave é omitida — ausência estrutural, nunca `null` —, porque o e-mail verificado é o relay da Apple e não pode ser exibido como e-mail pessoal. */
+    public var email: String?
+    /** `EMAIL` quando o e-mail verificado da conta é exibível e vem em `email`; `HIDDEN_EMAIL` quando é o relay da Apple, e então `email` não vem. */
+    public var emailKind: IdentityEmailKind
     /** Origem da identidade usada pela sessão atual; EMAIL representa Cognito OTP. */
     public var provider: Provider
+    /** Todas as formas de entrar que a conta já aceita, sem repetição e nunca vazia. O servidor sempre inclui a forma da sessão atual (`provider`); isso é obrigação do servidor, que o schema não expressa. Mesmo vocabulário de `provider` e de `AccountUnifiedView.linkedProviders`, onde `EMAIL` representa o OTP via Cognito. */
+    public var linkedProviders: Set<LinkedProviders>
 
-    public init(displayName: String? = nil, email: String, provider: Provider) {
+    public init(displayName: String? = nil, email: String? = nil, emailKind: IdentityEmailKind, provider: Provider, linkedProviders: Set<LinkedProviders>) {
         self.displayName = displayName
         self.email = email
+        self.emailKind = emailKind
         self.provider = provider
+        self.linkedProviders = linkedProviders
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case displayName
         case email
+        case emailKind
         case provider
+        case linkedProviders
     }
 
     // Encodable protocol methods
@@ -44,15 +60,21 @@ public struct AuthenticatedIdentityProfile: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(displayName, forKey: .displayName)
-        try container.encode(email, forKey: .email)
+        try container.encodeIfPresent(email, forKey: .email)
+        try container.encode(emailKind, forKey: .emailKind)
         try container.encode(provider, forKey: .provider)
+        try container.encode(linkedProviders, forKey: .linkedProviders)
     }
 }
 
 
 extension AuthenticatedIdentityProfile: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
+        if emailKind == .unknownDefaultOpenApi { return true }
         if provider == .unknownDefaultOpenApi { return true }
+
+        if linkedProviders.contains(.unknownDefaultOpenApi) { return true }
+
         return false
     }
 }

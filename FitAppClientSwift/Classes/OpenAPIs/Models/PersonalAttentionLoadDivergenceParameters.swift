@@ -25,11 +25,11 @@ public struct PersonalAttentionLoadDivergenceParameters: Codable, JSONEncodable,
     public var reasonCode: ReasonCode
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var exerciseId: String
-    /** Nome canônico do exercício resolvido pelo servidor no catálogo, preservado sem tradução e sem substituir `exerciseId`. */
+    /** Rótulo do exercício na prescrição — o `displayName` que o personal deu, o mesmo que a versão publicada e o bundle exibem —, preservado sem tradução e sem substituir `exerciseId`. O catálogo não é guardado (ADR-0014): nenhum nome vem dele. */
     public var exerciseLabel: String
     /** Variante do exercício. Ela faz parte da chave de comparabilidade: carga de variantes diferentes não é equivalente e nunca entra na mesma janela. */
     public var variantId: String
-    /** Nome canônico da variante resolvido pelo servidor no catálogo, preservado sem tradução e sem substituir `variantId`. */
+    /** Rótulo da variante, preservado sem tradução e sem substituir `variantId`. Uma variante prescrita de exercício do catálogo, que tem uma só, leva o `displayName` da prescrição; o catálogo não é guardado (ADR-0014) e nenhum nome vem dele. */
     public var variantLabel: String
     /** Equipamento, quando ele for materialmente relevante para a comparação. Ausente quando não discrimina; ausência aqui é ausência, e nunca um equipamento padrão presumido. */
     public var equipmentId: String?

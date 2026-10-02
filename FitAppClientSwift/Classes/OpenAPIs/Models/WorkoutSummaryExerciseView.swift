@@ -21,7 +21,7 @@ public struct WorkoutSummaryExerciseView: Codable, JSONEncodable, Hashable {
     public var exerciseId: String
     /** Posição prescrita do exercício dentro do treino, começando em 1. É a ordem do personal, não uma ordem de execução escolhida pelo aluno. */
     public var position: Int
-    /** Nome do exercício prescrito {ex. \"Supino Reto\"}. Dado do domínio, preservado verbatim UTF-8 e invariante de locale. */
+    /** Nome do exercício prescrito {ex. \"Supino Reto\"}: o `displayName` da prescrição, o rótulo que o personal deu ao exercício. Dado do domínio, preservado verbatim UTF-8 e invariante de locale. */
     public var name: String
     /** Quantidade de séries prescritas para este exercício. */
     public var setCount: Int

@@ -10,40 +10,95 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Exercício canônico com as variantes concretas que podem ser prescritas. */
+/** Linha da lista de busca. Só &#x60;name&#x60;, &#x60;origin&#x60; e &#x60;favorite&#x60; são garantidos; os atributos aparecem **somente quando a origem os traz na listagem** — para o catálogo de hoje o item traz o nome e nada mais, e para exercício próprio traz tudo. Nada aqui é mídia: a lista não devolve URL, imagem nem vídeo. &#x60;catalogRef&#x60; é a referência opaca de um exercício do catálogo, presente quando &#x60;origin&#x60; é &#x60;CATALOG&#x60;, e **nunca** em &#x60;PERSONAL&#x60;. &#x60;exerciseId&#x60; é a identidade do Pliora e está presente quando o exercício é próprio ou quando já existe referência para o do catálogo; em exercício próprio ele é obrigatório. &#x60;variantId&#x60; acompanha &#x60;exerciseId&#x60; quando o servidor já tem a variante a prescrever e **nunca vem sem ele**; em exercício próprio é **obrigatório**: há uma variante por exercício próprio, emitida na criação (&#x60;createPersonalExercise&#x60;), de modo que quem escolhe em \&quot;Meus exercícios\&quot; monta &#x60;prescribedVariantId&#x60; sem chamada a mais. */
 public struct ExerciseCatalogItem: Codable, JSONEncodable, Hashable {
 
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let variantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let catalogRefRule = StringRule(minLength: 1, maxLength: 256, pattern: "/^[A-Za-z0-9_-]+$/")
     public static let nameRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
-    public static let muscleGroupCodeRule = StringRule(minLength: nil, maxLength: nil, pattern: "/^[A-Z][A-Z0-9_]{1,63}$/")
-    public static let variantsRule = ArrayRule(minItems: 1, maxItems: nil, uniqueItems: false)
+    public static let primaryMusclesRule = ArrayRule(minItems: 1, maxItems: 20, uniqueItems: false)
+    public static let equipmentRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let difficultyRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let mechanicRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let forceRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let gripsRule = ArrayRule(minItems: 1, maxItems: 20, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
-    public var exerciseId: String
+    public var exerciseId: String?
+    /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
+    public var variantId: String?
+    /** Referência opaca de um exercício do catálogo que ainda pode não ter identidade no Pliora, emitida pelo servidor. **Não é o identificador da origem e não é derivável dele pelo cliente**: não tem formato, ordem nem significado, e só se compara por igualdade. Não é identidade durável — o servidor pode deixar de reconhecê-la —, e por isso o app a troca por `exerciseId` em `resolveExerciseReferences` ao confirmar a seleção e nunca a guarda nem a grava na prescrição. */
+    public var catalogRef: String?
     public var name: String
-    public var muscleGroupCode: String
-    public var variants: [ExerciseCatalogVariant]
+    public var origin: ExerciseOrigin
+    /** Se o exercício é favorito do personal autenticado. */
+    public var favorite: Bool
+    /** Lista de textos de atributo. O servidor a entrega **sem repetição e na ordem da origem**, e o app a exibe nessa ordem (por isso o schema não declara `uniqueItems`: os clientes gerados a tratariam como conjunto, de ordem instável). Lista ausente significa que a origem não a informa; o contrato não usa lista vazia para isso. */
+    public var primaryMuscles: [String]?
+    /** Texto de um atributo do exercício como a origem o entrega, no idioma que ela serve (`Content-Language`). Preservado como veio: o app não traduz, não reescreve e não o compara com rótulo de filtro — a relação com o filtro é o `similarQuery` do detalhe. */
+    public var equipment: String?
+    /** Texto de um atributo do exercício como a origem o entrega, no idioma que ela serve (`Content-Language`). Preservado como veio: o app não traduz, não reescreve e não o compara com rótulo de filtro — a relação com o filtro é o `similarQuery` do detalhe. */
+    public var difficulty: String?
+    /** Texto de um atributo do exercício como a origem o entrega, no idioma que ela serve (`Content-Language`). Preservado como veio: o app não traduz, não reescreve e não o compara com rótulo de filtro — a relação com o filtro é o `similarQuery` do detalhe. */
+    public var mechanic: String?
+    /** Texto de um atributo do exercício como a origem o entrega, no idioma que ela serve (`Content-Language`). Preservado como veio: o app não traduz, não reescreve e não o compara com rótulo de filtro — a relação com o filtro é o `similarQuery` do detalhe. */
+    public var force: String?
+    /** Lista de textos de atributo. O servidor a entrega **sem repetição e na ordem da origem**, e o app a exibe nessa ordem (por isso o schema não declara `uniqueItems`: os clientes gerados a tratariam como conjunto, de ordem instável). Lista ausente significa que a origem não a informa; o contrato não usa lista vazia para isso. */
+    public var grips: [String]?
 
-    public init(exerciseId: String, name: String, muscleGroupCode: String, variants: [ExerciseCatalogVariant]) {
+    public init(exerciseId: String? = nil, variantId: String? = nil, catalogRef: String? = nil, name: String, origin: ExerciseOrigin, favorite: Bool, primaryMuscles: [String]? = nil, equipment: String? = nil, difficulty: String? = nil, mechanic: String? = nil, force: String? = nil, grips: [String]? = nil) {
         self.exerciseId = exerciseId
+        self.variantId = variantId
+        self.catalogRef = catalogRef
         self.name = name
-        self.muscleGroupCode = muscleGroupCode
-        self.variants = variants
+        self.origin = origin
+        self.favorite = favorite
+        self.primaryMuscles = primaryMuscles
+        self.equipment = equipment
+        self.difficulty = difficulty
+        self.mechanic = mechanic
+        self.force = force
+        self.grips = grips
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case exerciseId
+        case variantId
+        case catalogRef
         case name
-        case muscleGroupCode
-        case variants
+        case origin
+        case favorite
+        case primaryMuscles
+        case equipment
+        case difficulty
+        case mechanic
+        case force
+        case grips
     }
 
     // Encodable protocol methods
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(exerciseId, forKey: .exerciseId)
+        try container.encodeIfPresent(exerciseId, forKey: .exerciseId)
+        try container.encodeIfPresent(variantId, forKey: .variantId)
+        try container.encodeIfPresent(catalogRef, forKey: .catalogRef)
         try container.encode(name, forKey: .name)
-        try container.encode(muscleGroupCode, forKey: .muscleGroupCode)
-        try container.encode(variants, forKey: .variants)
+        try container.encode(origin, forKey: .origin)
+        try container.encode(favorite, forKey: .favorite)
+        try container.encodeIfPresent(primaryMuscles, forKey: .primaryMuscles)
+        try container.encodeIfPresent(equipment, forKey: .equipment)
+        try container.encodeIfPresent(difficulty, forKey: .difficulty)
+        try container.encodeIfPresent(mechanic, forKey: .mechanic)
+        try container.encodeIfPresent(force, forKey: .force)
+        try container.encodeIfPresent(grips, forKey: .grips)
+    }
+}
+
+
+extension ExerciseCatalogItem: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if origin == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

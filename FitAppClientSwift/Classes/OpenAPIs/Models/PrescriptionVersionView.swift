@@ -16,6 +16,7 @@ public struct PrescriptionVersionView: Codable, JSONEncodable, Hashable {
     public static let prescriptionVersionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescriptionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let studentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let sourcePrescriptionVersionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let versionNumberRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     /** Identidade da versão, igual à do rascunho que a originou. */
     public var prescriptionVersionId: String
@@ -23,6 +24,9 @@ public struct PrescriptionVersionView: Codable, JSONEncodable, Hashable {
     public var prescriptionId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var studentId: String
+    public var originKind: PrescriptionOriginKind
+    /** Versão publicada de origem, só quando `originKind` é `REVISION`; a origem permanece imutável e nunca é alterada pela publicação. Ausente em `BLANK`, `CLONE` e `TEMPLATE`. */
+    public var sourcePrescriptionVersionId: String?
     /** Número da versão, único por prescrição e atribuído pelo servidor na publicação. */
     public var versionNumber: Int
     public var state: PrescriptionVersionState
@@ -32,10 +36,12 @@ public struct PrescriptionVersionView: Codable, JSONEncodable, Hashable {
     public var supersededAt: Date?
     public var content: PrescriptionDraftContent
 
-    public init(prescriptionVersionId: String, prescriptionId: String, studentId: String, versionNumber: Int, state: PrescriptionVersionState, publishedAt: Date, supersededAt: Date?, content: PrescriptionDraftContent) {
+    public init(prescriptionVersionId: String, prescriptionId: String, studentId: String, originKind: PrescriptionOriginKind, sourcePrescriptionVersionId: String? = nil, versionNumber: Int, state: PrescriptionVersionState, publishedAt: Date, supersededAt: Date?, content: PrescriptionDraftContent) {
         self.prescriptionVersionId = prescriptionVersionId
         self.prescriptionId = prescriptionId
         self.studentId = studentId
+        self.originKind = originKind
+        self.sourcePrescriptionVersionId = sourcePrescriptionVersionId
         self.versionNumber = versionNumber
         self.state = state
         self.publishedAt = publishedAt
@@ -47,6 +53,8 @@ public struct PrescriptionVersionView: Codable, JSONEncodable, Hashable {
         case prescriptionVersionId
         case prescriptionId
         case studentId
+        case originKind
+        case sourcePrescriptionVersionId
         case versionNumber
         case state
         case publishedAt
@@ -61,6 +69,8 @@ public struct PrescriptionVersionView: Codable, JSONEncodable, Hashable {
         try container.encode(prescriptionVersionId, forKey: .prescriptionVersionId)
         try container.encode(prescriptionId, forKey: .prescriptionId)
         try container.encode(studentId, forKey: .studentId)
+        try container.encode(originKind, forKey: .originKind)
+        try container.encodeIfPresent(sourcePrescriptionVersionId, forKey: .sourcePrescriptionVersionId)
         try container.encode(versionNumber, forKey: .versionNumber)
         try container.encode(state, forKey: .state)
         try container.encode(publishedAt, forKey: .publishedAt)
@@ -72,6 +82,7 @@ public struct PrescriptionVersionView: Codable, JSONEncodable, Hashable {
 
 extension PrescriptionVersionView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
+        if originKind == .unknownDefaultOpenApi { return true }
         if state == .unknownDefaultOpenApi { return true }
         return false
     }

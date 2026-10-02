@@ -10,34 +10,38 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Cria um rascunho vazio ou derivado de uma versão publicada da mesma relação. A identidade nasce no cliente para que a criação offline e o retry convirjam para um único rascunho. */
+/** Cria um rascunho em branco, revisão do plano do mesmo aluno, cópia de plano de outro aluno do mesmo personal ou cópia de treinos de um modelo. A identidade nasce no cliente para que o retry convirja para um único rascunho. Só cabe um rascunho aberto por aluno: com um já aberto, a criação é &#x60;409 DRAFT_ALREADY_OPEN&#x60;. &#x60;loadPolicy&#x60; e &#x60;notesPolicy&#x60; são **ambos obrigatórios quando &#x60;source.kind&#x60; é &#x60;CLONE&#x60; ou &#x60;TEMPLATE&#x60;** e **proibidos** sem &#x60;source&#x60; e com &#x60;REVISION&#x60;; a regra é do gate de contrato e não de schema, porque reescrever este tipo já publicado em &#x60;allOf&#x60; faria o gate de compatibilidade ler o que não mudou como remoção. Sem &#x60;source&#x60; o rascunho nasce em branco; o &#x60;originKind&#x60; é do servidor e o cliente nunca o declara. */
 public struct CreatePrescriptionDraftRequest: Codable, JSONEncodable, Hashable {
 
     public static let draftIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let studentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let nameRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
-    public static let sourcePrescriptionVersionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Identidade do rascunho, gerada pelo cliente; o servidor adota em vez de emitir outra. */
     public var draftId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var studentId: String
     /** Nome da prescrição, autorado pelo personal e preservado verbatim. */
     public var name: String
-    /** Versão publicada de origem; derivar copia a estrutura para o rascunho novo sem tocar na origem. */
-    public var sourcePrescriptionVersionId: String?
+    public var source: PrescriptionDraftSource?
+    public var loadPolicy: PrescriptionLoadPolicy?
+    public var notesPolicy: PrescriptionNotesPolicy?
 
-    public init(draftId: String, studentId: String, name: String, sourcePrescriptionVersionId: String? = nil) {
+    public init(draftId: String, studentId: String, name: String, source: PrescriptionDraftSource? = nil, loadPolicy: PrescriptionLoadPolicy? = nil, notesPolicy: PrescriptionNotesPolicy? = nil) {
         self.draftId = draftId
         self.studentId = studentId
         self.name = name
-        self.sourcePrescriptionVersionId = sourcePrescriptionVersionId
+        self.source = source
+        self.loadPolicy = loadPolicy
+        self.notesPolicy = notesPolicy
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case draftId
         case studentId
         case name
-        case sourcePrescriptionVersionId
+        case source
+        case loadPolicy
+        case notesPolicy
     }
 
     // Encodable protocol methods
@@ -47,6 +51,17 @@ public struct CreatePrescriptionDraftRequest: Codable, JSONEncodable, Hashable {
         try container.encode(draftId, forKey: .draftId)
         try container.encode(studentId, forKey: .studentId)
         try container.encode(name, forKey: .name)
-        try container.encodeIfPresent(sourcePrescriptionVersionId, forKey: .sourcePrescriptionVersionId)
+        try container.encodeIfPresent(source, forKey: .source)
+        try container.encodeIfPresent(loadPolicy, forKey: .loadPolicy)
+        try container.encodeIfPresent(notesPolicy, forKey: .notesPolicy)
+    }
+}
+
+
+extension CreatePrescriptionDraftRequest: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if loadPolicy == .unknownDefaultOpenApi { return true }
+        if notesPolicy == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

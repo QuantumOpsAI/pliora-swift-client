@@ -33,7 +33,7 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     public var occurredAt: Date
     /** Variante efetivamente executada nesta sessão. Ela pertence à chave: uma variante diferente não entra nesta série. */
     public var executedVariantId: String
-    /** Nome canônico da variante executada, preservado do catálogo pelo servidor e nunca usado no lugar de `executedVariantId`. */
+    /** Rótulo da variante executada, preservado verbatim e nunca usado no lugar de `executedVariantId`. O catálogo não é guardado (ADR-0014): nenhum nome vem dele; para exercício do catálogo, que tem uma variante só, é o `displayName` da prescrição. */
     public var executedVariantLabel: String
     /** Contexto de equipamento efetivamente usado, quando conhecido. Código de máquina estável, **nunca nome de aparelho exibível**. */
     public var equipmentContextKey: String?

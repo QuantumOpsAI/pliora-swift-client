@@ -15,18 +15,22 @@ public struct PrescribedWorkoutSyncView: Codable, JSONEncodable, Hashable {
     public static let workoutIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let nameRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let focusRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let blocksRule = ArrayRule(minItems: nil, maxItems: 30, uniqueItems: false)
     public static let exercisesRule = ArrayRule(minItems: 1, maxItems: nil, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var workoutId: String
     public var name: String
     /** Foco autorado preservado; nulo somente para versão publicada antes de esse campo existir. Novas publicações continuam recusadas sem foco. */
     public var focus: String?
+    /** Blocos combinados do treino, na mesma forma da autoria (`PrescribedBlock`), para que a forma do prescrito continue única entre o rascunho, a versão publicada e o que chega ao aluno. Ausente quando o treino não tem bloco. */
+    public var blocks: [PrescribedBlock]?
     public var exercises: [PrescribedExerciseSyncView]
 
-    public init(workoutId: String, name: String, focus: String?, exercises: [PrescribedExerciseSyncView]) {
+    public init(workoutId: String, name: String, focus: String?, blocks: [PrescribedBlock]? = nil, exercises: [PrescribedExerciseSyncView]) {
         self.workoutId = workoutId
         self.name = name
         self.focus = focus
+        self.blocks = blocks
         self.exercises = exercises
     }
 
@@ -34,6 +38,7 @@ public struct PrescribedWorkoutSyncView: Codable, JSONEncodable, Hashable {
         case workoutId
         case name
         case focus
+        case blocks
         case exercises
     }
 
@@ -44,6 +49,7 @@ public struct PrescribedWorkoutSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(workoutId, forKey: .workoutId)
         try container.encode(name, forKey: .name)
         try container.encode(focus, forKey: .focus)
+        try container.encodeIfPresent(blocks, forKey: .blocks)
         try container.encode(exercises, forKey: .exercises)
     }
 }

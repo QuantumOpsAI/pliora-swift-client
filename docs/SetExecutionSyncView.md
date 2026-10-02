@@ -11,6 +11,8 @@ Name | Type | Description | Notes
 **status** | [**ExecutedSetStatus**](ExecutedSetStatus.md) |  |
 **target** | [**ExecutionTargetValues**](ExecutionTargetValues.md) |  |
 **actual** | [**WorkoutSetValues**](WorkoutSetValues.md) |  |
+**measuredDurationSeconds** | **Int** | Duração medida pelo cronômetro da série por tempo, em segundos; nunca é sobrescrita. Ausente fora da série por tempo e na série pulada. | [optional]
+**adjustedDurationSeconds** | **Int** | Duração que o aluno corrigiu, em segundos; existe somente quando é **diferente** de &#x60;measuredDurationSeconds&#x60; e então é igual a &#x60;actual.durationSeconds&#x60;. Ausente quer dizer que o aluno não corrigiu, e nunca zero. | [optional]
 **executedVariantId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **equipmentInstanceId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **observation** | **String** |  |

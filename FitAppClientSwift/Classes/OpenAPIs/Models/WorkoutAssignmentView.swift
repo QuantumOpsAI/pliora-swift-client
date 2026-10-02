@@ -18,6 +18,7 @@ public struct WorkoutAssignmentView: Codable, JSONEncodable, Hashable {
     public static let prescriptionVersionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let workoutIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let revisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let activationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var assignmentId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -31,8 +32,10 @@ public struct WorkoutAssignmentView: Codable, JSONEncodable, Hashable {
     public var status: WorkoutAssignmentStatus
     /** Revisão opaca definida pelo servidor. O cliente compara somente por igualdade, nunca infere ordem e nunca a cria; `expectedRevision` e `canonicalRevision` apenas ecoam um valor lido do servidor. */
     public var revision: String
+    /** Ativação que materializou esta atribuição; ausente quando o personal a fez à mão (`assignPersonalStudentWorkout`). Só a atribuição materializada por uma ativação é retirada quando ela é substituída, alterada ou encerrada: a do ajuste de um dia permanece. */
+    public var activationId: String?
 
-    public init(assignmentId: String, studentId: String, prescriptionVersionId: String, workoutId: String, localDate: Date, status: WorkoutAssignmentStatus, revision: String) {
+    public init(assignmentId: String, studentId: String, prescriptionVersionId: String, workoutId: String, localDate: Date, status: WorkoutAssignmentStatus, revision: String, activationId: String? = nil) {
         self.assignmentId = assignmentId
         self.studentId = studentId
         self.prescriptionVersionId = prescriptionVersionId
@@ -40,6 +43,7 @@ public struct WorkoutAssignmentView: Codable, JSONEncodable, Hashable {
         self.localDate = localDate
         self.status = status
         self.revision = revision
+        self.activationId = activationId
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -50,6 +54,7 @@ public struct WorkoutAssignmentView: Codable, JSONEncodable, Hashable {
         case localDate
         case status
         case revision
+        case activationId
     }
 
     // Encodable protocol methods
@@ -63,6 +68,7 @@ public struct WorkoutAssignmentView: Codable, JSONEncodable, Hashable {
         try container.encode(localDate, forKey: .localDate)
         try container.encode(status, forKey: .status)
         try container.encode(revision, forKey: .revision)
+        try container.encodeIfPresent(activationId, forKey: .activationId)
     }
 }
 

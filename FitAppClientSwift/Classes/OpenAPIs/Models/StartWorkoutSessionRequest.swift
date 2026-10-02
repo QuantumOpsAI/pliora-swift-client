@@ -18,7 +18,7 @@ public struct StartWorkoutSessionRequest: Codable, JSONEncodable, Hashable {
     public static let prescriptionVersionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Identidade da sessão, **gerada pelo cliente** antes de qualquer chamada, para que uma sessão iniciada offline mantenha a mesma identidade ao ser sincronizada. Deve ser globalmente única e nunca reutilizada; UUIDv7 é o gerador recomendado, alinhado ao envelope de sync e à baseline dos apps. O valor é opaco: o servidor não atribui semântica a ele e o cliente não infere ordem a partir dele. */
     public var sessionId: String
-    /** Treino prescrito que a sessão vai executar, como lido na Home ou no resumo. */
+    /** Treino prescrito que a sessão vai executar, como lido na Home ou no resumo. Em plano em sequência livre, qualquer treino da sequência vigente, e não só o próximo. */
     public var workoutId: String
     /** Versão publicada da prescrição que o cliente leu ao iniciar. A sessão é fixada nela e não migra para uma versão publicada depois. Uma versão que não está atribuída ao aluno é recusada com `PRESCRIPTION_VERSION_NOT_ASSIGNED`, nunca substituída em silêncio. */
     public var prescriptionVersionId: String

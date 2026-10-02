@@ -10,5 +10,6 @@ Name | Type | Description | Notes
 **localDate** | **Date** | Data civil no calendário ISO 8601, sem horário ou timezone. |
 **status** | [**WorkoutAssignmentStatus**](WorkoutAssignmentStatus.md) |  |
 **revision** | **String** | Revisão opaca definida pelo servidor. O cliente compara somente por igualdade, nunca infere ordem e nunca a cria; &#x60;expectedRevision&#x60; e &#x60;canonicalRevision&#x60; apenas ecoam um valor lido do servidor. |
+**activationId** | **String** | Ativação que materializou esta atribuição; ausente quando o personal a fez à mão (&#x60;assignPersonalStudentWorkout&#x60;). Só a atribuição materializada por uma ativação é retirada quando ela é substituída, alterada ou encerrada: a do ajuste de um dia permanece. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

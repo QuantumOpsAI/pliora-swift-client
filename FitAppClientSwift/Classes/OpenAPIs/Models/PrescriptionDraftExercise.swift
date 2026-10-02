@@ -16,6 +16,8 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
     public static let prescribedExerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescribedVariantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let displayNameRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let derivedFromPrescribedExerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let positionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let blockKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
     public static let dependsOnPrescribedExerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -28,26 +30,38 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
     public var exerciseId: String
     /** Variante prescrita pelo personal, recuperável de forma inequívoca. A variante executada pelo aluno é outro fato e nunca sobrescreve esta. */
     public var prescribedVariantId: String
+    /** Rótulo do exercício **na prescrição**, autorado pelo personal e preservado verbatim UTF-8, obrigatório. Nasce preenchido pelo app com o nome exibido na busca no momento da inclusão e o personal pode ajustá-lo. É **o nome que a versão publicada, o bundle do aluno e o histórico exibem**: nenhuma prescrição depende de o exercício continuar no catálogo, nem de o texto da origem do catálogo continuar disponível. **Obrigatório em todo exercício prescrito, qualquer que seja a origem dele**, porque o conteúdo do rascunho não carrega essa origem: de um exercício do catálogo é o **único nome que o servidor guarda** — o catálogo não é guardado —, e nada do texto da origem trafega aqui; de um exercício próprio o app o preenche com o nome autorado do exercício, e o servidor nunca o completa nem o reescreve. */
+    public var displayName: String
+    /** Exercício prescrito da versão de origem do qual este foi copiado, **gravado pelo servidor** quando o rascunho é `REVISION`, para que a revisão diga o que foi alterado, o que entrou e o que saiu. Ausente em exercício que o personal criou neste rascunho e em rascunho que não é revisão. O cliente nunca o declara: reenviá-lo na edição é inócuo. */
+    public var derivedFromPrescribedExerciseId: String?
     public var position: Int
     public var orderPolicy: PrescribedOrderPolicy
-    /** Agrupamento que restringe a ordem; obrigatório na prática para `FLEXIBLE_WITHIN_GROUP`. Identificador de máquina, nunca copy de tela. */
+    /** Quando consta em `blocks[]` do treino, é o **bloco combinado** do exercício, que então é `LOCKED`, não declara `restRange` e é contíguo aos demais do bloco. Quando **não** consta, é o agrupamento que restringe a ordem, como antes — obrigatório na prática para `FLEXIBLE_WITHIN_GROUP` —, que **não é exposto ao personal**. Identificador de máquina, nunca copy de tela. */
     public var blockKey: String?
+    /** Cadência prescrita do exercício; ausente quando o personal não a definiu, nunca `0-0-0-0`. */
+    public var cadence: PrescribedCadence?
+    /** Etiqueta informativa da técnica (pirâmide); ausente quando não há. */
+    public var technique: PrescribedTechnique?
     /** Exercício que precisa estar concluído antes deste, quando o personal declara dependência. */
     public var dependsOnPrescribedExerciseId: String?
     /** Nota do personal para o exercício. Conteúdo autorado, preservado verbatim UTF-8, nunca traduzido, normalizado, reescrito ou truncado em silêncio. */
     public var notes: String?
     public var restRange: PrescribedRestRange?
-    /** Séries prescritas; um rascunho ainda incompleto pode ter a lista vazia, e a publicação é que exige ao menos uma. */
+    /** Séries prescritas; um rascunho ainda incompleto pode ter a lista vazia, e a publicação é que exige ao menos uma. A **primeira** série, a de menor `setIndex`, nunca é `DROP_SET`: a publicação recusa o contrário com `422 DRAFT_INCOMPLETE` e `fieldErrors` de código `DROP_SET_FIRST` apontando o `setType` dela. */
     public var sets: [PrescriptionDraftSet]
     public var alternatives: [PrescriptionDraftAlternative]?
 
-    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, position: Int, orderPolicy: PrescribedOrderPolicy, blockKey: String? = nil, dependsOnPrescribedExerciseId: String? = nil, notes: String? = nil, restRange: PrescribedRestRange? = nil, sets: [PrescriptionDraftSet], alternatives: [PrescriptionDraftAlternative]? = nil) {
+    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, derivedFromPrescribedExerciseId: String? = nil, position: Int, orderPolicy: PrescribedOrderPolicy, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, dependsOnPrescribedExerciseId: String? = nil, notes: String? = nil, restRange: PrescribedRestRange? = nil, sets: [PrescriptionDraftSet], alternatives: [PrescriptionDraftAlternative]? = nil) {
         self.prescribedExerciseId = prescribedExerciseId
         self.exerciseId = exerciseId
         self.prescribedVariantId = prescribedVariantId
+        self.displayName = displayName
+        self.derivedFromPrescribedExerciseId = derivedFromPrescribedExerciseId
         self.position = position
         self.orderPolicy = orderPolicy
         self.blockKey = blockKey
+        self.cadence = cadence
+        self.technique = technique
         self.dependsOnPrescribedExerciseId = dependsOnPrescribedExerciseId
         self.notes = notes
         self.restRange = restRange
@@ -59,9 +73,13 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
         case prescribedExerciseId
         case exerciseId
         case prescribedVariantId
+        case displayName
+        case derivedFromPrescribedExerciseId
         case position
         case orderPolicy
         case blockKey
+        case cadence
+        case technique
         case dependsOnPrescribedExerciseId
         case notes
         case restRange
@@ -76,9 +94,13 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
         try container.encode(prescribedExerciseId, forKey: .prescribedExerciseId)
         try container.encode(exerciseId, forKey: .exerciseId)
         try container.encode(prescribedVariantId, forKey: .prescribedVariantId)
+        try container.encode(displayName, forKey: .displayName)
+        try container.encodeIfPresent(derivedFromPrescribedExerciseId, forKey: .derivedFromPrescribedExerciseId)
         try container.encode(position, forKey: .position)
         try container.encode(orderPolicy, forKey: .orderPolicy)
         try container.encodeIfPresent(blockKey, forKey: .blockKey)
+        try container.encodeIfPresent(cadence, forKey: .cadence)
+        try container.encodeIfPresent(technique, forKey: .technique)
         try container.encodeIfPresent(dependsOnPrescribedExerciseId, forKey: .dependsOnPrescribedExerciseId)
         try container.encodeIfPresent(notes, forKey: .notes)
         try container.encodeIfPresent(restRange, forKey: .restRange)
@@ -91,6 +113,7 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
 extension PrescriptionDraftExercise: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if orderPolicy == .unknownDefaultOpenApi { return true }
+        if technique == .unknownDefaultOpenApi { return true }
         return false
     }
 }

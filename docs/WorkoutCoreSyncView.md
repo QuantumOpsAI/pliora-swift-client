@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **startedAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. |
 **completedAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. |
 **exerciseOrderPolicy** | [**ExerciseOrderPolicyView**](ExerciseOrderPolicyView.md) |  |
+**calculatedLoadTargets** | [CalculatedLoadTarget] | Um item por série **prescrita em percentual** do treino da sessão, na ordem da prescrição, cada &#x60;prescribedSetId&#x60; uma só vez; ausente quando nenhuma série do treino é em percentual. Fixado no início da sessão e nunca recalculado. O valor calculado vale para a **variante prescrita**: trocar de variante o tira, e a carga de referência não é transportada entre variantes. | [optional]
 **exerciseExecutionId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **prescribedExerciseId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **executedVariantId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
@@ -23,6 +24,8 @@ Name | Type | Description | Notes
 **setIndex** | **Int** |  |
 **target** | [**ExecutionTargetValues**](ExecutionTargetValues.md) |  |
 **actual** | [**WorkoutSetValues**](WorkoutSetValues.md) |  |
+**measuredDurationSeconds** | **Int** | Duração medida pelo cronômetro da série por tempo, em segundos; nunca é sobrescrita. Ausente fora da série por tempo e na série pulada. | [optional]
+**adjustedDurationSeconds** | **Int** | Duração que o aluno corrigiu, em segundos; existe somente quando é **diferente** de &#x60;measuredDurationSeconds&#x60; e então é igual a &#x60;actual.durationSeconds&#x60;. Ausente quer dizer que o aluno não corrigiu, e nunca zero. | [optional]
 **observation** | **String** |  |
 **restPeriodId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **afterSetExecutionId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. | [optional]
@@ -57,6 +60,7 @@ Name | Type | Description | Notes
 **alternativeId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **exerciseId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **variantId** | **String** | Variante a que este histórico pertence; o histórico da variante A nunca traz execução da variante B. |
+**displayName** | **String** | Rótulo da alternativa na prescrição, o mesmo de &#x60;PrescriptionDraftAlternative&#x60;, preservado verbatim. É o nome que o aluno vê na tela de troca e que o histórico guarda, independentemente de o exercício continuar na origem do catálogo. |
 **name** | **String** |  |
 **variantIds** | **[String]** |  |
 **equipmentContextKey** | **String** | Contexto de equipamento que, junto com a variante, fecha a chave de comparabilidade. Código de máquina estável, nunca nome de aparelho exibível. |

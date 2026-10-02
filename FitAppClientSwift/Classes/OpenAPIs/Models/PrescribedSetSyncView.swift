@@ -10,20 +10,28 @@ import Foundation
 import AnyCodable
 #endif
 
+/** Série prescrita como chega ao aluno. &#x60;target&#x60; traz carga absoluta, repetições e, em série por tempo, &#x60;durationSeconds&#x60; com &#x60;reps&#x60; nulo. Em carga em percentual &#x60;loadPercent&#x60; é o percentual da carga de referência e &#x60;target.loadValue&#x60; e &#x60;target.loadUnit&#x60; são **nulos**: o prescrito em percentual nunca carrega valor absoluto, e o valor calculado é alvo da sessão, não esta projeção. */
 public struct PrescribedSetSyncView: Codable, JSONEncodable, Hashable {
 
     public static let prescribedSetIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let setIndexRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let loadPercentRule = NumericRule<Double>(minimum: 1, exclusiveMinimum: false, maximum: 150, exclusiveMaximum: false, multipleOf: nil)
     public static let restSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var prescribedSetId: String
     public var setIndex: Int
+    public var setType: PrescribedSetType
+    /** Percentual da carga de referência; ausente quando a carga não é prescrita em percentual. */
+    public var loadPercent: Double?
     public var target: WorkoutSetValues
-    public var restSeconds: Int
+    /** Descanso prescrito **depois desta série**, em segundos, na forma achatada que o aluno consome. Fora de bloco é o do exercício; num bloco combinado é o do bloco, tomado uma vez por rodada (`LE-3`, `LE-12`): depois da série de um exercício que não é o último da rodada não há descanso — exceto o descanso entre estações do circuito, `stationRestSeconds` —, depois da série do último exercício vale o descanso do bloco, o máximo da faixa (`restRange.maxSeconds`), e depois da última rodada não há nenhum. **Ausente** quando não há descanso prescrito depois da série, e a ausência nunca é zero; presente, `0` é um descanso prescrito de zero segundo. O bloco, com a faixa, vai em `blocks`. */
+    public var restSeconds: Int?
 
-    public init(prescribedSetId: String, setIndex: Int, target: WorkoutSetValues, restSeconds: Int) {
+    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, loadPercent: Double? = nil, target: WorkoutSetValues, restSeconds: Int? = nil) {
         self.prescribedSetId = prescribedSetId
         self.setIndex = setIndex
+        self.setType = setType
+        self.loadPercent = loadPercent
         self.target = target
         self.restSeconds = restSeconds
     }
@@ -31,6 +39,8 @@ public struct PrescribedSetSyncView: Codable, JSONEncodable, Hashable {
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case prescribedSetId
         case setIndex
+        case setType
+        case loadPercent
         case target
         case restSeconds
     }
@@ -41,7 +51,17 @@ public struct PrescribedSetSyncView: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(prescribedSetId, forKey: .prescribedSetId)
         try container.encode(setIndex, forKey: .setIndex)
+        try container.encode(setType, forKey: .setType)
+        try container.encodeIfPresent(loadPercent, forKey: .loadPercent)
         try container.encode(target, forKey: .target)
-        try container.encode(restSeconds, forKey: .restSeconds)
+        try container.encodeIfPresent(restSeconds, forKey: .restSeconds)
+    }
+}
+
+
+extension PrescribedSetSyncView: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if setType == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** &#x60;view&#x60; fechada de &#x60;PRESCRIPTION_DRAFT&#x60;, visível **somente no escopo do personal autor**: o rascunho nunca alcança o escopo do aluno em nenhum instante antes da publicação, nem como identidade, nem como contagem, nem como sinal de existência. O rascunho é editável offline (classe W-REV), por isso a estrutura inteira viaja no delta com a revisão do item. */
+/** &#x60;view&#x60; fechada de &#x60;PRESCRIPTION_DRAFT&#x60;, visível **somente no escopo do personal autor**: o rascunho nunca alcança o escopo do aluno em nenhum instante antes da publicação, nem como identidade, nem como contagem, nem como sinal de existência. A estrutura inteira viaja no delta com a revisão do item. */
 public struct PrescriptionDraftSyncView: Codable, JSONEncodable, Hashable {
 
     public enum ViewType: String, Codable, CaseIterable, CaseIterableDefaultsLast {

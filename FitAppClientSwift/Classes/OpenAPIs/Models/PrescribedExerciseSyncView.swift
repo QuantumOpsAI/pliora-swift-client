@@ -15,7 +15,9 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
     public static let prescribedExerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescribedVariantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let displayNameRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let positionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let blockKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
     public static let setsRule = ArrayRule(minItems: 1, maxItems: nil, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var prescribedExerciseId: String
@@ -23,15 +25,25 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
     public var exerciseId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var prescribedVariantId: String
+    /** Rótulo do exercício na prescrição, o mesmo de `PrescriptionDraftExercise`, preservado verbatim. É o nome que o aluno vê e que o histórico guarda, independentemente de o exercício continuar na origem do catálogo. */
+    public var displayName: String
     public var position: Int
+    /** Bloco combinado do exercício quando consta em `blocks[]` do treino; fora disso, o agrupamento de ordem de antes. Identificador de máquina. */
+    public var blockKey: String?
+    public var cadence: PrescribedCadence?
+    public var technique: PrescribedTechnique?
     public var sets: [PrescribedSetSyncView]
     public var authorizedAlternativeIds: [String]
 
-    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, position: Int, sets: [PrescribedSetSyncView], authorizedAlternativeIds: [String]) {
+    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, position: Int, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, sets: [PrescribedSetSyncView], authorizedAlternativeIds: [String]) {
         self.prescribedExerciseId = prescribedExerciseId
         self.exerciseId = exerciseId
         self.prescribedVariantId = prescribedVariantId
+        self.displayName = displayName
         self.position = position
+        self.blockKey = blockKey
+        self.cadence = cadence
+        self.technique = technique
         self.sets = sets
         self.authorizedAlternativeIds = authorizedAlternativeIds
     }
@@ -40,7 +52,11 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
         case prescribedExerciseId
         case exerciseId
         case prescribedVariantId
+        case displayName
         case position
+        case blockKey
+        case cadence
+        case technique
         case sets
         case authorizedAlternativeIds
     }
@@ -52,8 +68,20 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(prescribedExerciseId, forKey: .prescribedExerciseId)
         try container.encode(exerciseId, forKey: .exerciseId)
         try container.encode(prescribedVariantId, forKey: .prescribedVariantId)
+        try container.encode(displayName, forKey: .displayName)
         try container.encode(position, forKey: .position)
+        try container.encodeIfPresent(blockKey, forKey: .blockKey)
+        try container.encodeIfPresent(cadence, forKey: .cadence)
+        try container.encodeIfPresent(technique, forKey: .technique)
         try container.encode(sets, forKey: .sets)
         try container.encode(authorizedAlternativeIds, forKey: .authorizedAlternativeIds)
+    }
+}
+
+
+extension PrescribedExerciseSyncView: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if technique == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

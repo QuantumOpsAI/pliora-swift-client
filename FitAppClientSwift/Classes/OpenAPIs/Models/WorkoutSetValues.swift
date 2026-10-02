@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Valores prescritos ou realizados de uma série. O realizado pode incluir RPE; o alvo operacional usa &#x60;ExecutionTargetValues&#x60; para preservar também origem e RPE esperado. Campos de carga permanecem explícitos e anuláveis para exercícios sem carga, sem inventar zero. */
+/** Valores prescritos ou realizados de uma série. O realizado pode incluir RPE; o alvo operacional usa &#x60;ExecutionTargetValues&#x60; para preservar também origem e RPE esperado. Campos de carga permanecem explícitos e anuláveis para exercícios sem carga, sem inventar zero. **Série por tempo:** &#x60;durationSeconds&#x60; é a duração em segundos — a alvo ou a realizada, conforme o bloco em que aparece — e, quando presente, &#x60;reps&#x60; é **nulo**: a série por tempo não tem repetição, e a ausência dela nunca vira zero repetição. &#x60;durationSeconds&#x60; ausente é série que não é por tempo. */
 public struct WorkoutSetValues: Codable, JSONEncodable, Hashable {
 
     public enum LoadUnit: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -22,16 +22,20 @@ public struct WorkoutSetValues: Codable, JSONEncodable, Hashable {
     }
     public static let loadValueRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let repsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let durationSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let rpeRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: 10, exclusiveMaximum: false, multipleOf: nil)
     public var loadValue: Double?
     public var loadUnit: LoadUnit?
     public var reps: Int?
+    /** Duração da série por tempo, em segundos. Na realizada, o excedente sobre a duração alvo é fato e não erro, e este é o valor **em vigor**: o medido pelo cronômetro e o corrigido pelo aluno são campos próprios da série executada (`measuredDurationSeconds` e `adjustedDurationSeconds`). */
+    public var durationSeconds: Int?
     public var rpe: Double?
 
-    public init(loadValue: Double?, loadUnit: LoadUnit?, reps: Int?, rpe: Double? = nil) {
+    public init(loadValue: Double?, loadUnit: LoadUnit?, reps: Int?, durationSeconds: Int? = nil, rpe: Double? = nil) {
         self.loadValue = loadValue
         self.loadUnit = loadUnit
         self.reps = reps
+        self.durationSeconds = durationSeconds
         self.rpe = rpe
     }
 
@@ -39,6 +43,7 @@ public struct WorkoutSetValues: Codable, JSONEncodable, Hashable {
         case loadValue
         case loadUnit
         case reps
+        case durationSeconds
         case rpe
     }
 
@@ -49,6 +54,7 @@ public struct WorkoutSetValues: Codable, JSONEncodable, Hashable {
         try container.encode(loadValue, forKey: .loadValue)
         try container.encode(loadUnit, forKey: .loadUnit)
         try container.encode(reps, forKey: .reps)
+        try container.encodeIfPresent(durationSeconds, forKey: .durationSeconds)
         try container.encodeIfPresent(rpe, forKey: .rpe)
     }
 }

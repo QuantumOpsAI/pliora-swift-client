@@ -10,23 +10,26 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Card principal independente; estado explícito e payloads anuláveis coerentes com ele. */
+/** Card principal independente; estado explícito e payloads anuláveis coerentes com ele. &#x60;sequencePlan&#x60; existe **somente** quando a ativação vigente é em sequência livre, e então o estado nunca é &#x60;REST_DAY&#x60;. */
 public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
 
     public var status: StudentTodayStatus
     public var prescribedWorkout: StudentTodayPrescribedWorkoutView?
     public var openSession: StudentTodayOpenSessionView?
+    public var sequencePlan: StudentTodaySequencePlanView?
 
-    public init(status: StudentTodayStatus, prescribedWorkout: StudentTodayPrescribedWorkoutView?, openSession: StudentTodayOpenSessionView?) {
+    public init(status: StudentTodayStatus, prescribedWorkout: StudentTodayPrescribedWorkoutView?, openSession: StudentTodayOpenSessionView?, sequencePlan: StudentTodaySequencePlanView? = nil) {
         self.status = status
         self.prescribedWorkout = prescribedWorkout
         self.openSession = openSession
+        self.sequencePlan = sequencePlan
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case status
         case prescribedWorkout
         case openSession
+        case sequencePlan
     }
 
     // Encodable protocol methods
@@ -36,6 +39,7 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
         try container.encode(status, forKey: .status)
         try container.encode(prescribedWorkout, forKey: .prescribedWorkout)
         try container.encode(openSession, forKey: .openSession)
+        try container.encodeIfPresent(sequencePlan, forKey: .sequencePlan)
     }
 }
 

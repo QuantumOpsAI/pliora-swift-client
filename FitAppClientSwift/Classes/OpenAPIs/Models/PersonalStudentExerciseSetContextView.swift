@@ -14,29 +14,48 @@ import AnyCodable
 public struct PersonalStudentExerciseSetContextView: Codable, JSONEncodable, Hashable {
 
     public static let setIndexRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let loadPercentRule = NumericRule<Double>(minimum: 1, exclusiveMinimum: false, maximum: 150, exclusiveMaximum: false, multipleOf: nil)
+    public static let measuredDurationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let adjustedDurationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public var setIndex: Int
     public var status: ExecutedSetStatus
+    /** Tipo da série prescrita (`LE-16`): a comparação entre séries considera só as do mesmo tipo, e a de aquecimento não entra em maior carga nem em volume. Ausente quando não houve prescrição registrada. */
+    public var setType: PrescribedSetType?
+    /** Percentual da carga de referência com que a série foi prescrita; ausente quando a carga prescrita não era em percentual. É o prescrito e nunca vira carga: em `prescribed`, `loadValue` e `loadUnit` ficam nulos, e a carga **executada** está em `actual`. */
+    public var loadPercent: Double?
     /** Valores prescritos da série. `null` quando não houve prescrição registrada — e nenhum valor presumido é preenchido para destravar a comparação. */
     public var prescribed: WorkoutSetValues?
     /** Alvo operacional efetivamente apresentado, com a origem da decisão preservada. `null` quando não houve alvo registrado. */
     public var target: ExecutionTargetValues?
     /** Valores realizados. `null` quando a série não foi realizada. */
     public var actual: WorkoutSetValues?
+    /** Duração medida pelo cronômetro da série por tempo; nunca é sobrescrita. Ausente fora da série por tempo e na série pulada. */
+    public var measuredDurationSeconds: Int?
+    /** Duração que o aluno corrigiu; existe somente quando difere da medida, e então é a que consta em `actual.durationSeconds`. */
+    public var adjustedDurationSeconds: Int?
 
-    public init(setIndex: Int, status: ExecutedSetStatus, prescribed: WorkoutSetValues?, target: ExecutionTargetValues?, actual: WorkoutSetValues?) {
+    public init(setIndex: Int, status: ExecutedSetStatus, setType: PrescribedSetType? = nil, loadPercent: Double? = nil, prescribed: WorkoutSetValues?, target: ExecutionTargetValues?, actual: WorkoutSetValues?, measuredDurationSeconds: Int? = nil, adjustedDurationSeconds: Int? = nil) {
         self.setIndex = setIndex
         self.status = status
+        self.setType = setType
+        self.loadPercent = loadPercent
         self.prescribed = prescribed
         self.target = target
         self.actual = actual
+        self.measuredDurationSeconds = measuredDurationSeconds
+        self.adjustedDurationSeconds = adjustedDurationSeconds
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case setIndex
         case status
+        case setType
+        case loadPercent
         case prescribed
         case target
         case actual
+        case measuredDurationSeconds
+        case adjustedDurationSeconds
     }
 
     // Encodable protocol methods
@@ -45,9 +64,13 @@ public struct PersonalStudentExerciseSetContextView: Codable, JSONEncodable, Has
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(setIndex, forKey: .setIndex)
         try container.encode(status, forKey: .status)
+        try container.encodeIfPresent(setType, forKey: .setType)
+        try container.encodeIfPresent(loadPercent, forKey: .loadPercent)
         try container.encode(prescribed, forKey: .prescribed)
         try container.encode(target, forKey: .target)
         try container.encode(actual, forKey: .actual)
+        try container.encodeIfPresent(measuredDurationSeconds, forKey: .measuredDurationSeconds)
+        try container.encodeIfPresent(adjustedDurationSeconds, forKey: .adjustedDurationSeconds)
     }
 }
 
@@ -55,6 +78,7 @@ public struct PersonalStudentExerciseSetContextView: Codable, JSONEncodable, Has
 extension PersonalStudentExerciseSetContextView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if status == .unknownDefaultOpenApi { return true }
+        if setType == .unknownDefaultOpenApi { return true }
         return false
     }
 }

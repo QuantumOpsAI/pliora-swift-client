@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** As duas combinações que o servidor nunca emite, declaradas como proibição e não como &#x60;if&#x60;/&#x60;then&#x60;: motivos de bloqueio sem a recusa que os nomeia, e a recusa por inelegibilidade sem os motivos que o servidor tem. A forma é a que o gate de compatibilidade percorre — ele recursa em &#x60;allOf&#x60;, &#x60;anyOf&#x60; e &#x60;not&#x60; e nunca em &#x60;if&#x60;/&#x60;then&#x60;/&#x60;else&#x60; — e mantém os exemplos publicados verificáveis contra o schema, como em &#x60;PersonalAttentionItem&#x60;. */
+/** A mesma forma fecha &#x60;existingDraftId&#x60;, em um ramo próprio para não reescrever o anterior: sem &#x60;DRAFT_ALREADY_OPEN&#x60; ele é proibido, e &#x60;DRAFT_ALREADY_OPEN&#x60; sem ele também, porque a recusa que não diz qual é o rascunho aberto deixa o app sem o que abrir ou descartar. */
 public struct PersonalPrescriptionConflictProblemDetails: Codable, JSONEncodable, Hashable {
 
     public enum Status: Int, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -22,15 +22,23 @@ public struct PersonalPrescriptionConflictProblemDetails: Codable, JSONEncodable
         case draftIdentityDivergent = "DRAFT_IDENTITY_DIVERGENT"
         case draftAlreadyPublished = "DRAFT_ALREADY_PUBLISHED"
         case draftNotEditable = "DRAFT_NOT_EDITABLE"
+        case draftAlreadyOpen = "DRAFT_ALREADY_OPEN"
         case prescriptionVersionNotPublished = "PRESCRIPTION_VERSION_NOT_PUBLISHED"
         case assignmentDateConflict = "ASSIGNMENT_DATE_CONFLICT"
         case assignmentIdentityDivergent = "ASSIGNMENT_IDENTITY_DIVERGENT"
         case idempotencyConflict = "IDEMPOTENCY_CONFLICT"
         case studentNotEligible = "STUDENT_NOT_ELIGIBLE"
+        case referenceLoadEstimateStale = "REFERENCE_LOAD_ESTIMATE_STALE"
+        case templateIdentityDivergent = "TEMPLATE_IDENTITY_DIVERGENT"
+        case templateLimitReached = "TEMPLATE_LIMIT_REACHED"
+        case planActivationIdentityDivergent = "PLAN_ACTIVATION_IDENTITY_DIVERGENT"
+        case planActivationNotActive = "PLAN_ACTIVATION_NOT_ACTIVE"
+        case prescriptionVersionNotCurrent = "PRESCRIPTION_VERSION_NOT_CURRENT"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let correlationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let existingDraftIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let blockingReasonsRule = ArrayRule(minItems: 1, maxItems: nil, uniqueItems: true)
     /** URI estável que identifica a classe do problema. */
     public var type: String
@@ -46,10 +54,12 @@ public struct PersonalPrescriptionConflictProblemDetails: Codable, JSONEncodable
     public var correlationId: String
     /** Violações por campo quando a validação do comando falhar. */
     public var fieldErrors: [FieldError]?
-    /** Por que o aluno está bloqueado, acumulável e nomeado, presente **somente** em `STUDENT_NOT_ELIGIBLE`. É o mesmo `StudentPrescriptionEligibilityBlockingReason` que o personal já lê em `GET /personal/students/{studentId}/anamnesis` e em `GET /personal/students/operations` sobre o mesmo aluno — reusado, e não recriado, para que a recusa e a leitura não possam divergir sobre a mesma decisão. A recusa não é superfície nova: ela repete ali o que o mesmo ator já obtém numa leitura, e resolver um motivo não resolve os outros. `RELATIONSHIP_NOT_ACTIVE` pertence ao enum reusado, mas não chega aqui nestas duas operações: vínculo encerrado é respondido antes, como `403 RELATIONSHIP_INACTIVE`, que é veredito de autorização sobre quem chama, e não estado derivado do aluno. */
+    /** Identidade do rascunho que já está aberto para o aluno, presente **somente** em `DRAFT_ALREADY_OPEN`. É o que permite ao app abrir o rascunho existente ou descartá-lo, sem uma leitura a mais e sem expor nada além de uma identidade que o próprio personal criou: o rascunho é do mesmo vínculo e do mesmo autor que está pedindo. */
+    public var existingDraftId: String?
+    /** Por que o aluno está bloqueado, acumulável e nomeado, presente **somente** em `STUDENT_NOT_ELIGIBLE`. É o mesmo `StudentPrescriptionEligibilityBlockingReason` que o personal já lê em `GET /personal/students/{studentId}/anamnesis` e em `GET /personal/students/operations` sobre o mesmo aluno — reusado, e não recriado, para que a recusa e a leitura não possam divergir sobre a mesma decisão. A recusa não é superfície nova: ela repete ali o que o mesmo ator já obtém numa leitura, e resolver um motivo não resolve os outros. `RELATIONSHIP_NOT_ACTIVE` pertence ao enum reusado, mas não chega aqui nestas operações: vínculo encerrado é respondido antes, como `403 RELATIONSHIP_INACTIVE`, que é veredito de autorização sobre quem chama, e não estado derivado do aluno. */
     public var blockingReasons: Set<StudentPrescriptionEligibilityBlockingReason>?
 
-    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil, blockingReasons: Set<StudentPrescriptionEligibilityBlockingReason>? = nil) {
+    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil, existingDraftId: String? = nil, blockingReasons: Set<StudentPrescriptionEligibilityBlockingReason>? = nil) {
         self.type = type
         self.title = title
         self.status = status
@@ -58,6 +68,7 @@ public struct PersonalPrescriptionConflictProblemDetails: Codable, JSONEncodable
         self.instance = instance
         self.correlationId = correlationId
         self.fieldErrors = fieldErrors
+        self.existingDraftId = existingDraftId
         self.blockingReasons = blockingReasons
     }
 
@@ -70,6 +81,7 @@ public struct PersonalPrescriptionConflictProblemDetails: Codable, JSONEncodable
         case instance
         case correlationId
         case fieldErrors
+        case existingDraftId
         case blockingReasons
     }
 
@@ -85,6 +97,7 @@ public struct PersonalPrescriptionConflictProblemDetails: Codable, JSONEncodable
         try container.encodeIfPresent(instance, forKey: .instance)
         try container.encode(correlationId, forKey: .correlationId)
         try container.encodeIfPresent(fieldErrors, forKey: .fieldErrors)
+        try container.encodeIfPresent(existingDraftId, forKey: .existingDraftId)
         try container.encodeIfPresent(blockingReasons, forKey: .blockingReasons)
     }
 }

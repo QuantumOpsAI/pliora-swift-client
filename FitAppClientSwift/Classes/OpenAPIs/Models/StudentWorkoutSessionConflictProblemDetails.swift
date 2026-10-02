@@ -19,6 +19,7 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
     public enum Code: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case sessionIdentityDivergent = "SESSION_IDENTITY_DIVERGENT"
         case prescriptionVersionNotAssigned = "PRESCRIPTION_VERSION_NOT_ASSIGNED"
+        case dailyWorkoutAlreadyAssigned = "DAILY_WORKOUT_ALREADY_ASSIGNED"
         case idempotencyConflict = "IDEMPOTENCY_CONFLICT"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }

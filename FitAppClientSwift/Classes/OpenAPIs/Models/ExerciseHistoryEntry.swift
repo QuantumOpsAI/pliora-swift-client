@@ -10,24 +10,34 @@ import Foundation
 import AnyCodable
 #endif
 
+/** Uma série executada na mesma chave comparável, com o tipo e o percentual com que foi prescrita. **A comparabilidade é por tipo de série** (&#x60;LE-16&#x60;): o histórico que dá origem a &#x60;Baseado na última execução&#x60; e à série anterior considera **só séries do mesmo &#x60;setType&#x60;** — a carga de aquecimento nunca vira alvo de série de outro tipo, nem a de uma série normal vira alvo de drop-set —, e sem série comparável do mesmo tipo vale o valor prescrito. A série por tempo traz &#x60;actual.durationSeconds&#x60; com &#x60;reps&#x60; nulas e fica **ausente** de repetições e de volume, nunca zero. A série prescrita em percentual aparece pela carga **executada**; &#x60;loadPercent&#x60; é o prescrito, ao lado, e nunca vira carga. */
 public struct ExerciseHistoryEntry: Codable, JSONEncodable, Hashable {
 
     public static let sessionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let loadPercentRule = NumericRule<Double>(minimum: 1, exclusiveMinimum: false, maximum: 150, exclusiveMaximum: false, multipleOf: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var sessionId: String
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var performedAt: Date
+    /** Tipo da série prescrita que esta execução cumpriu; é o que decide se ela é comparável a outra. */
+    public var setType: PrescribedSetType
+    /** Percentual da carga de referência com que a série foi prescrita; ausente quando a carga prescrita não era em percentual. */
+    public var loadPercent: Double?
     public var actual: WorkoutSetValues
 
-    public init(sessionId: String, performedAt: Date, actual: WorkoutSetValues) {
+    public init(sessionId: String, performedAt: Date, setType: PrescribedSetType, loadPercent: Double? = nil, actual: WorkoutSetValues) {
         self.sessionId = sessionId
         self.performedAt = performedAt
+        self.setType = setType
+        self.loadPercent = loadPercent
         self.actual = actual
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case sessionId
         case performedAt
+        case setType
+        case loadPercent
         case actual
     }
 
@@ -37,6 +47,16 @@ public struct ExerciseHistoryEntry: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(sessionId, forKey: .sessionId)
         try container.encode(performedAt, forKey: .performedAt)
+        try container.encode(setType, forKey: .setType)
+        try container.encodeIfPresent(loadPercent, forKey: .loadPercent)
         try container.encode(actual, forKey: .actual)
+    }
+}
+
+
+extension ExerciseHistoryEntry: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if setType == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

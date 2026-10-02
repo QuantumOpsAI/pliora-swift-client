@@ -24,11 +24,12 @@ public struct PrescriptionDraftView: Codable, JSONEncodable, Hashable {
     public static let revisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Identidade do rascunho, criada pelo personal no device. É também a identidade da versão publicada depois (`prescriptionVersionId`). */
     public var draftId: String
-    /** Container lógico estável da prescrição dentro do vínculo. */
+    /** Container lógico estável da prescrição dentro do vínculo; um vínculo tem uma só. */
     public var prescriptionId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var studentId: String
-    /** Versão publicada de origem, quando o rascunho é uma revisão; a origem permanece imutável. */
+    public var originKind: PrescriptionOriginKind
+    /** Versão publicada de origem, só quando `originKind` é `REVISION`; a origem permanece imutável. Ausente em `BLANK`, `CLONE` e `TEMPLATE`. */
     public var sourcePrescriptionVersionId: String?
     public var state: State
     /** Revisão opaca do servidor; comparada somente por igualdade e nunca inferida pelo cliente. */
@@ -37,10 +38,11 @@ public struct PrescriptionDraftView: Codable, JSONEncodable, Hashable {
     public var updatedAt: Date
     public var content: PrescriptionDraftContent
 
-    public init(draftId: String, prescriptionId: String, studentId: String, sourcePrescriptionVersionId: String? = nil, state: State, revision: String, updatedAt: Date, content: PrescriptionDraftContent) {
+    public init(draftId: String, prescriptionId: String, studentId: String, originKind: PrescriptionOriginKind, sourcePrescriptionVersionId: String? = nil, state: State, revision: String, updatedAt: Date, content: PrescriptionDraftContent) {
         self.draftId = draftId
         self.prescriptionId = prescriptionId
         self.studentId = studentId
+        self.originKind = originKind
         self.sourcePrescriptionVersionId = sourcePrescriptionVersionId
         self.state = state
         self.revision = revision
@@ -52,6 +54,7 @@ public struct PrescriptionDraftView: Codable, JSONEncodable, Hashable {
         case draftId
         case prescriptionId
         case studentId
+        case originKind
         case sourcePrescriptionVersionId
         case state
         case revision
@@ -66,6 +69,7 @@ public struct PrescriptionDraftView: Codable, JSONEncodable, Hashable {
         try container.encode(draftId, forKey: .draftId)
         try container.encode(prescriptionId, forKey: .prescriptionId)
         try container.encode(studentId, forKey: .studentId)
+        try container.encode(originKind, forKey: .originKind)
         try container.encodeIfPresent(sourcePrescriptionVersionId, forKey: .sourcePrescriptionVersionId)
         try container.encode(state, forKey: .state)
         try container.encode(revision, forKey: .revision)
@@ -77,6 +81,7 @@ public struct PrescriptionDraftView: Codable, JSONEncodable, Hashable {
 
 extension PrescriptionDraftView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
+        if originKind == .unknownDefaultOpenApi { return true }
         if state == .unknownDefaultOpenApi { return true }
         return false
     }

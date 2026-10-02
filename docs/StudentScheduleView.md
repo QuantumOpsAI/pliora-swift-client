@@ -3,6 +3,7 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**planMode** | [**PlanActivationMode**](PlanActivationMode.md) | Como o plano chega ao aluno, quando há ativação vigente; ausente quando não há. Em &#x60;SEQUENCE&#x60; os dias não carregam programação por data e o app leva ao plano em sequência (&#x60;getStudentTodayWorkout&#x60;, &#x60;sequencePlan&#x60;). Nunca revela a validade. | [optional]
 **from** | **Date** | Primeira data civil devolvida, ecoando o intervalo efetivamente aplicado. |
 **to** | **Date** | Última data civil devolvida, ecoando o intervalo efetivamente aplicado. |
 **timeZone** | **String** | Timezone IANA em que o servidor resolveu as datas civis e a noção de \&quot;hoje\&quot;. O cliente não reinterpreta as datas noutro timezone. |

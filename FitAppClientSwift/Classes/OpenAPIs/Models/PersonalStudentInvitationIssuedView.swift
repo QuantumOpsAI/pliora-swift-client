@@ -29,7 +29,7 @@ public struct PersonalStudentInvitationIssuedView: Codable, JSONEncodable, Hasha
     public var destinationMasked: String?
     /** Tentativas de entrega do e-mail transacional, da mais recente para a mais antiga, como o servidor as observou. Estruturalmente ausente enquanto nenhuma tentativa foi registrada — `DO_NOT_SEND` não gera tentativa — e nunca `null`. É histórico de ENTREGA: nenhuma tentativa altera o ciclo de vida do convite, e nenhuma afirma recebimento ou leitura pelo aluno. */
     public var deliveryAttempts: [StudentInvitationDeliveryAttemptView]?
-    /** URL pública canônica `https://join.pliora.com/i/{linkCode}`. O código é opaco, redigido, não é token de aceite e é obrigatório em toda emissão ou reenvio NOVO. Fica ausente no replay da mesma Idempotency-Key, cancelamento e listagem. Reenviar cria outro código e revoga o anterior. */
+    /** URL pública canônica `https://join.pliora.quantumopsai.com/i/{linkCode}`. O código é opaco, redigido, não é token de aceite e é obrigatório em toda emissão ou reenvio NOVO. Fica ausente no replay da mesma Idempotency-Key, cancelamento e listagem. Reenviar cria outro código e revoga o anterior. */
     public var shareableUrl: String?
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var sentAt: Date

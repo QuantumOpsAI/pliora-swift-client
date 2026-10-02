@@ -15,20 +15,29 @@ public struct PrescriptionDraftSet: Codable, JSONEncodable, Hashable {
 
     public static let prescribedSetIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let setIndexRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let derivedFromPrescribedSetIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Identidade da série, criada pelo personal no device para que a edição offline seja idempotente. */
     public var prescribedSetId: String
     public var setIndex: Int
+    /** Tipo da série, **obrigatório**: a série comum é `WORKING`, nunca a ausência do campo. `DROP_SET` nunca é a primeira série do exercício, e em bloco combinado o tipo é por série, não por rodada. */
+    public var setType: PrescribedSetType
+    /** Série da versão de origem da qual esta foi copiada, **gravada pelo servidor** quando o rascunho é `REVISION`. É o vínculo que deixa a revisão dizer o que mudou. Ausente em série que o personal criou neste rascunho e em rascunho que não é revisão. O cliente nunca a declara: reenviá-la na edição é inócuo e um valor diferente do gravado nunca o substitui. */
+    public var derivedFromPrescribedSetId: String?
     public var target: PrescribedTarget?
 
-    public init(prescribedSetId: String, setIndex: Int, target: PrescribedTarget? = nil) {
+    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, derivedFromPrescribedSetId: String? = nil, target: PrescribedTarget? = nil) {
         self.prescribedSetId = prescribedSetId
         self.setIndex = setIndex
+        self.setType = setType
+        self.derivedFromPrescribedSetId = derivedFromPrescribedSetId
         self.target = target
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case prescribedSetId
         case setIndex
+        case setType
+        case derivedFromPrescribedSetId
         case target
     }
 
@@ -38,6 +47,16 @@ public struct PrescriptionDraftSet: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(prescribedSetId, forKey: .prescribedSetId)
         try container.encode(setIndex, forKey: .setIndex)
+        try container.encode(setType, forKey: .setType)
+        try container.encodeIfPresent(derivedFromPrescribedSetId, forKey: .derivedFromPrescribedSetId)
         try container.encodeIfPresent(target, forKey: .target)
+    }
+}
+
+
+extension PrescriptionDraftSet: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if setType == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

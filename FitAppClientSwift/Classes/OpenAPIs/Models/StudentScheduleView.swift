@@ -14,6 +14,8 @@ import AnyCodable
 public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
 
     public static let timeZoneRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    /** Como o plano chega ao aluno, quando há ativação vigente; ausente quando não há. Em `SEQUENCE` os dias não carregam programação por data e o app leva ao plano em sequência (`getStudentTodayWorkout`, `sequencePlan`). Nunca revela a validade. */
+    public var planMode: PlanActivationMode?
     /** Primeira data civil devolvida, ecoando o intervalo efetivamente aplicado. */
     public var from: Date
     /** Última data civil devolvida, ecoando o intervalo efetivamente aplicado. */
@@ -23,7 +25,8 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
     /** Uma entrada por data civil entre `from` e `to`, inclusive, em ordem crescente e sem lacuna. Um dia sem treino prescrito é `REST_DAY`. */
     public var days: [StudentScheduleDayView]
 
-    public init(from: Date, to: Date, timeZone: String, days: [StudentScheduleDayView]) {
+    public init(planMode: PlanActivationMode? = nil, from: Date, to: Date, timeZone: String, days: [StudentScheduleDayView]) {
+        self.planMode = planMode
         self.from = from
         self.to = to
         self.timeZone = timeZone
@@ -31,6 +34,7 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
+        case planMode
         case from
         case to
         case timeZone
@@ -41,9 +45,18 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(planMode, forKey: .planMode)
         try container.encode(from, forKey: .from)
         try container.encode(to, forKey: .to)
         try container.encode(timeZone, forKey: .timeZone)
         try container.encode(days, forKey: .days)
+    }
+}
+
+
+extension StudentScheduleView: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if planMode == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

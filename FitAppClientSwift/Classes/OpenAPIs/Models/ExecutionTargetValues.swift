@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Snapshot do alvo operacional efetivamente apresentado para a série. É independente da prescrição e do realizado e preserva a origem da decisão. */
+/** Snapshot do alvo operacional efetivamente apresentado para a série. É independente da prescrição e do realizado e preserva a origem da decisão. **Série por tempo:** &#x60;durationSeconds&#x60; é a duração alvo em segundos e, quando presente, &#x60;reps&#x60; é nulo. **Carga em percentual:** o valor calculado, carga de referência confirmada × percentual prescrito arredondado ao múltiplo configurado (1 kg, 2,5 lb), é o alvo, calculado uma vez no início da sessão, com origem &#x60;PERCENT_OF_REFERENCE&#x60;; o prescrito permanece em percentual e nunca é reescrito. Sem carga de referência confirmada o alvo de carga fica **ausente** — &#x60;loadValue&#x60; nulo, nunca zero —, e a origem não é &#x60;PERCENT_OF_REFERENCE&#x60;. */
 public struct ExecutionTargetValues: Codable, JSONEncodable, Hashable {
 
     public enum LoadUnit: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -25,21 +25,27 @@ public struct ExecutionTargetValues: Codable, JSONEncodable, Hashable {
         case previousComparableExecution = "PREVIOUS_COMPARABLE_EXECUTION"
         case studentAdjustment = "STUDENT_ADJUSTMENT"
         case personalLiveAdjustment = "PERSONAL_LIVE_ADJUSTMENT"
+        case percentOfReference = "PERCENT_OF_REFERENCE"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let loadValueRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let repsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let durationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let expectedRpeRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: 10, exclusiveMaximum: false, multipleOf: nil)
     public var loadValue: Double?
     public var loadUnit: LoadUnit?
     public var reps: Int?
+    /** Duração alvo da série por tempo, em segundos. */
+    public var durationSeconds: Int?
+    /** Origem do alvo. `PERCENT_OF_REFERENCE` é o valor calculado de uma série prescrita em percentual da carga de referência confirmada pelo personal e só existe com `loadValue` e `loadUnit` presentes; a estimativa sugerida do histórico **nunca** é origem de alvo. */
     public var source: Source
     public var expectedRpe: Double?
 
-    public init(loadValue: Double?, loadUnit: LoadUnit?, reps: Int?, source: Source, expectedRpe: Double? = nil) {
+    public init(loadValue: Double?, loadUnit: LoadUnit?, reps: Int?, durationSeconds: Int? = nil, source: Source, expectedRpe: Double? = nil) {
         self.loadValue = loadValue
         self.loadUnit = loadUnit
         self.reps = reps
+        self.durationSeconds = durationSeconds
         self.source = source
         self.expectedRpe = expectedRpe
     }
@@ -48,6 +54,7 @@ public struct ExecutionTargetValues: Codable, JSONEncodable, Hashable {
         case loadValue
         case loadUnit
         case reps
+        case durationSeconds
         case source
         case expectedRpe
     }
@@ -59,6 +66,7 @@ public struct ExecutionTargetValues: Codable, JSONEncodable, Hashable {
         try container.encode(loadValue, forKey: .loadValue)
         try container.encode(loadUnit, forKey: .loadUnit)
         try container.encode(reps, forKey: .reps)
+        try container.encodeIfPresent(durationSeconds, forKey: .durationSeconds)
         try container.encode(source, forKey: .source)
         try container.encodeIfPresent(expectedRpe, forKey: .expectedRpe)
     }

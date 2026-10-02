@@ -10,28 +10,36 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Valores **prescritos** de uma série (selo &#x60;P&#x60;). Todo campo é opcional porque nem todo exercício tem carga ou repetição: a ausência legítima permanece ausente e nunca é substituída por zero, por valor padrão ou pelo valor de outra série. Este bloco nunca carrega alvo operacional da sessão nem valor realizado. */
+/** Valores **prescritos** de uma série (selo &#x60;P&#x60;). Todo campo é opcional porque nem todo exercício tem carga ou repetição: a ausência legítima permanece ausente e nunca é substituída por zero, por valor padrão ou pelo valor de outra série. Este bloco nunca carrega alvo operacional da sessão nem valor realizado. **Série por tempo:** &#x60;durationSeconds&#x60; é a duração alvo em segundos e **exclui** &#x60;repsMin&#x60;, &#x60;repsMax&#x60; e &#x60;repsExact&#x60; — a série por tempo não tem repetição, e a ausência dela nunca vira zero repetição. **Carga em percentual:** &#x60;loadPercent&#x60; é o percentual, de 1 a 150, **da carga de referência** do aluno naquela variante e **exclui** &#x60;loadValue&#x60; e &#x60;loadUnit&#x60;: o prescrito em percentual nunca carrega valor absoluto. O valor em kg ou lb nasce como **alvo**, no início da sessão, é fato de &#x60;ExecutionTarget&#x60; com origem &#x60;PERCENT_OF_REFERENCE&#x60; e nunca reescreve o prescrito, que permanece em percentual. */
 public struct PrescribedTarget: Codable, JSONEncodable, Hashable {
 
     public static let repsMinRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let repsMaxRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let repsExactRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let durationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: 3600, exclusiveMaximum: false, multipleOf: nil)
     public static let loadValueRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let loadPercentRule = NumericRule<Double>(minimum: 1, exclusiveMinimum: false, maximum: 150, exclusiveMaximum: false, multipleOf: nil)
     public static let effortValueRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public var repsMin: Int?
     public var repsMax: Int?
     public var repsExact: Int?
+    /** Duração alvo da série por tempo, em segundos. Exclui toda repetição prescrita. */
+    public var durationSeconds: Int?
     public var loadValue: Double?
     public var loadUnit: PrescribedLoadUnit?
+    /** Percentual da carga de referência confirmada pelo personal para o aluno naquela variante. Exclui `loadValue` e `loadUnit`. */
+    public var loadPercent: Double?
     public var effortType: PrescribedEffortType?
     public var effortValue: Double?
 
-    public init(repsMin: Int? = nil, repsMax: Int? = nil, repsExact: Int? = nil, loadValue: Double? = nil, loadUnit: PrescribedLoadUnit? = nil, effortType: PrescribedEffortType? = nil, effortValue: Double? = nil) {
+    public init(repsMin: Int? = nil, repsMax: Int? = nil, repsExact: Int? = nil, durationSeconds: Int? = nil, loadValue: Double? = nil, loadUnit: PrescribedLoadUnit? = nil, loadPercent: Double? = nil, effortType: PrescribedEffortType? = nil, effortValue: Double? = nil) {
         self.repsMin = repsMin
         self.repsMax = repsMax
         self.repsExact = repsExact
+        self.durationSeconds = durationSeconds
         self.loadValue = loadValue
         self.loadUnit = loadUnit
+        self.loadPercent = loadPercent
         self.effortType = effortType
         self.effortValue = effortValue
     }
@@ -40,8 +48,10 @@ public struct PrescribedTarget: Codable, JSONEncodable, Hashable {
         case repsMin
         case repsMax
         case repsExact
+        case durationSeconds
         case loadValue
         case loadUnit
+        case loadPercent
         case effortType
         case effortValue
     }
@@ -53,8 +63,10 @@ public struct PrescribedTarget: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(repsMin, forKey: .repsMin)
         try container.encodeIfPresent(repsMax, forKey: .repsMax)
         try container.encodeIfPresent(repsExact, forKey: .repsExact)
+        try container.encodeIfPresent(durationSeconds, forKey: .durationSeconds)
         try container.encodeIfPresent(loadValue, forKey: .loadValue)
         try container.encodeIfPresent(loadUnit, forKey: .loadUnit)
+        try container.encodeIfPresent(loadPercent, forKey: .loadPercent)
         try container.encodeIfPresent(effortType, forKey: .effortType)
         try container.encodeIfPresent(effortValue, forKey: .effortValue)
     }

@@ -10,6 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
+/** Emenda de uma série. &#x60;replacement.durationSeconds&#x60; segue a regra de &#x60;amendStudentSetExecution&#x60;: só numa série por tempo, com &#x60;reps&#x60; nulas, e a duração medida da série nunca muda. Quem a viola é &#x60;FINAL_FAILURE&#x60; com &#x60;VALIDATION_ERROR&#x60; no &#x60;command&#x60; de sync e &#x60;422 VALIDATION_FAILED&#x60; na rota HTTP, nunca descarte silencioso. */
 public struct ExecutionSetAmendPayload: Codable, JSONEncodable, Hashable {
 
     public enum Reason: String, Codable, CaseIterable, CaseIterableDefaultsLast {

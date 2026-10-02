@@ -10,13 +10,14 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Fato imutável da série. &#x60;target&#x60; preserva o alvo apresentado; &#x60;actual&#x60; é o realizado e fica ausente somente em &#x60;SKIPPED&#x60;. Repetir a identidade com conteúdo diferente é conflito, nunca overwrite. */
+/** Fato imutável da série. &#x60;target&#x60; preserva o alvo apresentado; &#x60;actual&#x60; é o realizado e fica ausente somente em &#x60;SKIPPED&#x60;. Repetir a identidade com conteúdo diferente é conflito, nunca overwrite. A série por tempo (&#x60;durationSeconds&#x60;, com &#x60;reps&#x60; nulas e &#x60;measuredDurationSeconds&#x60;) e o alvo em percentual (&#x60;PERCENT_OF_REFERENCE&#x60;) seguem as regras de &#x60;recordStudentSetExecution&#x60;: quem as viola é &#x60;FINAL_FAILURE&#x60; com &#x60;VALIDATION_ERROR&#x60; no &#x60;command&#x60; de sync e &#x60;422 VALIDATION_FAILED&#x60; na rota HTTP, nunca descarte silencioso. */
 public struct ExecutionSetRecordPayload: Codable, JSONEncodable, Hashable {
 
     public static let setExecutionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let exerciseExecutionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescribedSetIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let setIndexRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let measuredDurationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let executedVariantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let equipmentInstanceIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let observationRule = StringRule(minLength: nil, maxLength: 500, pattern: nil)
@@ -30,6 +31,8 @@ public struct ExecutionSetRecordPayload: Codable, JSONEncodable, Hashable {
     public var status: ExecutedSetStatus
     public var target: ExecutionTargetValues
     public var actual: WorkoutSetValues?
+    /** Duração da série por tempo **medida pelo cronômetro da série**, em segundos. Obrigatória em série por tempo concluída ou parcial e proibida nas demais. Nunca é sobrescrita: se `actual.durationSeconds` for diferente dela, o aluno a corrigiu, e o servidor publica o valor corrigido em `adjustedDurationSeconds`. */
+    public var measuredDurationSeconds: Int?
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var executedVariantId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -40,7 +43,7 @@ public struct ExecutionSetRecordPayload: Codable, JSONEncodable, Hashable {
     public var completedAt: Date
     public var observation: String?
 
-    public init(setExecutionId: String, exerciseExecutionId: String, prescribedSetId: String, setIndex: Int, status: ExecutedSetStatus, target: ExecutionTargetValues, actual: WorkoutSetValues? = nil, executedVariantId: String, equipmentInstanceId: String? = nil, startedAt: Date, completedAt: Date, observation: String? = nil) {
+    public init(setExecutionId: String, exerciseExecutionId: String, prescribedSetId: String, setIndex: Int, status: ExecutedSetStatus, target: ExecutionTargetValues, actual: WorkoutSetValues? = nil, measuredDurationSeconds: Int? = nil, executedVariantId: String, equipmentInstanceId: String? = nil, startedAt: Date, completedAt: Date, observation: String? = nil) {
         self.setExecutionId = setExecutionId
         self.exerciseExecutionId = exerciseExecutionId
         self.prescribedSetId = prescribedSetId
@@ -48,6 +51,7 @@ public struct ExecutionSetRecordPayload: Codable, JSONEncodable, Hashable {
         self.status = status
         self.target = target
         self.actual = actual
+        self.measuredDurationSeconds = measuredDurationSeconds
         self.executedVariantId = executedVariantId
         self.equipmentInstanceId = equipmentInstanceId
         self.startedAt = startedAt
@@ -63,6 +67,7 @@ public struct ExecutionSetRecordPayload: Codable, JSONEncodable, Hashable {
         case status
         case target
         case actual
+        case measuredDurationSeconds
         case executedVariantId
         case equipmentInstanceId
         case startedAt
@@ -81,6 +86,7 @@ public struct ExecutionSetRecordPayload: Codable, JSONEncodable, Hashable {
         try container.encode(status, forKey: .status)
         try container.encode(target, forKey: .target)
         try container.encodeIfPresent(actual, forKey: .actual)
+        try container.encodeIfPresent(measuredDurationSeconds, forKey: .measuredDurationSeconds)
         try container.encode(executedVariantId, forKey: .executedVariantId)
         try container.encodeIfPresent(equipmentInstanceId, forKey: .equipmentInstanceId)
         try container.encode(startedAt, forKey: .startedAt)

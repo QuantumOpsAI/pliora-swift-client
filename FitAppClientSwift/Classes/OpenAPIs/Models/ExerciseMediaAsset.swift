@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Referência de mídia provider-agnostic. A identidade de cache é &#x60;(assetId, mediaVersion)&#x60;; &#x60;url&#x60; é uma referência de entrega renovável e nunca participa da identidade. OFFLINE_DOWNLOAD_ALLOWED exige sha256 e byteSize na emissão do backend; TEMPORARY_CACHE_ALLOWED só pode ser retido até offlineValidUntil. */
+/** Referência de mídia provider-agnostic. A identidade de cache é &#x60;(assetId, mediaVersion)&#x60;; &#x60;url&#x60; é uma referência de entrega renovável e nunca participa da identidade. OFFLINE_DOWNLOAD_ALLOWED exige sha256 e byteSize na emissão do backend; TEMPORARY_CACHE_ALLOWED só pode ser retido até offlineValidUntil. &#x60;angle&#x60; e &#x60;demonstrator&#x60;, quando a origem os informa, distinguem os assets de um mesmo exercício; são códigos opacos de vocabulário aberto, nunca enums, e a ausência significa que a origem não os informa. O vídeo de exercício próprio do personal é user-media (&#x60;ADR-0015&#x60;): chega com &#x60;offlinePolicy: STREAM_ONLY&#x60; — sem direito de cache além da reprodução e sem &#x60;offlineValidUntil&#x60; —, &#x60;url&#x60; de curta duração com &#x60;expiresAt&#x60;, e deixa de ser servido no tombstone, que não recolhe uma URL já emitida: ela serve até vencer. */
 public struct ExerciseMediaAsset: Codable, JSONEncodable, Hashable {
 
     public enum Availability: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -43,6 +43,8 @@ public struct ExerciseMediaAsset: Codable, JSONEncodable, Hashable {
     public static let durationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let sha256Rule = StringRule(minLength: nil, maxLength: nil, pattern: "/^[0-9a-f]{64}$/")
     public static let byteSizeRule = NumericRule<Int64>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let angleRule = StringRule(minLength: nil, maxLength: nil, pattern: "/^[A-Z][A-Z0-9_]{1,31}$/")
+    public static let demonstratorRule = StringRule(minLength: nil, maxLength: nil, pattern: "/^[A-Z][A-Z0-9_]{1,31}$/")
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var assetId: String
     /** Versão opaca do asset; comparar apenas por igualdade. */
@@ -63,8 +65,12 @@ public struct ExerciseMediaAsset: Codable, JSONEncodable, Hashable {
     public var expiresAt: Date?
     /** Limite de retenção offline; nulo para STREAM_ONLY. */
     public var offlineValidUntil: Date?
+    /** Ângulo de câmera do asset, quando a origem o informa. Código de máquina de vocabulário **aberto**, emitido pelo servidor: não é enum, o app mostra com o seu catálogo de textos os valores que conhece e com um rótulo genérico os demais, e só o compara por igualdade. É o valor que a preferência de vídeo guarda. */
+    public var angle: String?
+    /** Quem demonstra o exercício no asset, quando a origem o informa. Código de máquina de vocabulário **aberto**, com a mesma regra de `ExerciseMediaAngle`. */
+    public var demonstrator: String?
 
-    public init(assetId: String, mediaVersion: String, availability: Availability, mediaType: MediaType, usage: Usage, offlinePolicy: OfflinePolicy, url: String?, contentType: String? = nil, durationSeconds: Int? = nil, sha256: String? = nil, byteSize: Int64? = nil, expiresAt: Date? = nil, offlineValidUntil: Date? = nil) {
+    public init(assetId: String, mediaVersion: String, availability: Availability, mediaType: MediaType, usage: Usage, offlinePolicy: OfflinePolicy, url: String?, contentType: String? = nil, durationSeconds: Int? = nil, sha256: String? = nil, byteSize: Int64? = nil, expiresAt: Date? = nil, offlineValidUntil: Date? = nil, angle: String? = nil, demonstrator: String? = nil) {
         self.assetId = assetId
         self.mediaVersion = mediaVersion
         self.availability = availability
@@ -78,6 +84,8 @@ public struct ExerciseMediaAsset: Codable, JSONEncodable, Hashable {
         self.byteSize = byteSize
         self.expiresAt = expiresAt
         self.offlineValidUntil = offlineValidUntil
+        self.angle = angle
+        self.demonstrator = demonstrator
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -94,6 +102,8 @@ public struct ExerciseMediaAsset: Codable, JSONEncodable, Hashable {
         case byteSize
         case expiresAt
         case offlineValidUntil
+        case angle
+        case demonstrator
     }
 
     // Encodable protocol methods
@@ -113,6 +123,8 @@ public struct ExerciseMediaAsset: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(byteSize, forKey: .byteSize)
         try container.encodeIfPresent(expiresAt, forKey: .expiresAt)
         try container.encodeIfPresent(offlineValidUntil, forKey: .offlineValidUntil)
+        try container.encodeIfPresent(angle, forKey: .angle)
+        try container.encodeIfPresent(demonstrator, forKey: .demonstrator)
     }
 }
 

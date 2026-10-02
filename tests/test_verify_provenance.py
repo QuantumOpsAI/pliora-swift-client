@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import shutil
 import tempfile
 import unittest
@@ -12,7 +13,7 @@ class VerifyProvenanceTests(unittest.TestCase):
     def test_published_tree_matches_the_upstream_digest(self) -> None:
         self.assertEqual(
             verify(),
-            "926091252894d64ba61b0e7e71f0bc4baf757fe04abddf7b1808481019fe3883",
+            "d76021f0db74cd59035f4df02fb1c6f388c61475a553c19a36d746b758175609",
         )
 
     def test_any_generated_source_change_is_rejected(self) -> None:
@@ -43,7 +44,7 @@ class VerifyProvenanceTests(unittest.TestCase):
             provenance = copy / "PROVENANCE.json"
             provenance.write_text(
                 provenance.read_text(encoding="utf-8").replace(
-                    "7d1b89f0d7791c2e07aef0f2c6cec0493a154dc2", "7d1b89f0"
+                    json.loads(provenance.read_text(encoding="utf-8"))["sourceCommit"], "7d1b89f0"
                 ),
                 encoding="utf-8",
             )

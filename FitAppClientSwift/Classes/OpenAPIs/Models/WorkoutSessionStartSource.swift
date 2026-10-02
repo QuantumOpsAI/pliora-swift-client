@@ -10,10 +10,11 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Origem do início, limitada aos dois CTAs \&quot;Iniciar treino\&quot; do wireframe aprovado do Lote 2: o card da Home e a tela de detalhes do treino. */
+/** Origem do início, limitada aos CTAs \&quot;Iniciar treino\&quot; das telas aprovadas: o card da Home e a tela de detalhes do treino, do Lote 2, e a tela do plano em sequência livre (&#x60;PLAN_SEQUENCE&#x60;), do Lote 3. */
 public enum WorkoutSessionStartSource: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case studentHome = "STUDENT_HOME"
     case workoutSummary = "WORKOUT_SUMMARY"
+    case planSequence = "PLAN_SEQUENCE"
     case unknownDefaultOpenApi = "unknown_default_open_api"
 }
 

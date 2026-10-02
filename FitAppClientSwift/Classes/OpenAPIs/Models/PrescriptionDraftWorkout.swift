@@ -14,33 +14,43 @@ import AnyCodable
 public struct PrescriptionDraftWorkout: Codable, JSONEncodable, Hashable {
 
     public static let workoutIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let derivedFromWorkoutIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let nameRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let focusRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let positionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let blocksRule = ArrayRule(minItems: nil, maxItems: 30, uniqueItems: false)
     public static let exercisesRule = ArrayRule(minItems: nil, maxItems: 60, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var workoutId: String
+    /** Treino da versão de origem do qual este foi copiado, **gravado pelo servidor** quando o rascunho é `REVISION`: é o que permite manter a programação entre versões e dizer o que a revisão mudou. Ausente em treino que o personal criou neste rascunho e em rascunho que não é revisão. O cliente nunca o declara: reenviá-lo na edição é inócuo. */
+    public var derivedFromWorkoutId: String?
     /** Nome do treino {ex. \"Treino A\"}, preservado verbatim e invariante de locale. */
     public var name: String
     /** Foco declarado do treino, preservado verbatim; ausente quando o personal não declarou. */
     public var focus: String?
     public var position: Int
+    /** Blocos combinados do treino; ausente quando não há nenhum. Cada exercício do bloco repete o `blockKey` dele. Na publicação, `422 DRAFT_INCOMPLETE` recusa, com o caminho em `fieldErrors`, o bloco com menos de dois exercícios (`BLOCK_TOO_SMALL`), o bloco cujos exercícios não são contíguos na ordem do treino (`BLOCK_NOT_CONTIGUOUS`), o bloco cujos exercícios não têm o mesmo número de séries (`BLOCK_SET_COUNT_MISMATCH`), o `blockKey` repetido em `blocks[]` (`BLOCK_KEY_REPEATED`), o exercício de bloco que não é `LOCKED` (`BLOCK_ORDER_NOT_LOCKED`) ou que declara `restRange` próprio, porque o descanso é o do bloco (`BLOCK_EXERCISE_HAS_OWN_REST`). */
+    public var blocks: [PrescribedBlock]?
     /** Exercícios prescritos; lista vazia é estado legítimo de rascunho e recusada somente na publicação. */
     public var exercises: [PrescriptionDraftExercise]
 
-    public init(workoutId: String, name: String, focus: String? = nil, position: Int, exercises: [PrescriptionDraftExercise]) {
+    public init(workoutId: String, derivedFromWorkoutId: String? = nil, name: String, focus: String? = nil, position: Int, blocks: [PrescribedBlock]? = nil, exercises: [PrescriptionDraftExercise]) {
         self.workoutId = workoutId
+        self.derivedFromWorkoutId = derivedFromWorkoutId
         self.name = name
         self.focus = focus
         self.position = position
+        self.blocks = blocks
         self.exercises = exercises
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case workoutId
+        case derivedFromWorkoutId
         case name
         case focus
         case position
+        case blocks
         case exercises
     }
 
@@ -49,9 +59,11 @@ public struct PrescriptionDraftWorkout: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(workoutId, forKey: .workoutId)
+        try container.encodeIfPresent(derivedFromWorkoutId, forKey: .derivedFromWorkoutId)
         try container.encode(name, forKey: .name)
         try container.encodeIfPresent(focus, forKey: .focus)
         try container.encode(position, forKey: .position)
+        try container.encodeIfPresent(blocks, forKey: .blocks)
         try container.encode(exercises, forKey: .exercises)
     }
 }

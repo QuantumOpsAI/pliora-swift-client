@@ -32,8 +32,10 @@ public struct StudentTodayView: Codable, JSONEncodable, Hashable {
     public var openSession: StudentTodayOpenSessionView?
     /** Última sessão concluída do aluno, de qualquer dia anterior; nula quando ainda não há sessão concluída. Fato registrado, nunca reescrito por prescrição publicada depois. */
     public var lastSession: StudentTodayLastSessionView?
+    /** O plano em sequência livre, **somente** quando a ativação vigente é `SEQUENCE`; com ele o estado nunca é `REST_DAY`. É o mesmo objeto de `getStudentTodayWorkout`. */
+    public var sequencePlan: StudentTodaySequencePlanView?
 
-    public init(date: Date, timeZone: String, greeting: String, displayName: String?, status: StudentTodayStatus, relationship: StudentTodayRelationshipView, prescribedWorkout: StudentTodayPrescribedWorkoutView?, openSession: StudentTodayOpenSessionView?, lastSession: StudentTodayLastSessionView?) {
+    public init(date: Date, timeZone: String, greeting: String, displayName: String?, status: StudentTodayStatus, relationship: StudentTodayRelationshipView, prescribedWorkout: StudentTodayPrescribedWorkoutView?, openSession: StudentTodayOpenSessionView?, lastSession: StudentTodayLastSessionView?, sequencePlan: StudentTodaySequencePlanView? = nil) {
         self.date = date
         self.timeZone = timeZone
         self.greeting = greeting
@@ -43,6 +45,7 @@ public struct StudentTodayView: Codable, JSONEncodable, Hashable {
         self.prescribedWorkout = prescribedWorkout
         self.openSession = openSession
         self.lastSession = lastSession
+        self.sequencePlan = sequencePlan
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -55,6 +58,7 @@ public struct StudentTodayView: Codable, JSONEncodable, Hashable {
         case prescribedWorkout
         case openSession
         case lastSession
+        case sequencePlan
     }
 
     // Encodable protocol methods
@@ -70,6 +74,7 @@ public struct StudentTodayView: Codable, JSONEncodable, Hashable {
         try container.encode(prescribedWorkout, forKey: .prescribedWorkout)
         try container.encode(openSession, forKey: .openSession)
         try container.encode(lastSession, forKey: .lastSession)
+        try container.encodeIfPresent(sequencePlan, forKey: .sequencePlan)
     }
 }
 

@@ -10,6 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
+/** A sessão do aluno, fixada na versão que a originou. &#x60;calculatedLoadTargets&#x60; é o alvo de carga de cada série prescrita em percentual, calculado **uma vez, no início da sessão**: é fato da sessão e não muda enquanto ela dura, ainda que o personal confirme outra carga de referência — a nova vale a partir da próxima sessão. */
 public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
 
     public enum ViewType: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -27,6 +28,7 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
     public static let workoutAssignmentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let workoutIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescriptionVersionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let calculatedLoadTargetsRule = ArrayRule(minItems: nil, maxItems: 1200, uniqueItems: false)
     public var viewType: ViewType
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var sessionId: String
@@ -42,8 +44,10 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var completedAt: Date?
     public var exerciseOrderPolicy: ExerciseOrderPolicyView
+    /** Um item por série **prescrita em percentual** do treino da sessão, na ordem da prescrição, cada `prescribedSetId` uma só vez; ausente quando nenhuma série do treino é em percentual. Fixado no início da sessão e nunca recalculado. O valor calculado vale para a **variante prescrita**: trocar de variante o tira, e a carga de referência não é transportada entre variantes. */
+    public var calculatedLoadTargets: [CalculatedLoadTarget]?
 
-    public init(viewType: ViewType, sessionId: String, workoutAssignmentId: String, workoutId: String, prescriptionVersionId: String, status: Status, startedAt: Date, completedAt: Date? = nil, exerciseOrderPolicy: ExerciseOrderPolicyView) {
+    public init(viewType: ViewType, sessionId: String, workoutAssignmentId: String, workoutId: String, prescriptionVersionId: String, status: Status, startedAt: Date, completedAt: Date? = nil, exerciseOrderPolicy: ExerciseOrderPolicyView, calculatedLoadTargets: [CalculatedLoadTarget]? = nil) {
         self.viewType = viewType
         self.sessionId = sessionId
         self.workoutAssignmentId = workoutAssignmentId
@@ -53,6 +57,7 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
         self.startedAt = startedAt
         self.completedAt = completedAt
         self.exerciseOrderPolicy = exerciseOrderPolicy
+        self.calculatedLoadTargets = calculatedLoadTargets
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -65,6 +70,7 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
         case startedAt
         case completedAt
         case exerciseOrderPolicy
+        case calculatedLoadTargets
     }
 
     // Encodable protocol methods
@@ -80,6 +86,7 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(startedAt, forKey: .startedAt)
         try container.encodeIfPresent(completedAt, forKey: .completedAt)
         try container.encode(exerciseOrderPolicy, forKey: .exerciseOrderPolicy)
+        try container.encodeIfPresent(calculatedLoadTargets, forKey: .calculatedLoadTargets)
     }
 }
 
