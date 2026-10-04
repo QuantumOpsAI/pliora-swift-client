@@ -458,6 +458,8 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentAvailableEquipment.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentBodyRegion.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentConsentDecision.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentConsentType.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseDemonstrationForbiddenProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseDemonstrationView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseOrderResponse.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseSkipResponse.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentGoalTimeframe.swift
@@ -1080,6 +1082,8 @@ docs/StudentAvailableEquipment.md
 docs/StudentBodyRegion.md
 docs/StudentConsentDecision.md
 docs/StudentConsentType.md
+docs/StudentExerciseDemonstrationForbiddenProblemDetails.md
+docs/StudentExerciseDemonstrationView.md
 docs/StudentExerciseOrderResponse.md
 docs/StudentExerciseSkipResponse.md
 docs/StudentGoalTimeframe.md

@@ -4,6 +4,7 @@ All URIs are relative to */api/v1*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**getStudentExerciseDemonstration**](StudentTrainingAPI.md#getstudentexercisedemonstration) | **GET** /student/exercises/{exerciseId}/demonstration | Obter a demonstração em vídeo de um exercício do catálogo prescrito ao aluno
 [**getStudentOfflineWorkoutBundle**](StudentTrainingAPI.md#getstudentofflineworkoutbundle) | **GET** /student/workout-sessions/{sessionId}/bundle | Obter o bundle tipado da sessão, com o progresso já aceito pelo servidor
 [**getStudentSchedule**](StudentTrainingAPI.md#getstudentschedule) | **GET** /student/schedule | Obter a programação de treino do aluno num intervalo de datas
 [**getStudentToday**](StudentTrainingAPI.md#getstudenttoday) | **GET** /student/today | Obter o dia de treino do aluno
@@ -15,6 +16,58 @@ Method | HTTP request | Description
 [**startStudentWorkoutSession**](StudentTrainingAPI.md#startstudentworkoutsession) | **POST** /student/workout-sessions | Iniciar a sessão de treino do aluno
 
 
+# **getStudentExerciseDemonstration**
+```swift
+    open class func getStudentExerciseDemonstration(exerciseId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: StudentExerciseDemonstrationView?, _ error: Error?) -> Void)
+```
+
+Obter a demonstração em vídeo de um exercício do catálogo prescrito ao aluno
+
+A demonstração de um exercício do **catálogo** que está na prescrição do aluno, para a tela do exercício durante a execução (decisão do dono de 2026-10-04, `pliora-contracts#261`). A mídia é resolvida **na hora**, do mesmo registro que o personal lê em `getExerciseCatalogItem` (`ADR-0014` §4): o servidor não guarda o catálogo, nem a URL da origem, nem a mídia. Cada asset traz a mesma identidade `assetId` + `mediaVersion` que o personal vê no detalhe, e `url` é uma capacidade de **curta duração** com `expiresAt`, nunca identidade. **Só para quem recebe o exercício.** Responde apenas ao aluno com vínculo **ativo** cuja prescrição, na **versão publicada em vigor**, contém o exercício — como variante prescrita ou como alternativa autorizada. Um exercício que não existe, que não está na versão em vigor do aluno, de um vínculo encerrado ou de outro aluno respondem de forma indistinguível, `404 EXERCISE_NOT_FOUND`. A operação aceita só o `exerciseId` que o aluno recebeu no treino: não aceita `catalogRef`, texto nem filtro, e não é um meio de navegar no catálogo. Nenhum identificador, nome ou registro da origem atravessa a resposta; só a URL de entrega. **`media` vazio** é resposta válida: a origem não lista vídeo para o exercício, ou já não o conhece, ou o exercício é **próprio do personal** — cujo vídeo chega pelo manifesto de mídia do bundle da sessão (`ADR-0015`) e não por esta leitura. Esses casos não consomem cota. **Quando chamar.** Só no toque em reproduzir (`DOC-PRESCRIPTION-AUTHORING-TECH` §2.5): nunca ao abrir o treino ou a tela do exercício, nunca em pré-carga, nunca em laço. Repetir o vídeo usa o buffer do player; uma `url` vencida pede nova leitura. O app chama esta operação para um exercício cuja variante não tem asset `DEMONSTRATION` disponível no manifesto do bundle. **Cota.** Cada leitura que entrega vídeo do catálogo consome a cota mensal da origem e conta no limite de leituras por conta. Excedido esse limite, ou esgotada a cota, a resposta é `503 EXERCISE_CATALOG_UNAVAILABLE` com `reason: QUOTA_EXHAUSTED` e, quando houver, `Retry-After`; a origem fora do ar é `reason: SOURCE_UNAVAILABLE`. Nos dois casos o app mostra \"vídeo indisponível agora\" e **o treino segue**: nenhum estado da sessão depende desta leitura. Online-only: nenhum `commandType` de sync a transporta, o bundle não a inclui, e a resposta é `private, no-store`. `Content-Language` é o locale negociado: o corpo não tem texto.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let exerciseId = "exerciseId_example" // String | Exercício como o aluno o recebe no treino (o `exerciseId` do item `EXERCISE` do bundle). Malformado, inexistente ou não recebido respondem de forma indistinguível.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Obter a demonstração em vídeo de um exercício do catálogo prescrito ao aluno
+StudentTrainingAPI.getStudentExerciseDemonstration(exerciseId: exerciseId, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **exerciseId** | **String** | Exercício como o aluno o recebe no treino (o &#x60;exerciseId&#x60; do item &#x60;EXERCISE&#x60; do bundle). Malformado, inexistente ou não recebido respondem de forma indistinguível. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**StudentExerciseDemonstrationView**](StudentExerciseDemonstrationView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getStudentOfflineWorkoutBundle**
 ```swift
     open class func getStudentOfflineWorkoutBundle(sessionId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: OfflineWorkoutBundle?, _ error: Error?) -> Void)
@@ -22,7 +75,7 @@ Method | HTTP request | Description
 
 Obter o bundle tipado da sessão, com o progresso já aceito pelo servidor
 
-Composição da sessão **no momento da leitura**, reautorizada a cada leitura. Além do recorte da prescrição imutável fixada no início — assignment, versão, exercícios, séries, variantes, alternativas autorizadas, histórico comparável e manifesto de mídia —, o bundle inclui **todos os fatos de execução já aceitos pelo servidor** que a retomada precisa, dos tipos `EXERCISE_EXECUTION`, `SET_EXECUTION`, `SET_AMENDMENT`, `REST_PERIOD`, `SUBSTITUTION` e `DEFERRAL`. Cada `SET_EXECUTION` traz os valores em vigor depois das emendas, e a sua `revision` é a mesma que `getStudentSetExecution` publica e que `If-Match` exige. Cada `DEFERRAL`, aberto ou terminal, traz o `deferralId` que a retomada do exercício e a declaração de pendências no encerramento exigem. `DISCOMFORT_REPORT` **nunca** entra no bundle: o relato de desconforto é dado de saúde, dado de saúde não fica armazenado no aparelho, e ele não é necessário para retomar a execução. Esta versão não publica leitura do relato para o aluno; se uma vier a existir, será uma rota própria, nunca este bundle. **Com a capacidade `offline-sync` desligada, esta é a leitura autoritativa para retomar uma sessão `IN_PROGRESS`** — depois de relançar o app, de o processo morrer ou a partir de outro aparelho. O cliente exibe o progresso a partir dela, nunca do armazenamento local. `bundleRevision` é opaco e comparado somente por igualdade: muda **sempre** que qualquer item incluído muda, inclusive um fato de execução ou o estado da sessão, e o mesmo conteúdo produz a mesma `bundleRevision`. `generatedAt` é informativo: duas leituras com a mesma `bundleRevision` podem trazer `generatedAt` diferentes, e o cliente não trata isso como conflito. O cliente persiste os `items` pela mesma identidade `entityType/entityId` usada no delta. Nenhum binário de mídia, estado de rede ou command local atravessa a resposta.
+Composição da sessão **no momento da leitura**, reautorizada a cada leitura. Além do recorte da prescrição imutável fixada no início — assignment, versão, exercícios, séries, variantes, alternativas autorizadas, histórico comparável e manifesto de mídia —, o bundle inclui **todos os fatos de execução já aceitos pelo servidor** que a retomada precisa, dos tipos `EXERCISE_EXECUTION`, `SET_EXECUTION`, `SET_AMENDMENT`, `REST_PERIOD`, `SUBSTITUTION` e `DEFERRAL`. Cada `SET_EXECUTION` traz os valores em vigor depois das emendas, e a sua `revision` é a mesma que `getStudentSetExecution` publica e que `If-Match` exige. Cada `DEFERRAL`, aberto ou terminal, traz o `deferralId` que a retomada do exercício e a declaração de pendências no encerramento exigem. `DISCOMFORT_REPORT` **nunca** entra no bundle: o relato de desconforto é dado de saúde, dado de saúde não fica armazenado no aparelho, e ele não é necessário para retomar a execução. Esta versão não publica leitura do relato para o aluno; se uma vier a existir, será uma rota própria, nunca este bundle. **Com a capacidade `offline-sync` desligada, esta é a leitura autoritativa para retomar uma sessão `IN_PROGRESS`** — depois de relançar o app, de o processo morrer ou a partir de outro aparelho. O cliente exibe o progresso a partir dela, nunca do armazenamento local. `bundleRevision` é opaco e comparado somente por igualdade: muda **sempre** que qualquer item incluído muda, inclusive um fato de execução ou o estado da sessão, e o mesmo conteúdo produz a mesma `bundleRevision`. `generatedAt` é informativo: duas leituras com a mesma `bundleRevision` podem trazer `generatedAt` diferentes, e o cliente não trata isso como conflito. O cliente persiste os `items` pela mesma identidade `entityType/entityId` usada no delta. Nenhum binário de mídia, estado de rede ou command local atravessa a resposta. O manifesto de mídia traz só o vídeo próprio do personal (`ADR-0015`). A demonstração de um exercício do **catálogo** nunca entra no bundle — a URL dela é de curta duração e cada uma consome cota da origem —: o app a pede em `getStudentExerciseDemonstration`, no toque em reproduzir.
 
 ### Example
 ```swift
