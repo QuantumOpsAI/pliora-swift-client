@@ -22,7 +22,7 @@ public struct StudentTodayHeaderView: Codable, JSONEncodable, Hashable {
     public var timeZone: String
     /** Saudação do período do dia, copy do servidor negociada por `Accept-Language` e calculada **no fuso do vínculo** (`timeZone`): `Bom dia` de 00:00 a 11:59, `Boa tarde` de 12:00 a 17:59 e `Boa noite` de 18:00 a 23:59 — `Good morning`, `Good afternoon` e `Good evening`. Vem **sem pontuação**: o cliente compõe a linha com `displayName` como componente separado e põe os separadores do locale; nunca interpola o nome nesta mensagem nem a usa como chave de catálogo. */
     public var greeting: String
-    /** O nome que o aluno informou no próprio perfil (`getStudentProfile`, `saveStudentProfile`), como ele escreveu, de 1 a 60 caracteres, ou nulo enquanto não informou e depois de apagá-lo. Nunca é derivado do rótulo privado do convite, do e-mail ou de atributos do provedor. */
+    /** O nome que o aluno informou no próprio perfil (`getStudentProfile`, `saveStudentProfile`), como ele escreveu, de 1 a 60 caracteres. O nome é obrigatório no onboarding (`DEC-PHOME-6`) e todo aluno com vínculo `ACTIVE` ou `PAUSED` o tem: nulo é só caso defensivo do schema. Nunca é derivado do rótulo privado do convite, do e-mail ou de atributos do provedor. */
     public var displayName: String?
 
     public init(date: Date, timeZone: String, greeting: String, displayName: String?) {

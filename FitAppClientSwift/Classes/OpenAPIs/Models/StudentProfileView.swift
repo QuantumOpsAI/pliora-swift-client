@@ -10,14 +10,14 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Perfil do aluno autenticado: a &#x60;revision&#x60; que o &#x60;If-Match&#x60; de &#x60;saveStudentProfile&#x60; exige e o nome opcional que o aluno informou. Publica **somente** esses dois campos. Nada de e-mail, data de criação, avatar, consentimento ou manifesto de visibilidade. A escrita é só do próprio aluno (&#x60;owner-only&#x60;); a audiência de leitura do nome pelo personal é de outra superfície e não está neste schema. */
+/** Perfil do aluno autenticado: a &#x60;revision&#x60; que o &#x60;If-Match&#x60; de &#x60;saveStudentProfile&#x60; exige e o nome que o aluno informou. O nome é obrigatório (&#x60;DEC-PHOME-6&#x60;) na escrita e no aceite do vínculo; nesta leitura &#x60;displayName&#x60; só falta enquanto a conta nunca o informou — estado anterior ao passo &#x60;STUDENT_PROFILE_NAME&#x60; do onboarding — e, depois de informado, está sempre presente e nunca volta a faltar. Publica **somente** esses dois campos. Nada de e-mail, data de criação, avatar, consentimento ou manifesto de visibilidade. A escrita é só do próprio aluno (&#x60;owner-only&#x60;); a audiência de leitura do nome pelo personal é de outra superfície e não está neste schema. */
 public struct StudentProfileView: Codable, JSONEncodable, Hashable {
 
     public static let revisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let displayNameRule = StringRule(minLength: 1, maxLength: 60, pattern: nil)
     /** Validador da revisão do perfil, opaco para o cliente: o mesmo valor do `ETag` da resposta e o que o `If-Match` e o `revision` de `saveStudentProfile` ecoam. */
     public var revision: String
-    /** O nome que o aluno informou, **como ele escreveu**, de 1 a 60 caracteres (code points Unicode), preservado byte a byte. Ausente enquanto o aluno não informou e depois de apagá-lo; nunca nulo. É o valor que `getStudentTodayHeader.displayName` mostra na saudação. A escrita é só do próprio aluno. Por decisão do owner (`DEC-HOME-5`) o personal com vínculo ativo ou pausado vê este nome pela carteira, como `studentName`, em operação própria: nenhuma leitura deste schema o entrega a outra pessoa. */
+    /** O nome que o aluno informou, **como ele escreveu**, de 1 a 60 caracteres (code points Unicode), preservado byte a byte; nunca nulo nem vazio. Ausente **somente** enquanto a conta nunca informou o nome (antes do passo `STUDENT_PROFILE_NAME` do onboarding); depois de informado está sempre presente e nunca volta a faltar (`DEC-PHOME-6`: o nome só se troca, não se apaga). É o valor que `getStudentTodayHeader.displayName` mostra na saudação. A escrita é só do próprio aluno. Por decisão do owner (`DEC-HOME-5`) o personal com vínculo ativo ou pausado vê este nome pela carteira, como `studentName`, em operação própria: nenhuma leitura deste schema o entrega a outra pessoa. */
     public var displayName: String?
 
     public init(revision: String, displayName: String? = nil) {

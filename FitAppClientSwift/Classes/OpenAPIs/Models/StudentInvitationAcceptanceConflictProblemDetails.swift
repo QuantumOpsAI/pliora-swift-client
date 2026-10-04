@@ -10,6 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
+/** As duas combinações que o servidor nunca emite, declaradas como proibição e não como &#x60;if&#x60;/&#x60;then&#x60;, pela mesma razão da recusa do perfil do personal: o passo bloqueador sem a recusa que o nomeia, e a recusa de transição inválida sem o passo que o servidor sabe. */
 public struct StudentInvitationAcceptanceConflictProblemDetails: Codable, JSONEncodable, Hashable {
 
     public enum Status: Int, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -21,6 +22,11 @@ public struct StudentInvitationAcceptanceConflictProblemDetails: Codable, JSONEn
         case relationshipPartiesIdentical = "RELATIONSHIP_PARTIES_IDENTICAL"
         case activeRelationshipChanged = "ACTIVE_RELATIONSHIP_CHANGED"
         case idempotencyConflict = "IDEMPOTENCY_CONFLICT"
+        case invalidOnboardingTransition = "INVALID_ONBOARDING_TRANSITION"
+        case unknownDefaultOpenApi = "unknown_default_open_api"
+    }
+    public enum BlockingStepKey: String, Codable, CaseIterable, CaseIterableDefaultsLast {
+        case studentProfileName = "STUDENT_PROFILE_NAME"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -39,8 +45,10 @@ public struct StudentInvitationAcceptanceConflictProblemDetails: Codable, JSONEn
     public var correlationId: String
     /** Violações por campo quando a validação do comando falhar. */
     public var fieldErrors: [FieldError]?
+    /** Qual passo do onboarding do aluno impede o aceite, presente **somente** em `INVALID_ONBOARDING_TRANSITION`, para que o app leve a pessoa ao passo que falta em vez de dizer que não deu. `STUDENT_PROFILE_NAME` é o passo S2c do onboarding (`DOC-ONBOARDING-ASSESSMENT` §10.1): informar o nome com `saveStudentProfile`. É o **único** membro publicado aqui porque o nome é a única pré-condição do vínculo que o aceite verifica por este código; enum de resposta cresce sem quebra, então outra pré-condição é acrescentar um valor, e não trocar a forma. O nome do aluno nunca viaja nesta resposta. */
+    public var blockingStepKey: BlockingStepKey?
 
-    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil) {
+    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil, blockingStepKey: BlockingStepKey? = nil) {
         self.type = type
         self.title = title
         self.status = status
@@ -49,6 +57,7 @@ public struct StudentInvitationAcceptanceConflictProblemDetails: Codable, JSONEn
         self.instance = instance
         self.correlationId = correlationId
         self.fieldErrors = fieldErrors
+        self.blockingStepKey = blockingStepKey
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -60,6 +69,7 @@ public struct StudentInvitationAcceptanceConflictProblemDetails: Codable, JSONEn
         case instance
         case correlationId
         case fieldErrors
+        case blockingStepKey
     }
 
     // Encodable protocol methods
@@ -74,6 +84,7 @@ public struct StudentInvitationAcceptanceConflictProblemDetails: Codable, JSONEn
         try container.encodeIfPresent(instance, forKey: .instance)
         try container.encode(correlationId, forKey: .correlationId)
         try container.encodeIfPresent(fieldErrors, forKey: .fieldErrors)
+        try container.encodeIfPresent(blockingStepKey, forKey: .blockingStepKey)
     }
 }
 
@@ -82,6 +93,7 @@ extension StudentInvitationAcceptanceConflictProblemDetails: UnknownCaseCheckabl
     public var containsUnknownDefaultOpenApiCase: Bool {
         if status == .unknownDefaultOpenApi { return true }
         if code == .unknownDefaultOpenApi { return true }
+        if blockingStepKey == .unknownDefaultOpenApi { return true }
         return false
     }
 }

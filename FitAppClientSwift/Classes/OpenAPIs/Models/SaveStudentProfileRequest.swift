@@ -10,17 +10,17 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Escrita do nome do aluno: a revisão em que o cliente se baseou e o nome. &#x60;displayName&#x60; é obrigatório no corpo e &#x60;null&#x60; **apaga** o nome — a única forma de apagá-lo; texto vazio não apaga e é recusado. Nenhum outro campo é aceito. */
+/** Escrita do nome do aluno: a revisão em que o cliente se baseou e o nome. &#x60;displayName&#x60; é obrigatório no corpo, de 1 a 60 caracteres; &#x60;null&#x60;, texto vazio e campo omitido são recusados com &#x60;422&#x60; (&#x60;DEC-PHOME-6&#x60;): não existe apagar o nome. Nenhum outro campo é aceito. */
 public struct SaveStudentProfileRequest: Codable, JSONEncodable, Hashable {
 
     public static let revisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let displayNameRule = StringRule(minLength: 1, maxLength: 60, pattern: nil)
     /** Revisão lida pelo cliente; se diverge da corrente, a escrita é recusada com `409 REVISION_CONFLICT`. */
     public var revision: String
-    /** De 1 a 60 caracteres (code points Unicode), gravado byte a byte, sem apará-lo nem normalizá-lo e sem validar se é um \"nome real\"; `null` apaga o nome. */
-    public var displayName: String?
+    /** De 1 a 60 caracteres (code points Unicode), gravado byte a byte, sem apará-lo nem normalizá-lo e sem validar se é um \"nome real\". Nunca `null`: o nome só se troca, não se apaga. */
+    public var displayName: String
 
-    public init(revision: String, displayName: String?) {
+    public init(revision: String, displayName: String) {
         self.revision = revision
         self.displayName = displayName
     }
