@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Resumo do treino prescrito, lido antes do início da sessão. Representa somente a prescrição publicada: nenhum campo desta projeção descreve o que o aluno pretende fazer (&#x60;ExecutionTarget&#x60;) ou o que ele já fez (&#x60;SetExecution&#x60;). Prescrito, alvo operacional e realizado permanecem fatos distintos e os dois últimos não possuem contrato público nesta versão. */
+/** Resumo do treino prescrito, lido antes do início da sessão: o treino como o personal o montou — blocos, exercícios e séries prescritas — e, por exercício, a última execução comparável do aluno. As séries são o **prescrito**: nenhum campo descreve o alvo operacional da sessão (&#x60;ExecutionTarget&#x60;), e a série em percentual não aparece calculada — o alvo calculado (&#x60;calculatedLoadTargets&#x60;) só existe depois do início. &#x60;lastComparable&#x60; é projeção de fatos já registrados, nunca alvo nem recomendação. Com o vínculo pausado a resposta é **só** &#x60;planState: TRAINING_PAUSED&#x60;, sem treino; sem &#x60;planState&#x60;, todo o resumo é obrigatório. */
 public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
 
     public static let workoutIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -20,25 +20,31 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
     public static let exerciseCountRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let setCountRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let coachNotesRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let blocksRule = ArrayRule(minItems: nil, maxItems: 30, uniqueItems: false)
+    /** Presente **só** com o vínculo pausado, e então é a única propriedade da resposta. Ausente em toda leitura com treino. */
+    public var planState: StudentTrainingPlanState?
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
-    public var workoutId: String
+    public var workoutId: String?
     /** Versão publicada e imutável da prescrição que originou este resumo. A publicação de uma nova versão pelo personal não reescreve esta; uma sessão iniciada permanece ligada à versão que a originou. */
-    public var prescriptionVersionId: String
+    public var prescriptionVersionId: String?
     /** Nome do treino prescrito {ex. \"Treino B\"}. Dado do domínio autorado pelo personal, preservado verbatim UTF-8; nunca traduzido, reescrito nem usado como chave de mensagem, mesmo quando o locale efetivo muda. */
-    public var name: String
+    public var name: String?
     /** Foco declarado do treino {ex. \"Peito e Tríceps\"}. Conteúdo autorado pelo personal, preservado verbatim UTF-8 e invariante de locale. Nulo somente para uma versão publicada antes de o foco autorado existir; novas publicações continuam recusadas sem foco. */
     public var focus: String?
-    public var estimatedDurationMinutes: DurationMinutesRange
+    public var estimatedDurationMinutes: DurationMinutesRange?
     /** Quantidade de exercícios prescritos; igual ao tamanho de `exercises`. */
-    public var exerciseCount: Int
+    public var exerciseCount: Int?
     /** Volume total prescrito em séries {ex. 24}. É a soma de `exercises[].setCount` e descreve a prescrição, nunca a execução. */
-    public var setCount: Int
+    public var setCount: Int?
     /** Observação escrita pelo personal para este treino; nula quando não há observação. Conteúdo autorado, preservado verbatim UTF-8, nunca traduzido nem interpolado em chave de catálogo. */
     public var coachNotes: String?
-    /** Exercícios prescritos, na ordem prescrita pelo personal. Resumo mínimo: identidade, posição, nome e quantidade de séries prescritas. */
-    public var exercises: [WorkoutSummaryExerciseView]
+    /** Blocos combinados do treino, na forma da autoria (`PrescribedBlock`), a mesma que o bundle da sessão publica. Ausente quando o treino não tem bloco. */
+    public var blocks: [PrescribedBlock]?
+    /** Exercícios prescritos, na ordem prescrita pelo personal, com as séries prescritas e a última execução comparável de cada um. */
+    public var exercises: [WorkoutSummaryExerciseView]?
 
-    public init(workoutId: String, prescriptionVersionId: String, name: String, focus: String?, estimatedDurationMinutes: DurationMinutesRange, exerciseCount: Int, setCount: Int, coachNotes: String?, exercises: [WorkoutSummaryExerciseView]) {
+    public init(planState: StudentTrainingPlanState? = nil, workoutId: String? = nil, prescriptionVersionId: String? = nil, name: String? = nil, focus: String? = nil, estimatedDurationMinutes: DurationMinutesRange? = nil, exerciseCount: Int? = nil, setCount: Int? = nil, coachNotes: String? = nil, blocks: [PrescribedBlock]? = nil, exercises: [WorkoutSummaryExerciseView]? = nil) {
+        self.planState = planState
         self.workoutId = workoutId
         self.prescriptionVersionId = prescriptionVersionId
         self.name = name
@@ -47,10 +53,12 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
         self.exerciseCount = exerciseCount
         self.setCount = setCount
         self.coachNotes = coachNotes
+        self.blocks = blocks
         self.exercises = exercises
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
+        case planState
         case workoutId
         case prescriptionVersionId
         case name
@@ -59,6 +67,7 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
         case exerciseCount
         case setCount
         case coachNotes
+        case blocks
         case exercises
     }
 
@@ -66,14 +75,24 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(workoutId, forKey: .workoutId)
-        try container.encode(prescriptionVersionId, forKey: .prescriptionVersionId)
-        try container.encode(name, forKey: .name)
-        try container.encode(focus, forKey: .focus)
-        try container.encode(estimatedDurationMinutes, forKey: .estimatedDurationMinutes)
-        try container.encode(exerciseCount, forKey: .exerciseCount)
-        try container.encode(setCount, forKey: .setCount)
-        try container.encode(coachNotes, forKey: .coachNotes)
-        try container.encode(exercises, forKey: .exercises)
+        try container.encodeIfPresent(planState, forKey: .planState)
+        try container.encodeIfPresent(workoutId, forKey: .workoutId)
+        try container.encodeIfPresent(prescriptionVersionId, forKey: .prescriptionVersionId)
+        try container.encodeIfPresent(name, forKey: .name)
+        try container.encodeIfPresent(focus, forKey: .focus)
+        try container.encodeIfPresent(estimatedDurationMinutes, forKey: .estimatedDurationMinutes)
+        try container.encodeIfPresent(exerciseCount, forKey: .exerciseCount)
+        try container.encodeIfPresent(setCount, forKey: .setCount)
+        try container.encodeIfPresent(coachNotes, forKey: .coachNotes)
+        try container.encodeIfPresent(blocks, forKey: .blocks)
+        try container.encodeIfPresent(exercises, forKey: .exercises)
+    }
+}
+
+
+extension WorkoutSummaryView: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if planState == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

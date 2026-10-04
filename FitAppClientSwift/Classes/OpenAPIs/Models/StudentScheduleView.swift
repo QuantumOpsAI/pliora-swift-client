@@ -14,6 +14,8 @@ import AnyCodable
 public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
 
     public static let timeZoneRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    /** Presente **só** com o vínculo pausado (`TRAINING_PAUSED`): então `days` vem vazio e `planMode` é ausente. Ausente em toda programação com dias. */
+    public var planState: StudentTrainingPlanState?
     /** Como o plano chega ao aluno, quando há ativação vigente; ausente quando não há. Em `SEQUENCE` os dias não carregam programação por data e o app leva ao plano em sequência (`getStudentTodayWorkout`, `sequencePlan`). Nunca revela a validade. */
     public var planMode: PlanActivationMode?
     /** Primeira data civil devolvida, ecoando o intervalo efetivamente aplicado. */
@@ -22,10 +24,11 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
     public var to: Date
     /** Timezone IANA em que o servidor resolveu as datas civis e a noção de \"hoje\". O cliente não reinterpreta as datas noutro timezone. */
     public var timeZone: String
-    /** Uma entrada por data civil entre `from` e `to`, inclusive, em ordem crescente e sem lacuna. Um dia sem treino prescrito é `REST_DAY`. */
+    /** Uma entrada por data civil entre `from` e `to`, inclusive, em ordem crescente e sem lacuna. Um dia sem treino prescrito é `REST_DAY`. Vazio somente com `planState: TRAINING_PAUSED`. */
     public var days: [StudentScheduleDayView]
 
-    public init(planMode: PlanActivationMode? = nil, from: Date, to: Date, timeZone: String, days: [StudentScheduleDayView]) {
+    public init(planState: StudentTrainingPlanState? = nil, planMode: PlanActivationMode? = nil, from: Date, to: Date, timeZone: String, days: [StudentScheduleDayView]) {
+        self.planState = planState
         self.planMode = planMode
         self.from = from
         self.to = to
@@ -34,6 +37,7 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
+        case planState
         case planMode
         case from
         case to
@@ -45,6 +49,7 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(planState, forKey: .planState)
         try container.encodeIfPresent(planMode, forKey: .planMode)
         try container.encode(from, forKey: .from)
         try container.encode(to, forKey: .to)
@@ -56,6 +61,7 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
 
 extension StudentScheduleView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
+        if planState == .unknownDefaultOpenApi { return true }
         if planMode == .unknownDefaultOpenApi { return true }
         return false
     }

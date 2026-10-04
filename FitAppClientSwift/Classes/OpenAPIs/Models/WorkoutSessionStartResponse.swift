@@ -23,7 +23,7 @@ public struct WorkoutSessionStartResponse: Codable, JSONEncodable, Hashable {
     /** Versão fixada da prescrição; imutável pelo resto da vida da sessão. */
     public var prescriptionVersionId: String
     public var status: WorkoutSessionStatus
-    /** O instante declarado pelo cliente, preservado como recebido. */
+    /** Instante do servidor em que o início foi confirmado; o dia civil da sessão sai dele, no fuso do vínculo. */
     public var startedAt: Date
     public var nextAction: WorkoutSessionNextAction
 

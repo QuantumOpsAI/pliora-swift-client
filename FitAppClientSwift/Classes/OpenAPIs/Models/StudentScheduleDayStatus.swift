@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Estado consolidado do dia, decidido pelo servidor. &#x60;COMPLETED&#x60;: o treino do dia foi concluído. &#x60;INCOMPLETE&#x60;: houve execução registrada que não chegou à conclusão. &#x60;PENDING&#x60;: dia já passado com treino prescrito e sem execução registrada. &#x60;RECOMMENDED_TODAY&#x60;: recomendação de hoje, decidida pelo servidor (Smart Workout Scheduling); o cliente não recalcula. &#x60;SCHEDULED&#x60;: dia futuro com treino prescrito. &#x60;REST_DAY&#x60;: dia sem treino prescrito. Um estado de dia passado é fato registrado e não é reescrito por uma prescrição publicada depois. */
+/** Estado consolidado do dia, decidido pelo servidor. &#x60;COMPLETED&#x60;: o treino do dia foi concluído. &#x60;INCOMPLETE&#x60;: dia já passado com sessão iniciada e não concluída. &#x60;PENDING&#x60;: dia já passado com treino atribuído e **sem sessão** iniciada; a tela não mostra selo nenhum para ele. &#x60;RECOMMENDED_TODAY&#x60;: recomendação de hoje, decidida pelo servidor (Smart Workout Scheduling); o cliente não recalcula. &#x60;SCHEDULED&#x60;: dia futuro com treino prescrito. &#x60;REST_DAY&#x60;: dia sem treino prescrito. Um estado de dia passado é fato registrado e não é reescrito por uma prescrição publicada depois. */
 public enum StudentScheduleDayStatus: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case completed = "COMPLETED"
     case pending = "PENDING"

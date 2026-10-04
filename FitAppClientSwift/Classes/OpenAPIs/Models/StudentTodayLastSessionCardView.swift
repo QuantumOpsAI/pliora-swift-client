@@ -19,9 +19,9 @@ public struct StudentTodayLastSessionCardView: Codable, JSONEncodable, Hashable 
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public var status: Status
-    public var lastSession: StudentTodayLastSessionView?
+    public var lastSession: StudentTodayCardLastSessionView?
 
-    public init(status: Status, lastSession: StudentTodayLastSessionView?) {
+    public init(status: Status, lastSession: StudentTodayCardLastSessionView?) {
         self.status = status
         self.lastSession = lastSession
     }

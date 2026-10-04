@@ -20,11 +20,12 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
         case sessionIdentityDivergent = "SESSION_IDENTITY_DIVERGENT"
         case prescriptionVersionNotAssigned = "PRESCRIPTION_VERSION_NOT_ASSIGNED"
         case dailyWorkoutAlreadyAssigned = "DAILY_WORKOUT_ALREADY_ASSIGNED"
-        case idempotencyConflict = "IDEMPOTENCY_CONFLICT"
+        case sessionAlreadyExists = "SESSION_ALREADY_EXISTS"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let correlationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let sessionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** URI estável que identifica a classe do problema. */
     public var type: String
     /** Resumo legível e estável para a classe do problema. server_localized; `code` é a autoridade estável para lógica de cliente, `title` nunca deve ser usado como chave de decisão. */
@@ -39,8 +40,10 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
     public var correlationId: String
     /** Violações por campo quando a validação do comando falhar. */
     public var fieldErrors: [FieldError]?
+    /** Identidade canônica da sessão aberta do aluno, presente **sempre e somente** em `SESSION_ALREADY_EXISTS`. É o que permite ao app levar à retomada da sessão que já existe, sem uma leitura a mais, em vez de criar outra. */
+    public var sessionId: String?
 
-    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil) {
+    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil, sessionId: String? = nil) {
         self.type = type
         self.title = title
         self.status = status
@@ -49,6 +52,7 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
         self.instance = instance
         self.correlationId = correlationId
         self.fieldErrors = fieldErrors
+        self.sessionId = sessionId
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -60,6 +64,7 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
         case instance
         case correlationId
         case fieldErrors
+        case sessionId
     }
 
     // Encodable protocol methods
@@ -74,6 +79,7 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
         try container.encodeIfPresent(instance, forKey: .instance)
         try container.encode(correlationId, forKey: .correlationId)
         try container.encodeIfPresent(fieldErrors, forKey: .fieldErrors)
+        try container.encodeIfPresent(sessionId, forKey: .sessionId)
     }
 }
 

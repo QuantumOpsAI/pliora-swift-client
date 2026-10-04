@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Command de início de sessão. O cliente é a autoridade da identidade (&#x60;sessionId&#x60;) e do instante real de início (&#x60;startedAt&#x60;); o servidor é a autoridade da autorização, do vínculo e da versão prescrita elegível. */
+/** Command de início de sessão. O cliente é a autoridade da identidade (&#x60;sessionId&#x60;); o servidor é a autoridade do instante da sessão, da autorização, do vínculo e da versão prescrita elegível. */
 public struct StartWorkoutSessionRequest: Codable, JSONEncodable, Hashable {
 
     public static let sessionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -22,7 +22,7 @@ public struct StartWorkoutSessionRequest: Codable, JSONEncodable, Hashable {
     public var workoutId: String
     /** Versão publicada da prescrição que o cliente leu ao iniciar. A sessão é fixada nela e não migra para uma versão publicada depois. Uma versão que não está atribuída ao aluno é recusada com `PRESCRIPTION_VERSION_NOT_ASSIGNED`, nunca substituída em silêncio. */
     public var prescriptionVersionId: String
-    /** Instante real do início, declarado pelo device com offset explícito. É armazenado como declarado: um início offline de ontem permanece de ontem. Um instante muito à frente do relógio do servidor é recusado com `CLOCK_SKEW`. */
+    /** Instante do início declarado pelo aparelho, com offset explícito. É aceito e guardado para auditoria, mas não é o instante da sessão: o servidor usa o próprio relógio ao confirmar o início, e é dele que sai o dia civil. Um instante à frente do relógio do servidor além da tolerância é recusado com `CLOCK_SKEW`. */
     public var startedAt: Date
     /** Ponto de entrada aprovado de onde o CTA \"Iniciar treino\" foi acionado. */
     public var source: WorkoutSessionStartSource

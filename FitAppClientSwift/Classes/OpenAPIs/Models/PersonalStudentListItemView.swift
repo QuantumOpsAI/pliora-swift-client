@@ -10,28 +10,31 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Item mínimo da carteira: identidade do vínculo, identidade opaca do aluno, rótulo autorado no convite, estado e instantes server-owned. &#x60;studentLabel&#x60; vem **exclusivamente** do nome opcional escrito no convite que originou o vínculo e nunca é lido do perfil atual do aluno; assim uma relação encerrada não depende do perfil mutável do ex-aluno. A projeção não publica e-mail, telefone, destino do convite, cidade, avatar, contador nem qualquer dado de saúde. */
 public struct PersonalStudentListItemView: Codable, JSONEncodable, Hashable {
 
     public static let relationshipIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let studentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let studentLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let studentNameRule = StringRule(minLength: 1, maxLength: 60, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var relationshipId: String
     /** Identidade pública opaca do aluno do vínculo; nunca nome, e-mail ou contato. */
     public var studentId: String
     /** Rótulo autorado no convite, preservado verbatim UTF-8; ausente quando o convite não trouxe nome. Nunca traduzido e nunca derivado do perfil atual do aluno. */
     public var studentLabel: String?
+    /** O nome que o aluno informou no próprio Perfil, **como ele escreveu**, de 1 a 60 caracteres (code points Unicode), preservado byte a byte. `null` enquanto o aluno não informou (e depois de apagá-lo); ausente equivale a `null`. Presente só em vínculos `ACTIVE` e `PAUSED`; em `ENDED` é **sempre `null`**, porque o nome é do aluno e não acompanha um vínculo encerrado — `studentLabel`, que é do personal, continua. Não é o `studentLabel` desta carteira nem o `studentDisplayName` dos convites (metadado privado do personal): outro dono, outro campo, e o nome do aluno nunca entra em `studentDisplayName`. A tela mostra este nome quando houver, com `studentLabel` como linha secundária se diferirem; nunca o traduz, nunca o trunca sem reticências e nunca o usa como chave. */
+    public var studentName: String?
     public var status: RelationshipStatus
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var startedAt: Date
     /** Instante server-owned do encerramento. Presente exatamente em `ENDED` e ausente nos demais estados; a ausência é ausência, nunca data zero. */
     public var endedAt: Date?
 
-    public init(relationshipId: String, studentId: String, studentLabel: String? = nil, status: RelationshipStatus, startedAt: Date, endedAt: Date? = nil) {
+    public init(relationshipId: String, studentId: String, studentLabel: String? = nil, studentName: String? = nil, status: RelationshipStatus, startedAt: Date, endedAt: Date? = nil) {
         self.relationshipId = relationshipId
         self.studentId = studentId
         self.studentLabel = studentLabel
+        self.studentName = studentName
         self.status = status
         self.startedAt = startedAt
         self.endedAt = endedAt
@@ -41,6 +44,7 @@ public struct PersonalStudentListItemView: Codable, JSONEncodable, Hashable {
         case relationshipId
         case studentId
         case studentLabel
+        case studentName
         case status
         case startedAt
         case endedAt
@@ -53,6 +57,7 @@ public struct PersonalStudentListItemView: Codable, JSONEncodable, Hashable {
         try container.encode(relationshipId, forKey: .relationshipId)
         try container.encode(studentId, forKey: .studentId)
         try container.encodeIfPresent(studentLabel, forKey: .studentLabel)
+        try container.encodeIfPresent(studentName, forKey: .studentName)
         try container.encode(status, forKey: .status)
         try container.encode(startedAt, forKey: .startedAt)
         try container.encodeIfPresent(endedAt, forKey: .endedAt)

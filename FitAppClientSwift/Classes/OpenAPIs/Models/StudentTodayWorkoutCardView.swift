@@ -10,25 +10,38 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Card principal independente; estado explícito e payloads anuláveis coerentes com ele. &#x60;sequencePlan&#x60; existe **somente** quando a ativação vigente é em sequência livre, e então o estado nunca é &#x60;REST_DAY&#x60;. */
 public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
 
-    public var status: StudentTodayStatus
-    public var prescribedWorkout: StudentTodayPrescribedWorkoutView?
-    public var openSession: StudentTodayOpenSessionView?
+    public var status: StudentTodayWorkoutCardStatus
+    /** Decidido pelo servidor: `true` se e somente se a conta nunca concluiu sessão alguma, em nenhuma relação, e só com `status` `WORKOUT_AVAILABLE`; `false` em qualquer outro estado. O cliente não o deriva de outra leitura, como a do último treino. */
+    public var firstWorkout: Bool
+    public var prescribedWorkout: StudentTodayCardPrescribedWorkoutView?
+    public var openSession: StudentTodayCardOpenSessionView?
+    public var completedSession: StudentTodayCardCompletedSessionView?
+    public var nextScheduledWorkout: StudentTodayCardNextScheduledWorkoutView?
+    /** Dia civil, no fuso do vínculo, em que começa a ativação que ainda não começou; presente se e somente se `status` é `PLAN_NOT_STARTED`. Não é validade nem contagem de dias. */
+    public var planStartsOn: Date?
     public var sequencePlan: StudentTodaySequencePlanView?
 
-    public init(status: StudentTodayStatus, prescribedWorkout: StudentTodayPrescribedWorkoutView?, openSession: StudentTodayOpenSessionView?, sequencePlan: StudentTodaySequencePlanView? = nil) {
+    public init(status: StudentTodayWorkoutCardStatus, firstWorkout: Bool, prescribedWorkout: StudentTodayCardPrescribedWorkoutView?, openSession: StudentTodayCardOpenSessionView?, completedSession: StudentTodayCardCompletedSessionView?, nextScheduledWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, planStartsOn: Date? = nil, sequencePlan: StudentTodaySequencePlanView? = nil) {
         self.status = status
+        self.firstWorkout = firstWorkout
         self.prescribedWorkout = prescribedWorkout
         self.openSession = openSession
+        self.completedSession = completedSession
+        self.nextScheduledWorkout = nextScheduledWorkout
+        self.planStartsOn = planStartsOn
         self.sequencePlan = sequencePlan
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case status
+        case firstWorkout
         case prescribedWorkout
         case openSession
+        case completedSession
+        case nextScheduledWorkout
+        case planStartsOn
         case sequencePlan
     }
 
@@ -37,8 +50,12 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(status, forKey: .status)
+        try container.encode(firstWorkout, forKey: .firstWorkout)
         try container.encode(prescribedWorkout, forKey: .prescribedWorkout)
         try container.encode(openSession, forKey: .openSession)
+        try container.encode(completedSession, forKey: .completedSession)
+        try container.encodeIfPresent(nextScheduledWorkout, forKey: .nextScheduledWorkout)
+        try container.encodeIfPresent(planStartsOn, forKey: .planStartsOn)
         try container.encodeIfPresent(sequencePlan, forKey: .sequencePlan)
     }
 }

@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** As sete combinações proibidas, declaradas como proibição e não como &#x60;if&#x60;/&#x60;then&#x60;. As duas primeiras são a mesma invariante que &#x60;IdentityJourneyResponse&#x60; publica para estes passos; as cinco seguintes correlacionam &#x60;homeContext&#x60; a &#x60;contexts&#x60;, inclusive a decisão do owner de que quem detém as duas capacidades entra como aluno. A forma é a que o gate de compatibilidade percorre — ele recursa em &#x60;allOf&#x60;, &#x60;anyOf&#x60; e &#x60;not&#x60;, e nunca em &#x60;if&#x60;/&#x60;then&#x60;/&#x60;else&#x60; — e mantém os exemplos publicados verificáveis contra o schema. **Divergência declarada:** este schema admite &#x60;ONBOARDING_REQUIRED&#x60; com convite preservado, e é isso que sustenta \&quot;seguir pela jornada profissional não consome o convite\&quot;. O resolvedor de entrada do backend hoje não produz essa combinação, porque recusa passo e contexto de convite inconsistentes; a permissividade vem de &#x60;IdentityJourneyResponse&#x60; e é intencional aqui. Reconciliar as duas pontas é tarefa de backend, não desta versão. */
+/** As duas combinações proibidas, declaradas como proibição e não como &#x60;if&#x60;/&#x60;then&#x60;. São a mesma invariante que &#x60;IdentityJourneyResponse&#x60; publica para estes passos. A forma é a que o gate de compatibilidade percorre — ele recursa em &#x60;allOf&#x60;, &#x60;anyOf&#x60; e &#x60;not&#x60;, e nunca em &#x60;if&#x60;/&#x60;then&#x60;/&#x60;else&#x60; — e mantém os exemplos publicados verificáveis contra o schema. **Divergência declarada:** este schema admite &#x60;ONBOARDING_REQUIRED&#x60; com convite preservado, e é isso que sustenta \&quot;seguir pela jornada profissional não consome o convite\&quot;. O resolvedor de entrada do backend hoje não produz essa combinação, porque recusa passo e contexto de convite inconsistentes; a permissividade vem de &#x60;IdentityJourneyResponse&#x60; e é intencional aqui. Reconciliar as duas pontas é tarefa de backend, não desta versão. */
 public struct EntryContextView: Codable, JSONEncodable, Hashable {
 
     public enum NextStep: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -29,19 +29,16 @@ public struct EntryContextView: Codable, JSONEncodable, Hashable {
     public static let contextsRule = ArrayRule(minItems: nil, maxItems: nil, uniqueItems: true)
     /** Identificador público opaco da conta resolvida no servidor. É estável para a mesma conta; o cliente não infere formato, não o deriva do `identityId` externo publicado em `SessionResponse` e nunca decodifica JWT para obtê-lo. Serve para separar estado local por conta, nunca para escolher contexto. */
     public var accountId: String
-    /** As capacidades que esta conta já detém, lidas do registro do servidor a cada requisição. `STUDENT` está presente porque um convite foi aceito e a relação nasceu; `PERSONAL` porque o onboarding profissional foi concluído. **Uma capacidade concedida não é revogada quando o vínculo é encerrado**: o registro não tem revogação hoje, então `STUDENT` continua presente para quem aceitou um convite **depois que o registro de capacidades passou a existir**, mesmo sem personal ativo. Isso não vale para o legado: contas cujo vínculo já estava encerrado quando o registro foi criado nunca receberam a capacidade — ele só foi preenchido para vínculos ativos — e respondem `contexts: []`. Nos dois casos, quem precisa saber se há personal ativo agora lê `GET /student/today/relationship`, não esta lista, e o app nunca deduz vínculo ativo a partir desta lista. Lista vazia é exatamente nenhuma capacidade concedida — conta que ainda não concluiu o onboarding profissional nem aceitou convite, ou o legado acima —, e **nunca** é dependência indisponível, que é `503 ENTRY_CONTEXT_UNAVAILABLE`. Combinada com `nextStep: SESSION_ISSUED` ela descreve uma conta que concluiu a entrada sem deter capacidade alguma: o app não tem o que abrir, trata como ausência de contexto e nunca como erro, e a pessoa recupera a capacidade concluindo o onboarding profissional ou aceitando um convite. Um convite preservado não entra nesta lista: convite é oportunidade de vínculo, não vínculo, e só vira `STUDENT` quando aceito por operação própria. */
+    /** As capacidades que esta conta já detém, lidas do registro do servidor a cada requisição. `STUDENT` está presente porque um convite foi aceito e a relação nasceu; `PERSONAL` porque o onboarding profissional foi concluído. **Uma capacidade concedida não é revogada quando o vínculo é encerrado**: o registro não tem revogação hoje, então `STUDENT` continua presente para quem aceitou um convite **depois que o registro de capacidades passou a existir**, mesmo sem personal ativo. Isso não vale para o legado: contas cujo vínculo já estava encerrado quando o registro foi criado nunca receberam a capacidade — ele só foi preenchido para vínculos ativos — e respondem `contexts: []`. Nos dois casos, quem precisa saber se há personal ativo agora lê `GET /student/today/relationship`, não esta lista, e o app nunca deduz vínculo ativo a partir desta lista. Lista vazia é exatamente nenhuma capacidade concedida — conta que ainda não concluiu o onboarding profissional nem aceitou convite, ou o legado acima —, e **nunca** é dependência indisponível, que é `503 ENTRY_CONTEXT_UNAVAILABLE`. Combinada com `nextStep: SESSION_ISSUED` ela descreve uma conta que concluiu a entrada sem deter capacidade alguma: o app não tem o que abrir, trata como ausência de contexto e nunca como erro, e a pessoa recupera a capacidade concluindo o onboarding profissional ou aceitando um convite. Um convite preservado não entra nesta lista: convite é oportunidade de vínculo, não vínculo, e só vira `STUDENT` quando aceito por operação própria. **`contexts` é a lista autorizada nesta leitura, e não diz qual espaço o app abre.** Quem detém as duas capacidades abre o último espaço utilizado: a casa aberta é decidida pelo app, por uma preferência local que só desempata entre valores de `contexts` desta leitura e nunca autoriza nem antecede a confirmação do servidor. Sem preferência válida contra `contexts`, o app apresenta a escolha. É preferência de navegação, não escolha de jornada: não substitui `nextStep` e não vem da conta. */
     public var contexts: Set<AccountContext>
-    /** Em qual contexto o app abre, **decidido pelo servidor** e nunca escolhido pelo cliente. Está presente exatamente quando `contexts` não está vazia, é sempre um dos valores de `contexts`, e para quem detém as duas capacidades é sempre `STUDENT` — decisão do owner: quem é aluno e profissional entra como aluno, e a troca para o contexto profissional acontece dentro do app, sem reler esta rota. Não é preferência, não é escolha de jornada e não é persistido: é derivado de `contexts` na própria leitura, com o mesmo resultado toda vez. Existe para que os dois apps não divirjam no desempate, e é a autoridade de contexto ativo que `GET /sync/scope` não tem — é por não tê-la que aquela rota nega o ator com duas capacidades em vez de escolher uma. */
-    public var homeContext: AccountContext?
     /** Próxima etapa decidida pelo servidor, no mesmo vocabulário das jornadas de entrada e restrito ao que uma leitura sem prova nova pode produzir. É aqui que vive a regra de que **não existe papel global salvo**: nada disto é lido de um campo de conta. `ENTRY_JOURNEY_CHOICE_REQUIRED` é a **escolha pendente**: a pessoa escolhe, com o mesmo peso, entre a jornada de aluno do convite e a jornada profissional; nada é pré-selecionado, a escolha não é persistida e a leitura seguinte com convite válido volta a pedi-la. `ONBOARDING_REQUIRED` é agnóstico de jornada — significa apenas que a entrada desta conta ainda não foi concluída, e tanto um aluno quanto um profissional passam por ele. `OTP_REQUIRED` pertence à autenticação e não é alcançável por esta leitura. */
     public var nextStep: NextStep
     /** Ausência, preservação de um convite ou preservação de mais de um, com o mesmo significado das jornadas de entrada. Preservado quer dizer que o convite continua utilizável e que esta leitura não o consumiu; multiplicidade é relatada, não resolvida, e não elege convite nem cria relação. `ABSENT` afirma que não há convite utilizável — o servidor só o responde quando conseguiu estabelecer o contexto. */
     public var invitationContext: InvitationContext
 
-    public init(accountId: String, contexts: Set<AccountContext>, homeContext: AccountContext? = nil, nextStep: NextStep, invitationContext: InvitationContext) {
+    public init(accountId: String, contexts: Set<AccountContext>, nextStep: NextStep, invitationContext: InvitationContext) {
         self.accountId = accountId
         self.contexts = contexts
-        self.homeContext = homeContext
         self.nextStep = nextStep
         self.invitationContext = invitationContext
     }
@@ -49,7 +46,6 @@ public struct EntryContextView: Codable, JSONEncodable, Hashable {
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case accountId
         case contexts
-        case homeContext
         case nextStep
         case invitationContext
     }
@@ -60,7 +56,6 @@ public struct EntryContextView: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(accountId, forKey: .accountId)
         try container.encode(contexts, forKey: .contexts)
-        try container.encodeIfPresent(homeContext, forKey: .homeContext)
         try container.encode(nextStep, forKey: .nextStep)
         try container.encode(invitationContext, forKey: .invitationContext)
     }
@@ -69,7 +64,6 @@ public struct EntryContextView: Codable, JSONEncodable, Hashable {
 
 extension EntryContextView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
-        if homeContext == .unknownDefaultOpenApi { return true }
         if nextStep == .unknownDefaultOpenApi { return true }
         if invitationContext == .unknownDefaultOpenApi { return true }
         return false

@@ -10,34 +10,68 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Resumo mínimo de um exercício prescrito. Não transporta carga, repetição, tempo, descanso, variante executada, equipamento, alternativa autorizada ou qualquer alvo: esses conceitos pertencem ao Lote 3 e não estão cobertos. */
+/** Um exercício prescrito como o aluno o vê antes de iniciar: identidade, posição, nome, variante prescrita, bloco, observação, cadência, técnica, as séries prescritas e a última execução comparável. Não transporta alvo operacional, carga calculada, fato desta sessão, alternativa autorizada nem mídia. */
 public struct WorkoutSummaryExerciseView: Codable, JSONEncodable, Hashable {
 
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let prescribedExerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let variantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let positionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let nameRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let setCountRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let blockKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
+    public static let notesRule = StringRule(minLength: 1, maxLength: 2000, pattern: nil)
+    public static let setsRule = ArrayRule(minItems: 1, maxItems: 50, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var exerciseId: String
+    /** Identidade do exercício na prescrição, a mesma do bundle da sessão. */
+    public var prescribedExerciseId: String
+    /** Variante prescrita do exercício. */
+    public var variantId: String
     /** Posição prescrita do exercício dentro do treino, começando em 1. É a ordem do personal, não uma ordem de execução escolhida pelo aluno. */
     public var position: Int
     /** Nome do exercício prescrito {ex. \"Supino Reto\"}: o `displayName` da prescrição, o rótulo que o personal deu ao exercício. Dado do domínio, preservado verbatim UTF-8 e invariante de locale. */
     public var name: String
-    /** Quantidade de séries prescritas para este exercício. */
+    /** Quantidade de séries prescritas para este exercício; igual ao tamanho de `sets`. */
     public var setCount: Int
+    /** Bloco combinado do exercício, quando ele consta num bloco de `blocks[]` do treino; ausente fora de bloco. Identificador de máquina. */
+    public var blockKey: String?
+    /** Observação do personal para este exercício, preservada verbatim UTF-8, nunca traduzida nem truncada. Ausente quando não há. */
+    public var notes: String?
+    public var cadence: PrescribedCadence?
+    public var technique: PrescribedTechnique?
+    /** Séries prescritas do exercício, na ordem de `setIndex`. */
+    public var sets: [WorkoutSummarySetView]
+    public var lastComparable: WorkoutSummaryLastComparableView?
 
-    public init(exerciseId: String, position: Int, name: String, setCount: Int) {
+    public init(exerciseId: String, prescribedExerciseId: String, variantId: String, position: Int, name: String, setCount: Int, blockKey: String? = nil, notes: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, sets: [WorkoutSummarySetView], lastComparable: WorkoutSummaryLastComparableView? = nil) {
         self.exerciseId = exerciseId
+        self.prescribedExerciseId = prescribedExerciseId
+        self.variantId = variantId
         self.position = position
         self.name = name
         self.setCount = setCount
+        self.blockKey = blockKey
+        self.notes = notes
+        self.cadence = cadence
+        self.technique = technique
+        self.sets = sets
+        self.lastComparable = lastComparable
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case exerciseId
+        case prescribedExerciseId
+        case variantId
         case position
         case name
         case setCount
+        case blockKey
+        case notes
+        case cadence
+        case technique
+        case sets
+        case lastComparable
     }
 
     // Encodable protocol methods
@@ -45,8 +79,24 @@ public struct WorkoutSummaryExerciseView: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(exerciseId, forKey: .exerciseId)
+        try container.encode(prescribedExerciseId, forKey: .prescribedExerciseId)
+        try container.encode(variantId, forKey: .variantId)
         try container.encode(position, forKey: .position)
         try container.encode(name, forKey: .name)
         try container.encode(setCount, forKey: .setCount)
+        try container.encodeIfPresent(blockKey, forKey: .blockKey)
+        try container.encodeIfPresent(notes, forKey: .notes)
+        try container.encodeIfPresent(cadence, forKey: .cadence)
+        try container.encodeIfPresent(technique, forKey: .technique)
+        try container.encode(sets, forKey: .sets)
+        try container.encodeIfPresent(lastComparable, forKey: .lastComparable)
+    }
+}
+
+
+extension WorkoutSummaryExerciseView: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if technique == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

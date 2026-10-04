@@ -19,6 +19,7 @@ public struct StudentWorkoutSessionForbiddenProblemDetails: Codable, JSONEncodab
     public enum Code: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case forbidden = "FORBIDDEN"
         case relationshipInactive = "RELATIONSHIP_INACTIVE"
+        case relationshipPaused = "RELATIONSHIP_PAUSED"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
