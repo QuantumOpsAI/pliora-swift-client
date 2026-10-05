@@ -237,6 +237,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/PersonalExerciseView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalFirstDayOfWeek.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalFirstDayOfWeekSource.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalHomeForbiddenProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PersonalHomeState.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalHomeUnauthenticatedProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalHomeUnavailableProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalHomeValidationProblemDetails.swift
@@ -486,6 +487,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentInvitationPage.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentInvitationSelfInvitationProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentInvitationSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentInvitationView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentNotificationConsentView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentOnboardingCompletionView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentOnboardingConflictProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentOnboardingForbiddenProblemDetails.swift
@@ -854,6 +856,7 @@ docs/PersonalFirstDayOfWeek.md
 docs/PersonalFirstDayOfWeekSource.md
 docs/PersonalHomeAPI.md
 docs/PersonalHomeForbiddenProblemDetails.md
+docs/PersonalHomeState.md
 docs/PersonalHomeUnauthenticatedProblemDetails.md
 docs/PersonalHomeUnavailableProblemDetails.md
 docs/PersonalHomeValidationProblemDetails.md
@@ -1111,6 +1114,7 @@ docs/StudentInvitationSelfInvitationProblemDetails.md
 docs/StudentInvitationSyncView.md
 docs/StudentInvitationView.md
 docs/StudentInvitationsAPI.md
+docs/StudentNotificationConsentView.md
 docs/StudentOnboardingAPI.md
 docs/StudentOnboardingCompletionView.md
 docs/StudentOnboardingConflictProblemDetails.md

@@ -10,16 +10,19 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Um aluno na seção Planos da aba Treinos. Traz ao menos &#x60;currentVersion&#x60; ou &#x60;openDraft&#x60;; &#x60;states&#x60; declara todos os estados em que o item casa, e &#x60;ACTIVE&#x60;, &#x60;EXPIRING&#x60; e &#x60;NOT_ACTIVATED&#x60; nunca coexistem. Pela mesma regra de &#x60;PersonalStudentPrescriptionView&#x60;, &#x60;activation&#x60; só existe com &#x60;currentVersion&#x60; e &#x60;validity&#x60; só existe com &#x60;activation&#x60;: plano publicado sem ativação vigente é &#x60;NOT_ACTIVATED&#x60; e não traz &#x60;validity&#x60;. */
+/** Um aluno na seção Planos da aba Treinos. Traz ao menos &#x60;currentVersion&#x60; ou &#x60;openDraft&#x60;; &#x60;states&#x60; declara todos os estados em que o item casa, e &#x60;ACTIVE&#x60;, &#x60;EXPIRING&#x60; e &#x60;NOT_ACTIVATED&#x60; nunca coexistem. Pela mesma regra de &#x60;PersonalStudentPrescriptionView&#x60;, &#x60;activation&#x60; só existe com &#x60;currentVersion&#x60; e &#x60;validity&#x60; só existe com &#x60;activation&#x60;: plano publicado sem ativação vigente é &#x60;NOT_ACTIVATED&#x60; e não traz &#x60;validity&#x60;. O aluno é identificado pelo par da carteira: &#x60;studentName&#x60;, sempre presente, e &#x60;studentLabel&#x60;, quando o convite trouxe nome. */
 public struct PersonalPrescriptionListItem: Codable, JSONEncodable, Hashable {
 
     public static let studentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let studentLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let studentNameRule = StringRule(minLength: 1, maxLength: 60, pattern: nil)
     public static let statesRule = ArrayRule(minItems: 1, maxItems: 2, uniqueItems: true)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var studentId: String
     /** Rótulo autorado no convite, preservado verbatim; ausente quando o convite não trouxe nome. */
     public var studentLabel: String?
+    /** O nome que o aluno informou no próprio Perfil, **como ele escreveu**, de 1 a 60 caracteres (code points Unicode), preservado byte a byte: o mesmo `studentName` da carteira (`PersonalStudentListItemView`), que o servidor junta ao item. **Obrigatório e nunca nulo**: a lista só traz vínculos `ACTIVE`, e o onboarding do aluno exige o nome antes do aceite do vínculo (`DEC-PHOME-6`). Não é o `studentLabel` nem o `studentDisplayName` dos convites (metadado privado do personal): outro dono, outro campo. A tela mostra este nome, com `studentLabel` como linha secundária quando os dois existem e diferem; nunca o traduz, nunca o trunca sem reticências e nunca o usa como chave. */
+    public var studentName: String
     /** Estados de plano em que o item casa; a página filtrada por `state` só devolve itens que o contêm. */
     public var states: Set<PrescriptionListState>
     public var validity: PrescriptionValidity?
@@ -27,9 +30,10 @@ public struct PersonalPrescriptionListItem: Codable, JSONEncodable, Hashable {
     public var activation: PrescriptionActivationSummary?
     public var openDraft: PrescriptionDraftSummary?
 
-    public init(studentId: String, studentLabel: String? = nil, states: Set<PrescriptionListState>, validity: PrescriptionValidity? = nil, currentVersion: PrescriptionVersionSummary? = nil, activation: PrescriptionActivationSummary? = nil, openDraft: PrescriptionDraftSummary? = nil) {
+    public init(studentId: String, studentLabel: String? = nil, studentName: String, states: Set<PrescriptionListState>, validity: PrescriptionValidity? = nil, currentVersion: PrescriptionVersionSummary? = nil, activation: PrescriptionActivationSummary? = nil, openDraft: PrescriptionDraftSummary? = nil) {
         self.studentId = studentId
         self.studentLabel = studentLabel
+        self.studentName = studentName
         self.states = states
         self.validity = validity
         self.currentVersion = currentVersion
@@ -40,6 +44,7 @@ public struct PersonalPrescriptionListItem: Codable, JSONEncodable, Hashable {
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case studentId
         case studentLabel
+        case studentName
         case states
         case validity
         case currentVersion
@@ -53,6 +58,7 @@ public struct PersonalPrescriptionListItem: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(studentId, forKey: .studentId)
         try container.encodeIfPresent(studentLabel, forKey: .studentLabel)
+        try container.encode(studentName, forKey: .studentName)
         try container.encode(states, forKey: .states)
         try container.encodeIfPresent(validity, forKey: .validity)
         try container.encodeIfPresent(currentVersion, forKey: .currentVersion)

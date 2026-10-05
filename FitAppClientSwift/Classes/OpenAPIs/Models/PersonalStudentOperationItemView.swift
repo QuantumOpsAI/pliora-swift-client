@@ -16,12 +16,15 @@ public struct PersonalStudentOperationItemView: Codable, JSONEncodable, Hashable
     public static let relationshipIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let studentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let studentLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let studentNameRule = StringRule(minLength: 1, maxLength: 60, pattern: nil)
     /** Vínculo **ativo** que autoriza esta linha. A autorização é verificada no servidor a cada leitura — nunca inferida de leitura anterior, de cache ou de estado de tela. */
     public var relationshipId: String
     /** Identificador opaco do aluno; nunca nome, e-mail, telefone ou contato. */
     public var studentId: String
     /** Rótulo opcional do aluno, **somente** o nome autorado no convite que originou o vínculo. Ele nunca é lido do perfil atual do aluno, e a projeção não cria rótulo novo: é exatamente o mesmo rótulo que a carteira de relacionamentos publica, ausente quando o convite não trouxe nome. */
     public var studentLabel: String?
+    /** O nome que o aluno informou no próprio Perfil, **como ele escreveu**, de 1 a 60 caracteres (code points Unicode), preservado byte a byte. Nesta projeção, que só publica vínculos `ACTIVE`, é obrigatório e nunca nulo desde `DEC-PHOME-6`. A tela mostra este nome, com `studentLabel` como linha secundária quando os dois existem e diferem; não é o `studentLabel` do convite nem o `studentDisplayName` dos convites. */
+    public var studentName: String
     /** Estado do vínculo, reusando o enum canônico. Nesta projeção ele é sempre `ACTIVE`: `PAUSED` e `ENDED` não entram na leitura, não são somados e não viram linha vazia, e a proibição está declarada como invariante de schema para que nenhuma implementação os emita aqui por engano. */
     public var status: RelationshipStatus
     public var anamnesis: PersonalStudentOperationAnamnesisView
@@ -34,10 +37,11 @@ public struct PersonalStudentOperationItemView: Codable, JSONEncodable, Hashable
     public var lastOperationalActivityAt: Date?
     public var openAttention: PersonalStudentOpenAttentionView
 
-    public init(relationshipId: String, studentId: String, studentLabel: String? = nil, status: RelationshipStatus, anamnesis: PersonalStudentOperationAnamnesisView, prescriptionEligibility: StudentPrescriptionEligibilityView, assignment: PersonalStudentOperationAssignmentView, lastCompletedSession: PersonalStudentScheduleDayExecuted? = nil, lastOperationalActivityAt: Date? = nil, openAttention: PersonalStudentOpenAttentionView) {
+    public init(relationshipId: String, studentId: String, studentLabel: String? = nil, studentName: String, status: RelationshipStatus, anamnesis: PersonalStudentOperationAnamnesisView, prescriptionEligibility: StudentPrescriptionEligibilityView, assignment: PersonalStudentOperationAssignmentView, lastCompletedSession: PersonalStudentScheduleDayExecuted? = nil, lastOperationalActivityAt: Date? = nil, openAttention: PersonalStudentOpenAttentionView) {
         self.relationshipId = relationshipId
         self.studentId = studentId
         self.studentLabel = studentLabel
+        self.studentName = studentName
         self.status = status
         self.anamnesis = anamnesis
         self.prescriptionEligibility = prescriptionEligibility
@@ -51,6 +55,7 @@ public struct PersonalStudentOperationItemView: Codable, JSONEncodable, Hashable
         case relationshipId
         case studentId
         case studentLabel
+        case studentName
         case status
         case anamnesis
         case prescriptionEligibility
@@ -67,6 +72,7 @@ public struct PersonalStudentOperationItemView: Codable, JSONEncodable, Hashable
         try container.encode(relationshipId, forKey: .relationshipId)
         try container.encode(studentId, forKey: .studentId)
         try container.encodeIfPresent(studentLabel, forKey: .studentLabel)
+        try container.encode(studentName, forKey: .studentName)
         try container.encode(status, forKey: .status)
         try container.encode(anamnesis, forKey: .anamnesis)
         try container.encode(prescriptionEligibility, forKey: .prescriptionEligibility)

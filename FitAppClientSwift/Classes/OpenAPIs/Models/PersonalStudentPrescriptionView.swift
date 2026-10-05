@@ -10,17 +10,20 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Contexto do plano de um aluno na visão do personal do vínculo ativo. **Um vínculo tem uma prescrição e no máximo um rascunho aberto.** Ausência é significativa e nunca vira zero: sem &#x60;currentVersion&#x60; o aluno ainda não tem plano publicado; sem &#x60;openDraft&#x60; não há rascunho; sem &#x60;activation&#x60; o plano publicado não tem ativação vigente. &#x60;activation&#x60; e &#x60;currentWorkouts&#x60; só existem junto de &#x60;currentVersion&#x60;, e &#x60;validity&#x60; só existe junto de &#x60;activation&#x60;. Quando há &#x60;openDraft&#x60;, &#x60;nextVersionNumber&#x60; é &#x60;1&#x60; sem plano publicado e &#x60;currentVersion.versionNumber + 1&#x60; com ele. */
+/** Contexto do plano de um aluno na visão do personal do vínculo ativo. **Um vínculo tem uma prescrição e no máximo um rascunho aberto.** Ausência é significativa e nunca vira zero: sem &#x60;currentVersion&#x60; o aluno ainda não tem plano publicado; sem &#x60;openDraft&#x60; não há rascunho; sem &#x60;activation&#x60; o plano publicado não tem ativação vigente. &#x60;activation&#x60; e &#x60;currentWorkouts&#x60; só existem junto de &#x60;currentVersion&#x60;, e &#x60;validity&#x60; só existe junto de &#x60;activation&#x60;. Quando há &#x60;openDraft&#x60;, &#x60;nextVersionNumber&#x60; é &#x60;1&#x60; sem plano publicado e &#x60;currentVersion.versionNumber + 1&#x60; com ele. O aluno é identificado pelo par da carteira: &#x60;studentName&#x60;, sempre presente, e &#x60;studentLabel&#x60;, quando o convite trouxe nome. */
 public struct PersonalStudentPrescriptionView: Codable, JSONEncodable, Hashable {
 
     public static let studentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let studentLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let studentNameRule = StringRule(minLength: 1, maxLength: 60, pattern: nil)
     public static let prescriptionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let currentWorkoutsRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var studentId: String
     /** Rótulo autorado no convite que originou o vínculo, preservado verbatim; ausente quando o convite não trouxe nome. Nunca lido do perfil atual do aluno. */
     public var studentLabel: String?
+    /** O nome que o aluno informou no próprio Perfil, **como ele escreveu**, de 1 a 60 caracteres (code points Unicode), preservado byte a byte: o mesmo `studentName` da carteira (`PersonalStudentListItemView`), que o servidor junta a esta leitura. **Obrigatório e nunca nulo**: esta leitura só responde para vínculo `ACTIVE` ou `PAUSED`, e o onboarding do aluno exige o nome antes do aceite do vínculo (`DEC-PHOME-6`). Não é o `studentLabel` nem o `studentDisplayName` dos convites (metadado privado do personal): outro dono, outro campo. A tela mostra este nome, com `studentLabel` como linha secundária quando os dois existem e diferem; nunca o traduz, nunca o trunca sem reticências e nunca o usa como chave. */
+    public var studentName: String
     /** Container lógico estável do plano do vínculo; ausente enquanto o aluno nunca teve plano nem rascunho. */
     public var prescriptionId: String?
     /** Instante do servidor em que esta fotografia foi lida. */
@@ -35,9 +38,10 @@ public struct PersonalStudentPrescriptionView: Codable, JSONEncodable, Hashable 
     public var activation: PrescriptionActivationSummary?
     public var openDraft: PrescriptionDraftSummary?
 
-    public init(studentId: String, studentLabel: String? = nil, prescriptionId: String? = nil, asOf: Date, asOfDate: Date, eligibility: StudentPrescriptionEligibilityView, validity: PrescriptionValidity? = nil, currentVersion: PrescriptionVersionSummary? = nil, currentWorkouts: [PrescriptionWorkoutSummary]? = nil, activation: PrescriptionActivationSummary? = nil, openDraft: PrescriptionDraftSummary? = nil) {
+    public init(studentId: String, studentLabel: String? = nil, studentName: String, prescriptionId: String? = nil, asOf: Date, asOfDate: Date, eligibility: StudentPrescriptionEligibilityView, validity: PrescriptionValidity? = nil, currentVersion: PrescriptionVersionSummary? = nil, currentWorkouts: [PrescriptionWorkoutSummary]? = nil, activation: PrescriptionActivationSummary? = nil, openDraft: PrescriptionDraftSummary? = nil) {
         self.studentId = studentId
         self.studentLabel = studentLabel
+        self.studentName = studentName
         self.prescriptionId = prescriptionId
         self.asOf = asOf
         self.asOfDate = asOfDate
@@ -52,6 +56,7 @@ public struct PersonalStudentPrescriptionView: Codable, JSONEncodable, Hashable 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case studentId
         case studentLabel
+        case studentName
         case prescriptionId
         case asOf
         case asOfDate
@@ -69,6 +74,7 @@ public struct PersonalStudentPrescriptionView: Codable, JSONEncodable, Hashable 
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(studentId, forKey: .studentId)
         try container.encodeIfPresent(studentLabel, forKey: .studentLabel)
+        try container.encode(studentName, forKey: .studentName)
         try container.encodeIfPresent(prescriptionId, forKey: .prescriptionId)
         try container.encode(asOf, forKey: .asOf)
         try container.encode(asOfDate, forKey: .asOfDate)

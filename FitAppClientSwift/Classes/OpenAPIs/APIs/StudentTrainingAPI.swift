@@ -66,6 +66,54 @@ open class StudentTrainingAPI {
     }
 
     /**
+     Ler o consentimento de notificações vigente do aluno
+
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getStudentNotificationConsent(acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentNotificationConsentView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getStudentNotificationConsentWithRequestBuilder(acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Ler o consentimento de notificações vigente do aluno
+     - GET /student/notification-consent
+     - Leitura mínima do consentimento `SEND_NOTIFICATIONS` **vigente** da conta do aluno (decisão do dono de 2026-10-05, `DEC-ALUNO-7` de `DOC-STUDENT-WORKOUT` §2.1; desenho em `DOC-STUDENT-WORKOUT-TECH` §7.3.1, `pliora-contracts#271`). O app a lê para saber se pode agendar o lembrete de treino e o aviso de treino parado (`ADR-0016` §6); o aparelho não guarda nem espelha a resposta. Responde **só** a decisão sobre `SEND_NOTIFICATIONS` gravada no aceite da **relação atual** da conta, com o enum já publicado `StudentConsentDecision`. A relação atual é a `ACTIVE`; sem ela, a `PAUSED` pausada mais recentemente; relação encerrada nunca responde. **Vigente se e só se `decision` é `GRANTED`.** `decision` **ausente** significa que a relação atual não tem decisão gravada para o termo, e vale como **não vigente**, com o mesmo efeito de `DECLINED`; o servidor não preenche o campo com `DECLINED`, porque nenhuma recusa foi gravada. A resposta não traz o tipo do termo, a versão do texto, data, autoria, identidade da relação, texto jurídico, os outros termos nem dado de terceiros, e a leitura não compara a versão gravada com a versão corrente do catálogo. **Não cria nem altera nada.** Não grava consentimento novo, não toca nos termos jurídicos, não desbloqueia `saveStudentOnboardingConsents` e não muda o formato dos consentimentos do aceite. Só a própria conta lê: a operação não aceita identidade de aluno, e nenhuma leitura do personal transporta esta decisão. **Vínculo.** Vínculo ativo ou pausado responde `200`: a pausa não muda o consentimento, e o lembrete já fica suspenso pela leitura do plano. Vínculo encerrado ou inexistente responde `403 RELATIONSHIP_INACTIVE`, como `getStudentTodayRelationship`: não há relação atual, e o lembrete fica **suspenso**. Identidade sem o contexto de aluno responde `403 FORBIDDEN`. Nenhum dos dois `403` confirma existência de aluno, personal ou relação. Os apps leem esta operação ao entrar na tela do lembrete e na seção de avisos, e no máximo uma vez por abertura do app para reconciliar; a resposta fica só em memória. Se a leitura falha, nada do que já está agendado muda e nada novo é agendado. A resposta declara `Cache-Control: private, no-store` e não tem `ETag`, porque nenhuma escrita a usa. `Content-Language` é o locale negociado: o corpo não tem texto.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<StudentNotificationConsentView>
+     */
+    open class func getStudentNotificationConsentWithRequestBuilder(acceptLanguage: String? = nil) -> RequestBuilder<StudentNotificationConsentView> {
+        let localVariablePath = "/student/notification-consent"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentNotificationConsentView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      Obter o bundle tipado da sessão, com o progresso já aceito pelo servidor
 
      - parameter sessionId: (path) Sessão do aluno autenticado; existência fora do escopo nunca é revelada.

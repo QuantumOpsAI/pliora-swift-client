@@ -18,6 +18,8 @@ public struct PersonalHomeView: Codable, JSONEncodable, Hashable {
     public static let studentsWithAttentionItemCountRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     /** Instante do servidor em que este corte foi calculado. É obrigatório e é sempre do servidor: o cliente o formata no fuso e no locale do dispositivo e **nunca** o substitui pela hora local, mesmo quando a leitura vem de cache datado. Ele amarra cada contador a uma leitura, e é o que impede que ausência de item seja lida como estado permanente de alguém. */
     public var asOf: Date
+    /** Estado de conteúdo da raiz decidido pelo servidor no mesmo corte `asOf` dos contadores. O cliente não o deduz da página da fila nem de outra leitura. */
+    public var homeState: PersonalHomeState
     /** Vínculos **ativos** deste personal no instante `asOf`. Pausado e encerrado não entram nesta contagem e não são somados a ela; os contadores por estado vivem em `PersonalRelationshipSummary`. Zero é ausência de vínculo ativo, e nunca indisponibilidade da leitura. */
     public var activeStudentCount: Int
     /** Total de **itens** de atenção emitidos no instante `asOf`, na mesma ordenação e deduplicação da fila. Zero significa exatamente que nada atingiu um dos limiares publicados nesta leitura; ele não afirma, sugere nem insinua que qualquer aluno esteja bem. */
@@ -29,8 +31,9 @@ public struct PersonalHomeView: Codable, JSONEncodable, Hashable {
     /** Verdadeiro quando existe ao menos um convite ainda não terminal emitido por esta conta. É **booleano de propósito**: a Home só precisa distinguir \"não tenho alunos\" de \"convidei e ainda não aceitaram\", e a lista, os estados por convite e as ações de reenviar e cancelar continuam em `listPersonalStudentInvitations`, que é a origem deste sinal. Convite não é vínculo: ele não entra em `PersonalRelationshipSummary` nem em `activeStudentCount`, e falso nunca é o resultado de uma falha de leitura — indisponibilidade é `503 PERSONAL_HOME_UNAVAILABLE`. */
     public var hasPendingStudentInvitations: Bool
 
-    public init(asOf: Date, activeStudentCount: Int, attentionItemCount: Int, studentsWithAttentionItemCount: Int, hasPendingProfessionalRegistration: Bool, hasPendingStudentInvitations: Bool) {
+    public init(asOf: Date, homeState: PersonalHomeState, activeStudentCount: Int, attentionItemCount: Int, studentsWithAttentionItemCount: Int, hasPendingProfessionalRegistration: Bool, hasPendingStudentInvitations: Bool) {
         self.asOf = asOf
+        self.homeState = homeState
         self.activeStudentCount = activeStudentCount
         self.attentionItemCount = attentionItemCount
         self.studentsWithAttentionItemCount = studentsWithAttentionItemCount
@@ -40,6 +43,7 @@ public struct PersonalHomeView: Codable, JSONEncodable, Hashable {
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case asOf
+        case homeState
         case activeStudentCount
         case attentionItemCount
         case studentsWithAttentionItemCount
@@ -52,10 +56,19 @@ public struct PersonalHomeView: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(asOf, forKey: .asOf)
+        try container.encode(homeState, forKey: .homeState)
         try container.encode(activeStudentCount, forKey: .activeStudentCount)
         try container.encode(attentionItemCount, forKey: .attentionItemCount)
         try container.encode(studentsWithAttentionItemCount, forKey: .studentsWithAttentionItemCount)
         try container.encode(hasPendingProfessionalRegistration, forKey: .hasPendingProfessionalRegistration)
         try container.encode(hasPendingStudentInvitations, forKey: .hasPendingStudentInvitations)
+    }
+}
+
+
+extension PersonalHomeView: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if homeState == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

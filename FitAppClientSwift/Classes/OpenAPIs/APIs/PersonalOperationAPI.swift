@@ -40,7 +40,7 @@ open class PersonalOperationAPI {
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
      - parameter cursor: (query) Cursor opaco de continuação devolvido por uma página anterior; nunca é offset, ID interno ou dado a ser interpretado pelo cliente. Ele codifica a posição na ordenação total definida por esta operação. (optional)
      - parameter limit: (query) Tamanho de página solicitado pelo cliente; o padrão é 20 e o servidor impõe o máximo de 100, podendo devolver menos itens. (optional, default to 20)

@@ -5,6 +5,7 @@ All URIs are relative to */api/v1*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**getStudentExerciseDemonstration**](StudentTrainingAPI.md#getstudentexercisedemonstration) | **GET** /student/exercises/{exerciseId}/demonstration | Obter a demonstração em vídeo de um exercício do catálogo prescrito ao aluno
+[**getStudentNotificationConsent**](StudentTrainingAPI.md#getstudentnotificationconsent) | **GET** /student/notification-consent | Ler o consentimento de notificações vigente do aluno
 [**getStudentOfflineWorkoutBundle**](StudentTrainingAPI.md#getstudentofflineworkoutbundle) | **GET** /student/workout-sessions/{sessionId}/bundle | Obter o bundle tipado da sessão, com o progresso já aceito pelo servidor
 [**getStudentSchedule**](StudentTrainingAPI.md#getstudentschedule) | **GET** /student/schedule | Obter a programação de treino do aluno num intervalo de datas
 [**getStudentToday**](StudentTrainingAPI.md#getstudenttoday) | **GET** /student/today | Obter o dia de treino do aluno
@@ -56,6 +57,56 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**StudentExerciseDemonstrationView**](StudentExerciseDemonstrationView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStudentNotificationConsent**
+```swift
+    open class func getStudentNotificationConsent(acceptLanguage: String? = nil, completion: @escaping (_ data: StudentNotificationConsentView?, _ error: Error?) -> Void)
+```
+
+Ler o consentimento de notificações vigente do aluno
+
+Leitura mínima do consentimento `SEND_NOTIFICATIONS` **vigente** da conta do aluno (decisão do dono de 2026-10-05, `DEC-ALUNO-7` de `DOC-STUDENT-WORKOUT` §2.1; desenho em `DOC-STUDENT-WORKOUT-TECH` §7.3.1, `pliora-contracts#271`). O app a lê para saber se pode agendar o lembrete de treino e o aviso de treino parado (`ADR-0016` §6); o aparelho não guarda nem espelha a resposta. Responde **só** a decisão sobre `SEND_NOTIFICATIONS` gravada no aceite da **relação atual** da conta, com o enum já publicado `StudentConsentDecision`. A relação atual é a `ACTIVE`; sem ela, a `PAUSED` pausada mais recentemente; relação encerrada nunca responde. **Vigente se e só se `decision` é `GRANTED`.** `decision` **ausente** significa que a relação atual não tem decisão gravada para o termo, e vale como **não vigente**, com o mesmo efeito de `DECLINED`; o servidor não preenche o campo com `DECLINED`, porque nenhuma recusa foi gravada. A resposta não traz o tipo do termo, a versão do texto, data, autoria, identidade da relação, texto jurídico, os outros termos nem dado de terceiros, e a leitura não compara a versão gravada com a versão corrente do catálogo. **Não cria nem altera nada.** Não grava consentimento novo, não toca nos termos jurídicos, não desbloqueia `saveStudentOnboardingConsents` e não muda o formato dos consentimentos do aceite. Só a própria conta lê: a operação não aceita identidade de aluno, e nenhuma leitura do personal transporta esta decisão. **Vínculo.** Vínculo ativo ou pausado responde `200`: a pausa não muda o consentimento, e o lembrete já fica suspenso pela leitura do plano. Vínculo encerrado ou inexistente responde `403 RELATIONSHIP_INACTIVE`, como `getStudentTodayRelationship`: não há relação atual, e o lembrete fica **suspenso**. Identidade sem o contexto de aluno responde `403 FORBIDDEN`. Nenhum dos dois `403` confirma existência de aluno, personal ou relação. Os apps leem esta operação ao entrar na tela do lembrete e na seção de avisos, e no máximo uma vez por abertura do app para reconciliar; a resposta fica só em memória. Se a leitura falha, nada do que já está agendado muda e nada novo é agendado. A resposta declara `Cache-Control: private, no-store` e não tem `ETag`, porque nenhuma escrita a usa. `Content-Language` é o locale negociado: o corpo não tem texto.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Ler o consentimento de notificações vigente do aluno
+StudentTrainingAPI.getStudentNotificationConsent(acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**StudentNotificationConsentView**](StudentNotificationConsentView.md)
 
 ### Authorization
 
