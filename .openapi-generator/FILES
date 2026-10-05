@@ -422,6 +422,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/SavePersonalSpecialtiesRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SavePersonalWorkStyleRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SaveStudentAnamnesisSectionRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SaveStudentProfileRequest.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/SavedStudentProfileView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ServiceUnavailableProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SessionIdentityProvider.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SessionResponse.swift
@@ -501,7 +502,6 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentPrescriptionEligibilityBlocking
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentPrescriptionEligibilityView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentPrivacyCatalogItemView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentPrivacyDecisionInput.swift
-FitAppClientSwift/Classes/OpenAPIs/Models/StudentProfileForbiddenProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentProfilePreconditionProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentProfileRevisionConflictProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentProfileUnauthenticatedProblemDetails.swift
@@ -1045,6 +1045,7 @@ docs/SavePersonalSpecialtiesRequest.md
 docs/SavePersonalWorkStyleRequest.md
 docs/SaveStudentAnamnesisSectionRequest.md
 docs/SaveStudentProfileRequest.md
+docs/SavedStudentProfileView.md
 docs/ServiceUnavailableProblemDetails.md
 docs/SessionIdentityProvider.md
 docs/SessionResponse.md
@@ -1128,7 +1129,6 @@ docs/StudentPrescriptionEligibilityView.md
 docs/StudentPrivacyCatalogItemView.md
 docs/StudentPrivacyDecisionInput.md
 docs/StudentProfileAPI.md
-docs/StudentProfileForbiddenProblemDetails.md
 docs/StudentProfilePreconditionProblemDetails.md
 docs/StudentProfileRevisionConflictProblemDetails.md
 docs/StudentProfileUnauthenticatedProblemDetails.md
