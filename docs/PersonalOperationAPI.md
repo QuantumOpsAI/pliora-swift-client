@@ -4,8 +4,61 @@ All URIs are relative to */api/v1*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**getPersonalStudentOperation**](PersonalOperationAPI.md#getpersonalstudentoperation) | **GET** /personal/students/{studentId}/operation | Ler a projeção operacional de um vínculo
 [**listPersonalStudentOperations**](PersonalOperationAPI.md#listpersonalstudentoperations) | **GET** /personal/students/operations | Listar a projeção operacional da carteira de alunos
 
+
+# **getPersonalStudentOperation**
+```swift
+    open class func getPersonalStudentOperation(studentId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentOperationView?, _ error: Error?) -> Void)
+```
+
+Ler a projeção operacional de um vínculo
+
+Leitura da tela Orientação do aluno para o vínculo identificado por `studentId`. A autorização é decidida pelo servidor a cada leitura, e a resposta usa a mesma linha operacional de `listPersonalStudentOperations`, sem que o cliente varra a projeção paginada nem junte outra leitura para montar a tela. `asOf` é o instante do servidor em que o corte foi calculado e `origin` é sempre `PROJECTION`. Só vínculo `ACTIVE` deste personal, com o compartilhamento em vigor, devolve uma linha. Vínculo pausado, compartilhamento não vigente e vínculo encerrado recusam com veredictos distintos quando o aluno é ou foi deste personal: respectivamente `403 RELATIONSHIP_PAUSED`, `403 SHARING_GRANT_REQUIRED` e `403 RELATIONSHIP_INACTIVE`. A recusa por compartilhamento não nomeia a categoria que falta, não carrega `fieldErrors` e não permite inferir qual escolha o aluno fez. `RELATIONSHIP_INACTIVE` identifica o vínculo encerrado de um aluno que foi deste personal; os três veredictos nomeados só se aplicam a aluno que é ou foi dele. Um aluno que nunca foi deste personal, ou um identificador que não existe, responde `404 STUDENT_RESOURCE_NOT_FOUND` de forma indistinguível. Uma conta autenticada sem capacidade `PERSONAL` responde `403 FORBIDDEN`. Indisponibilidade da projeção responde `503 PERSONAL_STUDENT_OPERATIONS_UNAVAILABLE`, nunca uma linha vazia. Esta leitura não carrega respostas de anamnese, texto livre de desconforto, diagnóstico, e-mail, telefone ou nota de esforço do treino. Para abrir o relatório pela Orientação, o cliente consulta `listPersonalStudentExerciseReportReferences` com o `studentId` desta linha e escolhe uma chave publicada; nenhuma referência vem de item presumido da fila. Para abrir o bloqueio, o destino chama novamente `getPersonalStudentOperation` com esse `studentId`: a nova resposta autoriza independentemente e fornece `item.prescriptionEligibility` e `blockedSince`, mesmo com `openItemCount = 0`. `blockedSince` é obrigatório somente quando o estado é `BLOCKED`, e é a mais antiga das razões vigentes, como na fila; com `ELIGIBLE` ele está ausente e as razões estão vazias. Resolver a última razão entre telas não é falha nem afirmação de saúde. Falha ou perda de acesso descarta o conteúdo anterior; referências, cache e leitura anterior nunca concedem acesso ao destino.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Identificador opaco do aluno. O servidor decide a autorização por vínculo; para aluno inexistente ou que nunca pertenceu a este personal, a resposta é indistinguível e não confirma existência.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Ler a projeção operacional de um vínculo
+PersonalOperationAPI.getPersonalStudentOperation(studentId: studentId, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Identificador opaco do aluno. O servidor decide a autorização por vínculo; para aluno inexistente ou que nunca pertenceu a este personal, a resposta é indistinguível e não confirma existência. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PersonalStudentOperationView**](PersonalStudentOperationView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listPersonalStudentOperations**
 ```swift

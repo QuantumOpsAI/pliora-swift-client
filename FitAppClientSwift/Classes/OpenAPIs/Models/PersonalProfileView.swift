@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Perfil do Personal autenticado, projetado **somente para a própria pessoa**. É a única leitura do contrato que publica &#x60;AvatarView&#x60;, e portanto o caminho de poll e de reemissão das variantes temporárias do avatar. Os valores editáveis voltam integralmente, para que o formulário de edição seja preenchido sem adivinhação, e &#x60;revision&#x60; é o validador que o &#x60;If-Match&#x60; dos quatro commands de onboarding exige — commands que permanecem válidos depois de &#x60;COMPLETED&#x60;. Invariantes de servidor, verificadas no backend e deliberadamente **não** expressas como subschema condicional para não criar um segundo ponto de verdade: &#x60;professionalRegistrationStatus&#x60; é &#x60;INFORMED&#x60; exatamente quando &#x60;professionalRegistration&#x60; está presente com número + UF, e &#x60;NOT_INFORMED&#x60; quando ausente; &#x60;canInvite&#x60; é falso sempre que o registro está ausente; &#x60;otherSpecialty&#x60; só acompanha &#x60;OTHER&#x60;. Audiência: &#x60;owner-only&#x60;. O aluno nunca alcança esta projeção — o que ele vê do personal é nome, avatar e CREF informado, e nunca e-mail, cidade, especialidades, modo de trabalho, preferências ou contadores. */
+/** Perfil do Personal autenticado, projetado **somente para a própria pessoa**. É a única leitura do contrato que publica &#x60;AvatarView&#x60;, e portanto o caminho de poll e de reemissão das variantes temporárias do avatar. Os valores editáveis voltam integralmente, para que o formulário de edição seja preenchido sem adivinhação, e &#x60;revision&#x60; é o validador que o &#x60;If-Match&#x60; dos quatro commands de onboarding exige — commands que permanecem válidos depois de &#x60;COMPLETED&#x60;. Invariantes de servidor, verificadas no backend e deliberadamente **não** expressas como subschema condicional para não criar um segundo ponto de verdade: &#x60;professionalRegistrationStatus&#x60; é &#x60;INFORMED&#x60; exatamente quando &#x60;professionalRegistration&#x60; está presente com número + UF, e &#x60;NOT_INFORMED&#x60; quando ausente; &#x60;canInvite&#x60; é falso sempre que o registro está ausente; &#x60;otherSpecialty&#x60; só acompanha &#x60;OTHER&#x60;. Audiência: &#x60;owner-only&#x60;. O aluno nunca alcança esta projeção — o que ele vê do personal é nome, avatar e CREF informado, e nunca e-mail, cidade, especialidades, modo de trabalho, preferências ou contadores. **Esta projeção é legível com o cadastro ainda em andamento** (D-6 de &#x60;DOC-UX-PERSONAL-ONBOARDING-NAVIGATION&#x60;), e é por isso que &#x60;displayName&#x60; deixou de ser obrigatório nesta versão: enquanto o passo &#x60;PROFILE&#x60; não foi respondido não existe nome autorado, e o servidor **nunca inventa um**. Todo o resto continua obrigatório, porque o servidor sabe produzir cada campo desde o primeiro instante da conta: &#x60;revision&#x60; é a revisão do rascunho, &#x60;avatar&#x60; nasce em &#x60;NONE&#x60;, &#x60;professionalRegistrationStatus&#x60; em &#x60;NOT_INFORMED&#x60;, &#x60;canInvite&#x60; falso, &#x60;specialties&#x60; vazia, &#x60;workStyle&#x60; vazio, &#x60;preferences&#x60; nos padrões e &#x60;relationshipSummary&#x60; em zeros. &#x60;displayName&#x60; ausente significa **exatamente** \&quot;o passo &#x60;PROFILE&#x60; ainda não foi respondido\&quot; — nunca nome vazio, nunca nome apagado. Quem quer o estado do cadastro lê &#x60;GET /personal/onboarding&#x60;, que continua sendo a autoridade dele; esta leitura não o duplica. */
 public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
 
     public static let revisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -21,8 +21,8 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
     public static let otherSpecialtyRule = StringRule(minLength: 1, maxLength: 80, pattern: nil)
     /** Validador opaco da revisão do Perfil, idêntico ao `ETag` desta leitura e ao valor exigido em `If-Match` pelos quatro commands de edição. */
     public var revision: String
-    /** Nome autorado pela própria pessoa, preservado verbatim UTF-8. */
-    public var displayName: String
+    /** Nome autorado pela própria pessoa, preservado verbatim UTF-8. **Ausente enquanto o passo `PROFILE` não foi respondido** — e só nesse caso. Nunca vem vazio e nunca vem `null`: ausência é ausência, e o servidor não substitui o nome por e-mail, por identificador nem por rótulo derivado. Presente, é sempre de 1 a 120 caracteres. */
+    public var displayName: String?
     public var avatar: AvatarView
     /** E-mail de acesso verificado da conta, **somente leitura**: nenhum request de edição publicado neste contrato transporta e-mail, e este campo nunca sai do escopo da própria pessoa. */
     public var email: String
@@ -41,7 +41,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
     public var preferences: PersonalPreferencesView
     public var relationshipSummary: PersonalRelationshipSummary
 
-    public init(revision: String, displayName: String, avatar: AvatarView, email: String, sessionProvider: SessionIdentityProvider, professionalRegistration: ProfessionalRegistrationView? = nil, professionalRegistrationStatus: ProfessionalRegistrationStatus, city: String? = nil, canInvite: Bool, specialties: Set<PersonalSpecialty>, otherSpecialty: String? = nil, workStyle: PersonalWorkStyleView, preferences: PersonalPreferencesView, relationshipSummary: PersonalRelationshipSummary) {
+    public init(revision: String, displayName: String? = nil, avatar: AvatarView, email: String, sessionProvider: SessionIdentityProvider, professionalRegistration: ProfessionalRegistrationView? = nil, professionalRegistrationStatus: ProfessionalRegistrationStatus, city: String? = nil, canInvite: Bool, specialties: Set<PersonalSpecialty>, otherSpecialty: String? = nil, workStyle: PersonalWorkStyleView, preferences: PersonalPreferencesView, relationshipSummary: PersonalRelationshipSummary) {
         self.revision = revision
         self.displayName = displayName
         self.avatar = avatar
@@ -80,7 +80,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(revision, forKey: .revision)
-        try container.encode(displayName, forKey: .displayName)
+        try container.encodeIfPresent(displayName, forKey: .displayName)
         try container.encode(avatar, forKey: .avatar)
         try container.encode(email, forKey: .email)
         try container.encode(sessionProvider, forKey: .sessionProvider)

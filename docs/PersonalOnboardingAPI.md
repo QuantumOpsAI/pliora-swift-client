@@ -287,7 +287,7 @@ Name | Type | Description  | Notes
 
 Salvar o modo de trabalho declarado pelo personal
 
-Atualiza por compare-and-set declarações usadas somente para personalização. Os dados não concedem autorização, agenda ou prescrição e podem ser omitidos ao pular o passo. Salvar este passo com o grupo de perfil ainda em aberto é recusado com `409 INVALID_ONBOARDING_TRANSITION` e `blockingStepKey: PROFILE`, porque avançar resolveria o perfil como `SKIPPED` e o perfil não é pulável.
+Atualiza por compare-and-set declarações usadas somente para personalização. Os dados não concedem autorização, agenda ou prescrição. **Enviar o passo em branco é recusado** com `422 VALIDATION_ERROR` e `fieldErrors` de código `STEP_CONTENT_REQUIRED` nos três campos de conteúdo: ao menos um deles precisa vir preenchido (D-2 de `DOC-UX-PERSONAL-ONBOARDING-NAVIGATION`). Até 0.70.0 o corpo exigia só `revision`, e o servidor lia o corpo vazio como **pular** — encerrando o cadastro e marcando como pulado o passo seguinte, que a pessoa nunca viu. Pular não emite request e continua possível pela tela; o que deixa de ser possível é responder em branco sem aviso. Salvar este passo com o grupo de perfil ainda em aberto é recusado com `409 INVALID_ONBOARDING_TRANSITION` e `blockingStepKey: PROFILE`, porque avançar resolveria o perfil como `SKIPPED` e o perfil não é pulável.
 
 ### Example
 ```swift
