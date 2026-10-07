@@ -4,7 +4,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **revision** | **String** | Validador opaco da revisão do Perfil, idêntico ao &#x60;ETag&#x60; desta leitura e ao valor exigido em &#x60;If-Match&#x60; pelos quatro commands de edição. |
-**displayName** | **String** | Nome autorado pela própria pessoa, preservado verbatim UTF-8. |
+**displayName** | **String** | Nome autorado pela própria pessoa, preservado verbatim UTF-8. **Ausente enquanto o passo &#x60;PROFILE&#x60; não foi respondido** — e só nesse caso. Nunca vem vazio e nunca vem &#x60;null&#x60;: ausência é ausência, e o servidor não substitui o nome por e-mail, por identificador nem por rótulo derivado. Presente, é sempre de 1 a 120 caracteres. | [optional]
 **avatar** | [**AvatarView**](AvatarView.md) |  |
 **email** | **String** | E-mail de acesso verificado da conta, **somente leitura**: nenhum request de edição publicado neste contrato transporta e-mail, e este campo nunca sai do escopo da própria pessoa. |
 **sessionProvider** | [**SessionIdentityProvider**](SessionIdentityProvider.md) |  |

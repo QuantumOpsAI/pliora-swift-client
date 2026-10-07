@@ -10,6 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
+/** Comando do passo \&quot;modo de trabalho\&quot;: o corpo substitui o estado, não o mescla. **Enviar o passo em branco é recusado** (&#x60;DOC-UX-PERSONAL-ONBOARDING-NAVIGATION&#x60; D-2): um corpo que traz só &#x60;revision&#x60; não é mais um corpo válido, porque não é resposta nenhuma. Nenhum campo isolado é obrigatório — qualquer **um** dos três basta —, e é essa a diferença entre pedir preenchimento e inventar campo obrigatório. Por que mudou: até esta versão o corpo exigia só &#x60;revision&#x60;, e o servidor tratava o corpo vazio como **pular** — encerrando o cadastro e marcando como pulado também o passo seguinte, que a pessoa nunca viu. Quem respondia em branco não pulou: respondeu, e perdeu o passo seguinte. **Pular não passa por aqui**: pular é decisão de tela e não emite request, de modo que exigir conteúdo neste corpo não fecha o caminho de pular. Este é o **único** dos quatro passos que aceitava corpo em branco. &#x60;profile&#x60; exige &#x60;displayName&#x60; não vazio, &#x60;specialties&#x60; exige ao menos uma especialidade e &#x60;preferences&#x60; exige sistema, tema e lembretes — nos três, o corpo em branco já era inválido antes desta versão. */
 public struct SavePersonalWorkStyleRequest: Codable, JSONEncodable, Hashable {
 
     public static let workoutReviewFrequencyWeeksRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
