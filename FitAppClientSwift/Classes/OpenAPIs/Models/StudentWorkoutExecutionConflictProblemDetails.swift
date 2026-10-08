@@ -21,6 +21,8 @@ public struct StudentWorkoutExecutionConflictProblemDetails: Codable, JSONEncoda
         case sessionNotInProgress = "SESSION_NOT_IN_PROGRESS"
         case sessionInterrupted = "SESSION_INTERRUPTED"
         case sessionHasPendingDeferrals = "SESSION_HAS_PENDING_DEFERRALS"
+        case sessionHasNoExecutedSet = "SESSION_HAS_NO_EXECUTED_SET"
+        case setAlreadyExecuted = "SET_ALREADY_EXECUTED"
         case deferralNotOpen = "DEFERRAL_NOT_OPEN"
         case exerciseOrderNotAllowed = "EXERCISE_ORDER_NOT_ALLOWED"
         case setExecutionImmutable = "SET_EXECUTION_IMMUTABLE"

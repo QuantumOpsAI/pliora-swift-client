@@ -10,6 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
+/** Descanso registrado. &#x60;targetSeconds&#x60; é o prescrito e é **anulável**: ausente quando o descanso não tinha prescrição, e a ausência nunca é zero. O **alvo efetivo** é &#x60;adjustedTargetSeconds&#x60; quando presente, senão &#x60;targetSeconds&#x60;; sem alvo não há ajuste nem excedente. O excedente não é publicado aqui. */
 public struct RestPeriodSyncView: Codable, JSONEncodable, Hashable {
 
     public enum ViewType: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -29,7 +30,9 @@ public struct RestPeriodSyncView: Codable, JSONEncodable, Hashable {
     public var exerciseExecutionId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var afterSetExecutionId: String?
-    public var targetSeconds: Int
+    /** Descanso prescrito, em segundos; ausente quando não havia prescrição, nunca zero. */
+    public var targetSeconds: Int?
+    /** Alvo ajustado pelo aluno; só existe quando `targetSeconds` existe. */
     public var adjustedTargetSeconds: Int?
     /** Derivado no servidor de início, fim e pausas. */
     public var measuredSeconds: Int
@@ -38,7 +41,7 @@ public struct RestPeriodSyncView: Codable, JSONEncodable, Hashable {
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var endedAt: Date
 
-    public init(viewType: ViewType, restPeriodId: String, exerciseExecutionId: String, afterSetExecutionId: String? = nil, targetSeconds: Int, adjustedTargetSeconds: Int? = nil, measuredSeconds: Int, startedAt: Date, endedAt: Date) {
+    public init(viewType: ViewType, restPeriodId: String, exerciseExecutionId: String, afterSetExecutionId: String? = nil, targetSeconds: Int? = nil, adjustedTargetSeconds: Int? = nil, measuredSeconds: Int, startedAt: Date, endedAt: Date) {
         self.viewType = viewType
         self.restPeriodId = restPeriodId
         self.exerciseExecutionId = exerciseExecutionId
@@ -70,7 +73,7 @@ public struct RestPeriodSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(restPeriodId, forKey: .restPeriodId)
         try container.encode(exerciseExecutionId, forKey: .exerciseExecutionId)
         try container.encodeIfPresent(afterSetExecutionId, forKey: .afterSetExecutionId)
-        try container.encode(targetSeconds, forKey: .targetSeconds)
+        try container.encodeIfPresent(targetSeconds, forKey: .targetSeconds)
         try container.encodeIfPresent(adjustedTargetSeconds, forKey: .adjustedTargetSeconds)
         try container.encode(measuredSeconds, forKey: .measuredSeconds)
         try container.encode(startedAt, forKey: .startedAt)

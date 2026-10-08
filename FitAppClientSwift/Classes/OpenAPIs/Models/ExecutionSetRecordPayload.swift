@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Fato imutável da série. &#x60;target&#x60; preserva o alvo apresentado; &#x60;actual&#x60; é o realizado e fica ausente somente em &#x60;SKIPPED&#x60;. Repetir a identidade com conteúdo diferente é conflito, nunca overwrite. A série por tempo (&#x60;durationSeconds&#x60;, com &#x60;reps&#x60; nulas e &#x60;measuredDurationSeconds&#x60;) e o alvo em percentual (&#x60;PERCENT_OF_REFERENCE&#x60;) seguem as regras de &#x60;recordStudentSetExecution&#x60;: quem as viola é &#x60;FINAL_FAILURE&#x60; com &#x60;VALIDATION_ERROR&#x60; no &#x60;command&#x60; de sync e &#x60;422 VALIDATION_FAILED&#x60; na rota HTTP, nunca descarte silencioso. */
+/** Fato imutável da série. &#x60;target&#x60; preserva o alvo apresentado, que o servidor **grava**; &#x60;actual&#x60; é o realizado e fica ausente somente em &#x60;SKIPPED&#x60;. Cada série prescrita admite uma execução por sessão (outra identidade é &#x60;409 SET_ALREADY_EXECUTED&#x60; na rota HTTP) e corrigir é emenda. Repetir a identidade com conteúdo diferente é conflito, nunca overwrite. A série por tempo (&#x60;durationSeconds&#x60;, com &#x60;reps&#x60; nulas e &#x60;measuredDurationSeconds&#x60;) e o alvo em percentual (&#x60;PERCENT_OF_REFERENCE&#x60;) seguem as regras de &#x60;recordStudentSetExecution&#x60;: quem as viola é &#x60;FINAL_FAILURE&#x60; com &#x60;VALIDATION_ERROR&#x60; no &#x60;command&#x60; de sync e &#x60;422 VALIDATION_FAILED&#x60; na rota HTTP, nunca descarte silencioso. */
 public struct ExecutionSetRecordPayload: Codable, JSONEncodable, Hashable {
 
     public static let setExecutionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)

@@ -10,6 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
+/** Fato do descanso realmente medido. &#x60;targetSeconds&#x60; é o descanso **prescrito** e é anulável: **ausente** quando não há descanso prescrito para a série, e a ausência nunca é zero (&#x60;targetSeconds: 0&#x60; diz um descanso prescrito de zero segundo). &#x60;adjustedTargetSeconds&#x60; é o ajuste do aluno sobre um alvo que existe, e por isso só aparece junto de &#x60;targetSeconds&#x60;. O **alvo efetivo** é &#x60;adjustedTargetSeconds&#x60; quando presente, senão &#x60;targetSeconds&#x60;. */
 public struct ExecutionRestRecordPayload: Codable, JSONEncodable, Hashable {
 
     public static let restPeriodIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -25,7 +26,9 @@ public struct ExecutionRestRecordPayload: Codable, JSONEncodable, Hashable {
     public var exerciseExecutionId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var afterSetExecutionId: String
-    public var targetSeconds: Int
+    /** Descanso prescrito depois da série, em segundos. Ausente quando não há descanso prescrito; a ausência nunca é zero. */
+    public var targetSeconds: Int?
+    /** Alvo ajustado pelo aluno; só existe quando `targetSeconds` existe. */
     public var adjustedTargetSeconds: Int?
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var startedAt: Date
@@ -34,7 +37,7 @@ public struct ExecutionRestRecordPayload: Codable, JSONEncodable, Hashable {
     public var pauses: [RestPauseInterval]
     public var observation: String?
 
-    public init(restPeriodId: String, exerciseExecutionId: String, afterSetExecutionId: String, targetSeconds: Int, adjustedTargetSeconds: Int? = nil, startedAt: Date, endedAt: Date, pauses: [RestPauseInterval], observation: String? = nil) {
+    public init(restPeriodId: String, exerciseExecutionId: String, afterSetExecutionId: String, targetSeconds: Int? = nil, adjustedTargetSeconds: Int? = nil, startedAt: Date, endedAt: Date, pauses: [RestPauseInterval], observation: String? = nil) {
         self.restPeriodId = restPeriodId
         self.exerciseExecutionId = exerciseExecutionId
         self.afterSetExecutionId = afterSetExecutionId
@@ -65,7 +68,7 @@ public struct ExecutionRestRecordPayload: Codable, JSONEncodable, Hashable {
         try container.encode(restPeriodId, forKey: .restPeriodId)
         try container.encode(exerciseExecutionId, forKey: .exerciseExecutionId)
         try container.encode(afterSetExecutionId, forKey: .afterSetExecutionId)
-        try container.encode(targetSeconds, forKey: .targetSeconds)
+        try container.encodeIfPresent(targetSeconds, forKey: .targetSeconds)
         try container.encodeIfPresent(adjustedTargetSeconds, forKey: .adjustedTargetSeconds)
         try container.encode(startedAt, forKey: .startedAt)
         try container.encode(endedAt, forKey: .endedAt)

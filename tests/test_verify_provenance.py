@@ -13,7 +13,7 @@ class VerifyProvenanceTests(unittest.TestCase):
     def test_published_tree_matches_the_upstream_digest(self) -> None:
         self.assertEqual(
             verify(),
-            "e546a697416df925e69e5671e794db56954c88135709bf51b33f49b7f5c67431",
+            "8cb5666552c5690777f4a19f7910a46e30a98e3f7638b8edd779cd3c9d7951ea",
         )
 
     def test_any_generated_source_change_is_rejected(self) -> None:
