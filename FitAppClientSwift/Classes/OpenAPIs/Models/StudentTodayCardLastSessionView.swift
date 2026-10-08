@@ -21,6 +21,7 @@ public struct StudentTodayCardLastSessionView: Codable, JSONEncodable, Hashable 
     public static let durationSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let completedSetCountRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let totalSetCountRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let recordCountRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var sessionId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -39,8 +40,10 @@ public struct StudentTodayCardLastSessionView: Codable, JSONEncodable, Hashable 
     public var completedSetCount: Int
     /** Séries prescritas do treino da sessão. */
     public var totalSetCount: Int
+    /** Quantos recordes a sessão bateu: o tamanho de `records` em `getStudentWorkoutSessionResult`, pela mesma projeção. **Nulo** quando a projeção não pôde ser lida nesta resposta, e então a linha do último treino não desenha os recordes: nulo nunca é lido como zero. A linha abre o resultado da sessão. */
+    public var recordCount: Int?
 
-    public init(sessionId: String, workoutId: String, workoutName: String, workoutFocus: String?, versionLabel: String, completedAt: Date, durationSeconds: Int, completedSetCount: Int, totalSetCount: Int) {
+    public init(sessionId: String, workoutId: String, workoutName: String, workoutFocus: String?, versionLabel: String, completedAt: Date, durationSeconds: Int, completedSetCount: Int, totalSetCount: Int, recordCount: Int?) {
         self.sessionId = sessionId
         self.workoutId = workoutId
         self.workoutName = workoutName
@@ -50,6 +53,7 @@ public struct StudentTodayCardLastSessionView: Codable, JSONEncodable, Hashable 
         self.durationSeconds = durationSeconds
         self.completedSetCount = completedSetCount
         self.totalSetCount = totalSetCount
+        self.recordCount = recordCount
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -62,6 +66,7 @@ public struct StudentTodayCardLastSessionView: Codable, JSONEncodable, Hashable 
         case durationSeconds
         case completedSetCount
         case totalSetCount
+        case recordCount
     }
 
     // Encodable protocol methods
@@ -77,5 +82,6 @@ public struct StudentTodayCardLastSessionView: Codable, JSONEncodable, Hashable 
         try container.encode(durationSeconds, forKey: .durationSeconds)
         try container.encode(completedSetCount, forKey: .completedSetCount)
         try container.encode(totalSetCount, forKey: .totalSetCount)
+        try container.encode(recordCount, forKey: .recordCount)
     }
 }

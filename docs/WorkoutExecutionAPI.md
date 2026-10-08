@@ -10,6 +10,7 @@ Method | HTTP request | Description
 [**confirmStudentExerciseSkip**](WorkoutExecutionAPI.md#confirmstudentexerciseskip) | **POST** /student/workout-sessions/{sessionId}/skips | Confirmar explicitamente que um exercício não será realizado
 [**deferStudentExerciseExecution**](WorkoutExecutionAPI.md#deferstudentexerciseexecution) | **POST** /student/workout-sessions/{sessionId}/deferrals | Adiar um exercício, preservando-o como pendência aberta
 [**getStudentSetExecution**](WorkoutExecutionAPI.md#getstudentsetexecution) | **GET** /student/workout-sessions/{sessionId}/set-executions/{setExecutionId} | Ler a série executada e a revisão que as escritas revisionais exigem
+[**rateStudentWorkoutSessionEffort**](WorkoutExecutionAPI.md#ratestudentworkoutsessioneffort) | **PUT** /student/workout-sessions/{sessionId}/effort | Dar a nota de esforço do treino terminado
 [**recordStudentRestPeriod**](WorkoutExecutionAPI.md#recordstudentrestperiod) | **POST** /student/workout-sessions/{sessionId}/rest-periods | Registrar o descanso realmente medido entre séries
 [**recordStudentSetExecution**](WorkoutExecutionAPI.md#recordstudentsetexecution) | **POST** /student/workout-sessions/{sessionId}/set-executions | Registrar a série executada
 [**registerStudentSubstitution**](WorkoutExecutionAPI.md#registerstudentsubstitution) | **POST** /student/workout-sessions/{sessionId}/substitutions | Registrar a substituição autorizada de variante, equipamento ou exercício
@@ -355,6 +356,60 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **rateStudentWorkoutSessionEffort**
+```swift
+    open class func rateStudentWorkoutSessionEffort(sessionId: String, rateWorkoutSessionEffortRequest: RateWorkoutSessionEffortRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: WorkoutSessionEffort?, _ error: Error?) -> Void)
+```
+
+Dar a nota de esforço do treino terminado
+
+A nota de esforço do treino inteiro, de 0 a 10, opcional, em um toque. O corpo é `{ effort }`, inteiro, e não tem campo de texto: comentário, pergunta e mensagem não existem. É declaração do aluno sobre o treino todo, e não a média das séries. **A nota é dada uma vez.** O primeiro `PUT` da sessão grava a nota e responde `200`; o **mesmo** pedido repetido — o mesmo valor — é idempotente e responde `200` com a mesma nota, sem novo efeito; um valor **diferente** depois de a nota existir é `409 EFFORT_ALREADY_RATED`, e a nota gravada permanece. **Não há `DELETE`**: a nota não é alterada nem removida depois, e **não há prazo** — nem janela de tempo, nem campo de prazo, nem `EFFORT_WINDOW_CLOSED`. O servidor aceita o primeiro `PUT` da sessão venha quando vier; quem só oferece a nota na tela que aparece ao terminar é o app. Se o app é encerrado antes dessa tela, a sessão fica sem nota. **Só para a sessão concluída pelo aluno.** Na ordem em que são avaliados: sessão que não é `COMPLETED` — aberta, interrompida ou descartada — é `409 SESSION_NOT_COMPLETED`; sessão `COMPLETED` cujo `endedBy` não é `STUDENT` — a encerrada automaticamente e a encerrada pela pausa ou pelo encerramento do vínculo, em que o aluno não passou pela tela — é `409 EFFORT_NOT_AVAILABLE`; nota que já existe com valor diferente é `409 EFFORT_ALREADY_RATED`. Sessão de outra conta ou inexistente é `404 SESSION_NOT_FOUND`, e valor fora de 0 a 10 ou corpo com outro campo é `422 VALIDATION_FAILED`. **A confirmação é o commit no backend.** Sem `200` a nota não existe: o app reenvia a mesma nota, o que é idempotente, ou segue para o resumo sem ela. **O `403` é só o de conta** (`FORBIDDEN`: a identidade não tem o contexto de aluno). A spec não condiciona a nota ao vínculo, então esta operação nunca responde `RELATIONSHIP_PAUSED` nem `RELATIONSHIP_INACTIVE`: a sessão terminada é fato da conta, como a leitura do resultado. A nota é declaração do aluno, selo `DECLARED`: não gera item de atenção, o personal a lê junto do treino feito, e nenhuma tela a interpreta.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let sessionId = "sessionId_example" // String | Sessão do aluno autenticado, com a mesma identidade adotada em `POST /student/workout-sessions`. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+let rateWorkoutSessionEffortRequest = RateWorkoutSessionEffortRequest(effort: 123) // RateWorkoutSessionEffortRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Dar a nota de esforço do treino terminado
+WorkoutExecutionAPI.rateStudentWorkoutSessionEffort(sessionId: sessionId, rateWorkoutSessionEffortRequest: rateWorkoutSessionEffortRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **sessionId** | **String** | Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível. |
+ **rateWorkoutSessionEffortRequest** | [**RateWorkoutSessionEffortRequest**](RateWorkoutSessionEffortRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**WorkoutSessionEffort**](WorkoutSessionEffort.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

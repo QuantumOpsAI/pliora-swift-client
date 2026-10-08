@@ -34,6 +34,8 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     /** Instante de término da sessão, do servidor, presente **se e somente se** a sessão é terminal (`COMPLETED` ou `ABANDONED`) e `null` em `IN_PROGRESS` e `INTERRUPTED`. Na sessão encerrada pelo aluno pela decisão do treino ou pelo servidor, é o instante do último registro. */
     public var endedAt: Date?
     public var endedBy: WorkoutSessionEndedBy?
+    /** A nota de esforço que o aluno declarou ao terminar o treino, com o selo `DECLARED` (dado declarado, não medido): é a declaração sobre o treino inteiro e não a média das séries, não se compara com o RPE por série e não recebe rótulo de interpretação. **Ausente** quando o aluno não a informou e sempre ausente fora de `COMPLETED` com `endedBy: STUDENT` — a sessão descartada, a encerrada automaticamente e a encerrada pela pausa do vínculo não têm nota. Ausência nunca é zero, e a nota não gera item de atenção. */
+    public var sessionEffort: WorkoutSessionEffort?
     /** Variante efetivamente executada nesta sessão. Ela pertence à chave: uma variante diferente não entra nesta série. */
     public var executedVariantId: String
     /** Rótulo da variante executada, preservado verbatim e nunca usado no lugar de `executedVariantId`. O catálogo não é guardado (ADR-0014): nenhum nome vem dele; para exercício do catálogo, que tem uma variante só, é o `displayName` da prescrição. */
@@ -45,12 +47,13 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     /** Substituição daquele exercício naquela sessão, quando houve, com o motivo estruturado. Ausente quando não houve. */
     public var substitution: PersonalStudentExerciseSubstitutionView?
 
-    public init(sessionId: String, sessionStatus: SessionStatus, startedAt: Date, endedAt: Date?, endedBy: WorkoutSessionEndedBy? = nil, executedVariantId: String, executedVariantLabel: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil) {
+    public init(sessionId: String, sessionStatus: SessionStatus, startedAt: Date, endedAt: Date?, endedBy: WorkoutSessionEndedBy? = nil, sessionEffort: WorkoutSessionEffort? = nil, executedVariantId: String, executedVariantLabel: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil) {
         self.sessionId = sessionId
         self.sessionStatus = sessionStatus
         self.startedAt = startedAt
         self.endedAt = endedAt
         self.endedBy = endedBy
+        self.sessionEffort = sessionEffort
         self.executedVariantId = executedVariantId
         self.executedVariantLabel = executedVariantLabel
         self.equipmentContextKey = equipmentContextKey
@@ -64,6 +67,7 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
         case startedAt
         case endedAt
         case endedBy
+        case sessionEffort
         case executedVariantId
         case executedVariantLabel
         case equipmentContextKey
@@ -80,6 +84,7 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
         try container.encode(startedAt, forKey: .startedAt)
         try container.encode(endedAt, forKey: .endedAt)
         try container.encodeIfPresent(endedBy, forKey: .endedBy)
+        try container.encodeIfPresent(sessionEffort, forKey: .sessionEffort)
         try container.encode(executedVariantId, forKey: .executedVariantId)
         try container.encode(executedVariantLabel, forKey: .executedVariantLabel)
         try container.encodeIfPresent(equipmentContextKey, forKey: .equipmentContextKey)

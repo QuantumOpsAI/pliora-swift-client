@@ -35,6 +35,8 @@ public struct PersonalStudentDiscomfortExecutionContextView: Codable, JSONEncoda
     /** Instante de término da sessão, do servidor, presente **se e somente se** a sessão é terminal (`COMPLETED` ou `ABANDONED`) e `null` em `IN_PROGRESS` e `INTERRUPTED`. Na sessão encerrada pelo aluno pela decisão do treino ou pelo servidor, é o instante do último registro. */
     public var endedAt: Date?
     public var endedBy: WorkoutSessionEndedBy?
+    /** A nota de esforço que o aluno declarou ao terminar o treino, com o selo `DECLARED` (dado declarado, não medido): é a declaração sobre o treino inteiro e não a média das séries, não se compara com o RPE por série e não recebe rótulo de interpretação. **Ausente** quando o aluno não a informou e sempre ausente fora de `COMPLETED` com `endedBy: STUDENT` — a sessão descartada, a encerrada automaticamente e a encerrada pela pausa do vínculo não têm nota. Ausência nunca é zero, e a nota não gera item de atenção. */
+    public var sessionEffort: WorkoutSessionEffort?
     /** Versão de prescrição atribuída sob a qual a sessão correu. Ausente quando a sessão não tem versão atribuída conhecida; ausência é ausência. */
     public var prescriptionVersionId: String?
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -48,12 +50,13 @@ public struct PersonalStudentDiscomfortExecutionContextView: Codable, JSONEncoda
     /** Substituição daquele exercício naquela sessão, quando houve. Ausente quando não houve; ausência é ausência, nunca uma substituição neutra presumida. */
     public var substitution: PersonalStudentExerciseSubstitutionView?
 
-    public init(sessionId: String, sessionStatus: SessionStatus, startedAt: Date, endedAt: Date?, endedBy: WorkoutSessionEndedBy? = nil, prescriptionVersionId: String? = nil, exerciseId: String, executedVariantId: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil) {
+    public init(sessionId: String, sessionStatus: SessionStatus, startedAt: Date, endedAt: Date?, endedBy: WorkoutSessionEndedBy? = nil, sessionEffort: WorkoutSessionEffort? = nil, prescriptionVersionId: String? = nil, exerciseId: String, executedVariantId: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil) {
         self.sessionId = sessionId
         self.sessionStatus = sessionStatus
         self.startedAt = startedAt
         self.endedAt = endedAt
         self.endedBy = endedBy
+        self.sessionEffort = sessionEffort
         self.prescriptionVersionId = prescriptionVersionId
         self.exerciseId = exerciseId
         self.executedVariantId = executedVariantId
@@ -68,6 +71,7 @@ public struct PersonalStudentDiscomfortExecutionContextView: Codable, JSONEncoda
         case startedAt
         case endedAt
         case endedBy
+        case sessionEffort
         case prescriptionVersionId
         case exerciseId
         case executedVariantId
@@ -85,6 +89,7 @@ public struct PersonalStudentDiscomfortExecutionContextView: Codable, JSONEncoda
         try container.encode(startedAt, forKey: .startedAt)
         try container.encode(endedAt, forKey: .endedAt)
         try container.encodeIfPresent(endedBy, forKey: .endedBy)
+        try container.encodeIfPresent(sessionEffort, forKey: .sessionEffort)
         try container.encodeIfPresent(prescriptionVersionId, forKey: .prescriptionVersionId)
         try container.encode(exerciseId, forKey: .exerciseId)
         try container.encode(executedVariantId, forKey: .executedVariantId)

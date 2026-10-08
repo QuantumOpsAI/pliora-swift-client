@@ -13,6 +13,7 @@ Method | HTTP request | Description
 [**getStudentTodayLastSession**](StudentTrainingAPI.md#getstudenttodaylastsession) | **GET** /student/today/last-session | Obter o card independente da última sessão
 [**getStudentTodayRelationship**](StudentTrainingAPI.md#getstudenttodayrelationship) | **GET** /student/today/relationship | Obter o card independente do vínculo do aluno
 [**getStudentTodayWorkout**](StudentTrainingAPI.md#getstudenttodayworkout) | **GET** /student/today/workout | Obter o card independente do treino de hoje
+[**getStudentWorkoutSessionResult**](StudentTrainingAPI.md#getstudentworkoutsessionresult) | **GET** /student/workout-sessions/{sessionId}/result | Ler o resultado de uma sessão de treino terminada
 [**getStudentWorkoutSummary**](StudentTrainingAPI.md#getstudentworkoutsummary) | **GET** /student/workouts/{workoutId}/summary | Obter o resumo de um treino prescrito do aluno antes de iniciá-lo
 [**startStudentWorkoutSession**](StudentTrainingAPI.md#startstudentworkoutsession) | **POST** /student/workout-sessions | Iniciar a sessão de treino do aluno
 
@@ -126,7 +127,7 @@ Name | Type | Description  | Notes
 
 Obter o bundle tipado da sessão, com o progresso já aceito pelo servidor
 
-Composição da sessão **no momento da leitura**, reautorizada a cada leitura. Além do recorte da prescrição imutável fixada no início — assignment, versão, exercícios, séries, variantes, alternativas autorizadas, histórico comparável e manifesto de mídia —, o bundle inclui **todos os fatos de execução já aceitos pelo servidor** que a retomada precisa, dos tipos `EXERCISE_EXECUTION`, `SET_EXECUTION`, `SET_AMENDMENT`, `REST_PERIOD`, `SUBSTITUTION` e `DEFERRAL`. Cada `SET_EXECUTION` traz os valores em vigor depois das emendas, e a sua `revision` é a mesma que `getStudentSetExecution` publica e que `If-Match` exige. Cada `DEFERRAL`, aberto ou terminal, traz o `deferralId` que a retomada do exercício e a declaração de pendências no encerramento exigem. `DISCOMFORT_REPORT` **nunca** entra no bundle: o relato de desconforto é dado de saúde, dado de saúde não fica armazenado no aparelho, e ele não é necessário para retomar a execução. Esta versão não publica leitura do relato para o aluno; se uma vier a existir, será uma rota própria, nunca este bundle. **Com a capacidade `offline-sync` desligada, esta é a leitura autoritativa para retomar uma sessão `IN_PROGRESS`** — depois de relançar o app, de o processo morrer ou a partir de outro aparelho. O cliente exibe o progresso a partir dela, nunca do armazenamento local. `bundleRevision` é opaco e comparado somente por igualdade: muda **sempre** que qualquer item incluído muda, inclusive um fato de execução ou o estado da sessão, e o mesmo conteúdo produz a mesma `bundleRevision`. `generatedAt` é informativo: duas leituras com a mesma `bundleRevision` podem trazer `generatedAt` diferentes, e o cliente não trata isso como conflito. O cliente persiste os `items` pela mesma identidade `entityType/entityId` usada no delta. Nenhum binário de mídia, estado de rede ou command local atravessa a resposta. O manifesto de mídia traz só o vídeo próprio do personal (`ADR-0015`). A demonstração de um exercício do **catálogo** nunca entra no bundle — a URL dela é de curta duração e cada uma consome cota da origem —: o app a pede em `getStudentExerciseDemonstration`, no toque em reproduzir. **Histórico comparável.** O bundle inclui um item `READ_MODEL_EXERCISE_HISTORY` (`ExerciseHistorySyncView`) por **variante prescrita** do treino da sessão e por **variante de alternativa autorizada**, com **até 3 entradas** cada um: é o que a série mostra como \"última vez\". É projeção (`origin: PROJECTION`, com `asOf`) na chave exercício + variante + contexto de equipamento, e a variante que não tem execução comparável **também** tem o seu item, com `comparisonStatus` explícito e `entries` vazio — a ausência nunca é zero. **Unidade divergente nunca é convertida**: cada entrada traz a carga na unidade em que foi registrada, e a conversão de exibição é do app. O histórico completo, por data, não é deste bundle. **Esforço prescrito.** Cada série prescrita (`PrescribedSetSyncView`) traz `effortType` (`RPE` ou `RIR`) e `effortValue` quando o personal prescreveu esforço para ela, e nenhum dos dois quando não prescreveu. O app mostra o prescrito como o personal o escreveu — `RPE 8` ou `2 repetições em reserva` — e **nunca o converte** no RPE declarado pelo aluno (`actual.rpe`) nem em `expectedRpe`.
+Composição da sessão **no momento da leitura**, reautorizada a cada leitura. Além do recorte da prescrição imutável fixada no início — assignment, versão, exercícios, séries, variantes, alternativas autorizadas, histórico comparável e manifesto de mídia —, o bundle inclui **todos os fatos de execução já aceitos pelo servidor** que a retomada precisa, dos tipos `EXERCISE_EXECUTION`, `SET_EXECUTION`, `SET_AMENDMENT`, `REST_PERIOD`, `SUBSTITUTION` e `DEFERRAL`. Cada `SET_EXECUTION` traz os valores em vigor depois das emendas, e a sua `revision` é a mesma que `getStudentSetExecution` publica e que `If-Match` exige. Cada `DEFERRAL`, aberto ou terminal, traz o `deferralId` que a retomada do exercício e a declaração de pendências no encerramento exigem. `DISCOMFORT_REPORT` **nunca** entra no bundle: o relato de desconforto é dado de saúde, dado de saúde não fica armazenado no aparelho, e ele não é necessário para retomar a execução. A única leitura do relato para o aluno é `getStudentWorkoutSessionResult`, que devolve só a região e a intensidade e nunca o texto livre; é uma rota própria, nunca este bundle. **Com a capacidade `offline-sync` desligada, esta é a leitura autoritativa para retomar uma sessão `IN_PROGRESS`** — depois de relançar o app, de o processo morrer ou a partir de outro aparelho. O cliente exibe o progresso a partir dela, nunca do armazenamento local. `bundleRevision` é opaco e comparado somente por igualdade: muda **sempre** que qualquer item incluído muda, inclusive um fato de execução ou o estado da sessão, e o mesmo conteúdo produz a mesma `bundleRevision`. `generatedAt` é informativo: duas leituras com a mesma `bundleRevision` podem trazer `generatedAt` diferentes, e o cliente não trata isso como conflito. O cliente persiste os `items` pela mesma identidade `entityType/entityId` usada no delta. Nenhum binário de mídia, estado de rede ou command local atravessa a resposta. O manifesto de mídia traz só o vídeo próprio do personal (`ADR-0015`). A demonstração de um exercício do **catálogo** nunca entra no bundle — a URL dela é de curta duração e cada uma consome cota da origem —: o app a pede em `getStudentExerciseDemonstration`, no toque em reproduzir. **Histórico comparável.** O bundle inclui um item `READ_MODEL_EXERCISE_HISTORY` (`ExerciseHistorySyncView`) por **variante prescrita** do treino da sessão e por **variante de alternativa autorizada**, com **até 3 entradas** cada um: é o que a série mostra como \"última vez\". É projeção (`origin: PROJECTION`, com `asOf`) na chave exercício + variante + contexto de equipamento, e a variante que não tem execução comparável **também** tem o seu item, com `comparisonStatus` explícito e `entries` vazio — a ausência nunca é zero. **Unidade divergente nunca é convertida**: cada entrada traz a carga na unidade em que foi registrada, e a conversão de exibição é do app. O histórico completo, por data, não é deste bundle. **Esforço prescrito.** Cada série prescrita (`PrescribedSetSyncView`) traz `effortType` (`RPE` ou `RIR`) e `effortValue` quando o personal prescreveu esforço para ela, e nenhum dos dois quando não prescreveu. O app mostra o prescrito como o personal o escreveu — `RPE 8` ou `2 repetições em reserva` — e **nunca o converte** no RPE declarado pelo aluno (`actual.rpe`) nem em `expectedRpe`.
 
 ### Example
 ```swift
@@ -463,6 +464,58 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**StudentTodayWorkoutCardView**](StudentTodayWorkoutCardView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStudentWorkoutSessionResult**
+```swift
+    open class func getStudentWorkoutSessionResult(sessionId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: StudentWorkoutSessionResultView?, _ error: Error?) -> Void)
+```
+
+Ler o resultado de uma sessão de treino terminada
+
+O resumo do treino feito: o que foi feito, como fato, e os recordes da sessão. O app o abre ao terminar, depois da nota de esforço, e o reabre depois pelo cartão de Hoje (**Ver resumo** e a linha do último treino) e pelo histórico. **Só existe para sessão terminada.** `COMPLETED` e `ABANDONED` têm resultado, qualquer que seja `endedBy`: o treino concluído, o descartado, o encerrado automaticamente e o encerrado pela pausa ou pelo encerramento do vínculo. Sessão aberta — `IN_PROGRESS` ou `INTERRUPTED` — é `409 SESSION_NOT_ENDED`: ainda não há resultado a ler. Sessão que não existe ou que é de outra conta é `404 SESSION_NOT_FOUND`, de forma indistinguível. **Derivado dos fatos e da versão fixada na sessão.** O resultado é calculado dos fatos da sessão e do recorte da prescrição que a originou: não muda quando o personal publica outra versão, e os recordes de uma sessão terminada não mudam mais. Prescrito, alvo e executado de cada série permanecem três fatos separados. Todo dado ausente é ausente, nunca zero. **Leitura de treino feito.** Autoriza pela conta dona dos fatos, e não pelo vínculo: responde com o vínculo pausado, encerrado ou trocado, como a linha do último treino de Hoje, que abre esta leitura. O `403` só responde a conta sem o contexto de aluno (`FORBIDDEN`). **O que o resultado nunca traz.** Nenhum campo de carga máxima estimada, de percentual de aderência ou de escore: o volume é fato da sessão, e a nota de esforço é a declaração do aluno, sem interpretação. Do desconforto só a região e a intensidade; o texto livre do relato nunca é devolvido por esta leitura. A resposta declara `Cache-Control: private, no-store`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let sessionId = "sessionId_example" // String | Sessão do aluno autenticado, com a mesma identidade adotada em `POST /student/workout-sessions`. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Ler o resultado de uma sessão de treino terminada
+StudentTrainingAPI.getStudentWorkoutSessionResult(sessionId: sessionId, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **sessionId** | **String** | Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**StudentWorkoutSessionResultView**](StudentWorkoutSessionResultView.md)
 
 ### Authorization
 

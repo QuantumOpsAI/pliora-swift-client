@@ -374,6 +374,62 @@ open class WorkoutExecutionAPI {
     }
 
     /**
+     Dar a nota de esforço do treino terminado
+
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter rateWorkoutSessionEffortRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func rateStudentWorkoutSessionEffort(sessionId: String, rateWorkoutSessionEffortRequest: RateWorkoutSessionEffortRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: WorkoutSessionEffort?, _ error: Error?) -> Void)) -> RequestTask {
+        return rateStudentWorkoutSessionEffortWithRequestBuilder(sessionId: sessionId, rateWorkoutSessionEffortRequest: rateWorkoutSessionEffortRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Dar a nota de esforço do treino terminado
+     - PUT /student/workout-sessions/{sessionId}/effort
+     - A nota de esforço do treino inteiro, de 0 a 10, opcional, em um toque. O corpo é `{ effort }`, inteiro, e não tem campo de texto: comentário, pergunta e mensagem não existem. É declaração do aluno sobre o treino todo, e não a média das séries. **A nota é dada uma vez.** O primeiro `PUT` da sessão grava a nota e responde `200`; o **mesmo** pedido repetido — o mesmo valor — é idempotente e responde `200` com a mesma nota, sem novo efeito; um valor **diferente** depois de a nota existir é `409 EFFORT_ALREADY_RATED`, e a nota gravada permanece. **Não há `DELETE`**: a nota não é alterada nem removida depois, e **não há prazo** — nem janela de tempo, nem campo de prazo, nem `EFFORT_WINDOW_CLOSED`. O servidor aceita o primeiro `PUT` da sessão venha quando vier; quem só oferece a nota na tela que aparece ao terminar é o app. Se o app é encerrado antes dessa tela, a sessão fica sem nota. **Só para a sessão concluída pelo aluno.** Na ordem em que são avaliados: sessão que não é `COMPLETED` — aberta, interrompida ou descartada — é `409 SESSION_NOT_COMPLETED`; sessão `COMPLETED` cujo `endedBy` não é `STUDENT` — a encerrada automaticamente e a encerrada pela pausa ou pelo encerramento do vínculo, em que o aluno não passou pela tela — é `409 EFFORT_NOT_AVAILABLE`; nota que já existe com valor diferente é `409 EFFORT_ALREADY_RATED`. Sessão de outra conta ou inexistente é `404 SESSION_NOT_FOUND`, e valor fora de 0 a 10 ou corpo com outro campo é `422 VALIDATION_FAILED`. **A confirmação é o commit no backend.** Sem `200` a nota não existe: o app reenvia a mesma nota, o que é idempotente, ou segue para o resumo sem ela. **O `403` é só o de conta** (`FORBIDDEN`: a identidade não tem o contexto de aluno). A spec não condiciona a nota ao vínculo, então esta operação nunca responde `RELATIONSHIP_PAUSED` nem `RELATIONSHIP_INACTIVE`: a sessão terminada é fato da conta, como a leitura do resultado. A nota é declaração do aluno, selo `DECLARED`: não gera item de atenção, o personal a lê junto do treino feito, e nenhuma tela a interpreta.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter rateWorkoutSessionEffortRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<WorkoutSessionEffort>
+     */
+    open class func rateStudentWorkoutSessionEffortWithRequestBuilder(sessionId: String, rateWorkoutSessionEffortRequest: RateWorkoutSessionEffortRequest, acceptLanguage: String? = nil) -> RequestBuilder<WorkoutSessionEffort> {
+        var localVariablePath = "/student/workout-sessions/{sessionId}/effort"
+        let sessionIdPreEscape = "\(APIHelper.mapValueToPathItem(sessionId))"
+        let sessionIdPostEscape = sessionIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{sessionId}", with: sessionIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: rateWorkoutSessionEffortRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<WorkoutSessionEffort>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      Registrar o descanso realmente medido entre séries
 
      - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
