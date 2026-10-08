@@ -4,8 +4,10 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **sessionId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
-**sessionStatus** | **String** | Estado da sessão, com os mesmos valores que a execução já publica em &#x60;WorkoutSessionSyncView.status&#x60;; o conjunto é reusado sem alteração. |
-**sessionOccurredAt** | **Date** | Instante da sessão, do servidor. |
+**sessionStatus** | **String** | Estado da sessão, com os mesmos valores que a execução já publica em &#x60;WorkoutSessionSyncView.status&#x60;; o conjunto é reusado sem alteração. O relato pode ser lido com a sessão ainda &#x60;IN_PROGRESS&#x60; ou &#x60;INTERRUPTED&#x60;. |
+**startedAt** | **Date** | Instante de início da sessão, do servidor. Existe em qualquer estado. |
+**endedAt** | **Date** | Instante de término da sessão, do servidor, presente **se e somente se** a sessão é terminal (&#x60;COMPLETED&#x60; ou &#x60;ABANDONED&#x60;) e &#x60;null&#x60; em &#x60;IN_PROGRESS&#x60; e &#x60;INTERRUPTED&#x60;. Na sessão encerrada pelo aluno pela decisão do treino ou pelo servidor, é o instante do último registro. |
+**endedBy** | [**WorkoutSessionEndedBy**](WorkoutSessionEndedBy.md) |  | [optional]
 **prescriptionVersionId** | **String** | Versão de prescrição atribuída sob a qual a sessão correu. Ausente quando a sessão não tem versão atribuída conhecida; ausência é ausência. | [optional]
 **exerciseId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **executedVariantId** | **String** | Variante realmente executada, que não se presume igual à prescrita. |

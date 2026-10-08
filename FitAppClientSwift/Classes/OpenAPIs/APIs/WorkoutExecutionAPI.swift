@@ -37,7 +37,7 @@ open class WorkoutExecutionAPI {
     /**
      Abandonar a sessão preservando tudo o que já foi executado
      - POST /student/workout-sessions/{sessionId}/abandonment
-     - Caminho HTTP autoritativo do fato `execution.session.abandon`. O `sessionId` do corpo precisa ser igual ao do path: divergir é `422 EXECUTION_IDENTITY_MISMATCH`. **Abandonar não é concluir e não apaga nada**: séries, descansos, substituições, relatos e adiamentos já registrados permanecem íntegros e legíveis. Diferente do encerramento, o abandono **não** exige declarar as pendências: elas permanecem como estavam, sem serem convertidas em pulo por inferência.
+     - Caminho HTTP autoritativo do fato `execution.session.abandon`. O `sessionId` do corpo precisa ser igual ao do path: divergir é `422 EXECUTION_IDENTITY_MISMATCH`. **Abandonar não é concluir e não apaga nada**: séries, descansos, substituições, relatos e adiamentos já registrados permanecem íntegros e legíveis. Diferente do encerramento, o abandono **não** exige declarar as pendências: elas permanecem como estavam, sem serem convertidas em pulo por inferência. **Sessão interrompida.** A operação aceita a sessão `INTERRUPTED` — a que o servidor interrompe quando passam 12 horas sem registro — além da `IN_PROGRESS`, e nunca a recusa com `SESSION_INTERRUPTED`: descartar é uma das saídas da decisão do treino, com `reason: USER_REQUESTED`, e o desfecho tem `endedBy: STUDENT`. O abandono que o servidor faz sozinho, sete dias depois da interrupção e sem série executada, usa `reason: INTERRUPTED`; nenhum motivo novo existe.
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -163,7 +163,7 @@ open class WorkoutExecutionAPI {
     /**
      Encerrar a sessão declarando todas as pendências de orquestração
      - POST /student/workout-sessions/{sessionId}/completion
-     - Caminho HTTP autoritativo do fato `execution.session.complete`. O corpo é exatamente `ExecutionSessionCompletePayload` e o `sessionId` do corpo precisa ser igual ao do path: divergir é `422 EXECUTION_IDENTITY_MISMATCH`. **Pendência de orquestração não é encerrada em silêncio.** Todo adiamento ainda aberto é declarado em `pendingDeferralResolutions` com a decisão que o aluno tomou; omitir um adiamento aberto é `409 SESSION_HAS_PENDING_DEFERRALS` e o fato do adiamento permanece recuperável. Lista vazia significa que não havia pendência, nunca que ela foi ignorada. O servidor nunca infere a resolução a partir do relógio. **A confirmação é o commit no backend.** Sem `200` a sessão não está encerrada: não existe conclusão local que valha, e uma falha de rede é dita como falha de rede. **Instantes.** O `completedAt` do corpo é o instante declarado pelo aparelho: é aceito, recusado com `CLOCK_SKEW` quando está à frente do relógio do servidor além da tolerância, e guardado para auditoria. O instante da conclusão é o do servidor que confirma o encerramento, e é ele que a resposta devolve.
+     - Caminho HTTP autoritativo do fato `execution.session.complete`. O corpo é exatamente `ExecutionSessionCompletePayload` e o `sessionId` do corpo precisa ser igual ao do path: divergir é `422 EXECUTION_IDENTITY_MISMATCH`. **Pendência de orquestração não é encerrada em silêncio.** Todo adiamento ainda aberto é declarado em `pendingDeferralResolutions` com a decisão que o aluno tomou; omitir um adiamento aberto é `409 SESSION_HAS_PENDING_DEFERRALS` e o fato do adiamento permanece recuperável. Lista vazia significa que não havia pendência, nunca que ela foi ignorada. O servidor nunca infere a resolução a partir do relógio. **A confirmação é o commit no backend.** Sem `200` a sessão não está encerrada: não existe conclusão local que valha, e uma falha de rede é dita como falha de rede. **Instantes.** O `completedAt` do corpo é o instante declarado pelo aparelho: é aceito, recusado com `CLOCK_SKEW` quando está à frente do relógio do servidor além da tolerância, e guardado para auditoria. O instante da conclusão é o do servidor que confirma o encerramento, e é ele que a resposta devolve — salvo no término pela decisão do treino, descrito abaixo. **Sessão interrompida.** A operação aceita a sessão `INTERRUPTED` — a que o servidor interrompe quando passam 12 horas sem registro — além da `IN_PROGRESS`, e nunca a recusa com `SESSION_INTERRUPTED`: terminar é uma das saídas da decisão do treino. O desfecho é `COMPLETED` com `endedBy: STUDENT`. **Término pela decisão do treino.** Quando o aluno escolhe terminar com o que foi feito na tela de decisão, o instante de término é o do **último registro** (`lastRecordedAt`) e não o do pedido: a duração não é inventada. A partir de `INTERRUPTED` a regra vale sempre. A partir de `IN_PROGRESS` — decisão aberta pelo aviso de treino parado, antes das 12 horas — o pedido diz a base com `endedAtBasis: LAST_RECORD`, enviado só por aquela tela. O **Terminar treino** de dentro da sessão não envia o campo e usa o instante do pedido. Nos dois casos de último registro, `completedAt` da resposta é o instante do último registro.
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -728,6 +728,62 @@ open class WorkoutExecutionAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<DeferralSyncView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Retomar a sessão interrompida, voltando a `IN_PROGRESS`
+
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func resumeStudentWorkoutSession(sessionId: String, idempotencyKey: String, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: WorkoutSessionSyncView?, _ error: Error?) -> Void)) -> RequestTask {
+        return resumeStudentWorkoutSessionWithRequestBuilder(sessionId: sessionId, idempotencyKey: idempotencyKey, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Retomar a sessão interrompida, voltando a `IN_PROGRESS`
+     - POST /student/workout-sessions/{sessionId}/resumption
+     - Saída da decisão do treino que **continua** o treino. O servidor interrompe a sessão quando passam **12 horas sem registro** — `lastRecordedAt` mais 12 horas — e a encerra sozinho **sete dias depois da interrupção**, sem decisão do aluno (`endedBy: AUTO_AFTER_INTERRUPTION`). Entre as duas, esta operação leva a sessão de `INTERRUPTED` para `IN_PROGRESS` e `lastRecordedAt` passa a ser o instante do servidor que confirma a retomada. **Em sessão já `IN_PROGRESS` responde `200` sem efeito**: o app que abriu a decisão pelo aviso de treino parado, antes das 12 horas, não retoma nada, e se chamar não perde nem muda nada. **Em sessão terminal responde `409 SESSION_TERMINAL`.** A retomada não tem corpo: a identidade da sessão é a do path. Enquanto a sessão está `INTERRUPTED`, toda escrita de fato — série, descanso, início de exercício, substituição, desconforto, adiamento, pulo, reordenação — é recusada com `409 SESSION_INTERRUPTED`, e o app leva à decisão; só esta operação, `completeStudentWorkoutSession` e `abandonStudentWorkoutSession` agem sobre ela. O path **não** é o de `resumeStudentDeferredExercise` (`…/deferrals/{deferralId}/resumption`), que retoma um exercício adiado e não a sessão.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<WorkoutSessionSyncView>
+     */
+    open class func resumeStudentWorkoutSessionWithRequestBuilder(sessionId: String, idempotencyKey: String, acceptLanguage: String? = nil) -> RequestBuilder<WorkoutSessionSyncView> {
+        var localVariablePath = "/student/workout-sessions/{sessionId}/resumption"
+        let sessionIdPreEscape = "\(APIHelper.mapValueToPathItem(sessionId))"
+        let sessionIdPostEscape = sessionIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{sessionId}", with: sessionIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<WorkoutSessionSyncView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }

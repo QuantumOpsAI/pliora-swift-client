@@ -13,24 +13,32 @@ import AnyCodable
 /** Encerra a sessão. Pendências de orquestração **não podem ser encerradas em silêncio**: todo exercício adiado e ainda não resolvido é declarado em &#x60;pendingDeferralIds&#x60; com a decisão que o aluno tomou na tela de pendências. Um encerramento que omita um adiamento aberto é &#x60;FINAL_FAILURE/SESSION_HAS_PENDING_DEFERRALS&#x60;, e o fato de adiamento permanece recuperável; nenhuma pendência é descartada pelo servidor por conta própria. */
 public struct ExecutionSessionCompletePayload: Codable, JSONEncodable, Hashable {
 
+    public enum EndedAtBasis: String, Codable, CaseIterable, CaseIterableDefaultsLast {
+        case lastRecord = "LAST_RECORD"
+        case unknownDefaultOpenApi = "unknown_default_open_api"
+    }
     public static let sessionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let pendingDeferralResolutionsRule = ArrayRule(minItems: nil, maxItems: 60, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var sessionId: String
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var completedAt: Date
+    /** A base do instante de término, enviada **só** pela tela de decisão do treino quando a sessão ainda está `IN_PROGRESS` — aberta pelo aviso de treino parado, antes das 12 horas — e o aluno escolhe terminar com o que foi feito. Com ela, o término é o instante do último registro (`lastRecordedAt`), e não o do pedido. O **Terminar treino** de dentro da sessão não envia o campo e usa o instante do pedido. Em sessão `INTERRUPTED` a regra do último registro vale sempre, com ou sem o campo. */
+    public var endedAtBasis: EndedAtBasis?
     /** Uma entrada por adiamento ainda aberto no instante do encerramento; lista vazia significa que não havia pendência, nunca que ela foi ignorada. */
     public var pendingDeferralResolutions: [DeferralResolutionAtCompletion]
 
-    public init(sessionId: String, completedAt: Date, pendingDeferralResolutions: [DeferralResolutionAtCompletion]) {
+    public init(sessionId: String, completedAt: Date, endedAtBasis: EndedAtBasis? = nil, pendingDeferralResolutions: [DeferralResolutionAtCompletion]) {
         self.sessionId = sessionId
         self.completedAt = completedAt
+        self.endedAtBasis = endedAtBasis
         self.pendingDeferralResolutions = pendingDeferralResolutions
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case sessionId
         case completedAt
+        case endedAtBasis
         case pendingDeferralResolutions
     }
 
@@ -40,6 +48,15 @@ public struct ExecutionSessionCompletePayload: Codable, JSONEncodable, Hashable 
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(sessionId, forKey: .sessionId)
         try container.encode(completedAt, forKey: .completedAt)
+        try container.encodeIfPresent(endedAtBasis, forKey: .endedAtBasis)
         try container.encode(pendingDeferralResolutions, forKey: .pendingDeferralResolutions)
+    }
+}
+
+
+extension ExecutionSessionCompletePayload: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if endedAtBasis == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

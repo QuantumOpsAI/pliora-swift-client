@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** A sessão do aluno, fixada na versão que a originou. &#x60;calculatedLoadTargets&#x60; é o alvo de carga de cada série prescrita em percentual, calculado **uma vez, no início da sessão**: é fato da sessão e não muda enquanto ela dura, ainda que o personal confirme outra carga de referência — a nova vale a partir da próxima sessão. */
+/** A sessão do aluno, fixada na versão que a originou. &#x60;calculatedLoadTargets&#x60; é o alvo de carga de cada série prescrita em percentual, calculado **uma vez, no início da sessão**: é fato da sessão e não muda enquanto ela dura, ainda que o personal confirme outra carga de referência — a nova vale a partir da próxima sessão. A sessão é **interrompida pelo servidor após 12 horas sem registro** e **encerrada por ele sete dias depois da interrupção**, sem decisão do aluno; nos dois casos a regra é do servidor e não do aparelho. &#x60;endedBy&#x60; existe **se e somente se** &#x60;status&#x60; é &#x60;COMPLETED&#x60; ou &#x60;ABANDONED&#x60;. */
 public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
 
     public enum ViewType: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -38,16 +38,20 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
     public var workoutId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var prescriptionVersionId: String
+    /** `INTERRUPTED`: sem registro há 12 horas ou mais; só `resumeStudentWorkoutSession`, `completeStudentWorkoutSession` e `abandonStudentWorkoutSession` agem sobre ela, e toda escrita de fato é `409 SESSION_INTERRUPTED`. `COMPLETED` e `ABANDONED` são terminais. */
     public var status: Status
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var startedAt: Date
-    /** Instante RFC 3339 / ISO 8601 com offset explícito. */
+    /** O instante de conclusão, presente só em `COMPLETED`. No término pela decisão do treino e na conclusão automática é o instante do último registro, e não o do pedido nem o da detecção. */
     public var completedAt: Date?
+    /** O instante do servidor do último fato aceito na sessão, ou o do início quando ainda não há fato. É dele que correm as 12 horas até a interrupção; a retomada o leva ao instante em que foi confirmada. Registrar um fato não muda a revisão pública da sessão. */
+    public var lastRecordedAt: Date
+    public var endedBy: WorkoutSessionEndedBy?
     public var exerciseOrderPolicy: ExerciseOrderPolicyView
     /** Um item por série **prescrita em percentual** do treino da sessão, na ordem da prescrição, cada `prescribedSetId` uma só vez; ausente quando nenhuma série do treino é em percentual. Fixado no início da sessão e nunca recalculado. O valor calculado vale para a **variante prescrita**: trocar de variante o tira, e a carga de referência não é transportada entre variantes. */
     public var calculatedLoadTargets: [CalculatedLoadTarget]?
 
-    public init(viewType: ViewType, sessionId: String, workoutAssignmentId: String, workoutId: String, prescriptionVersionId: String, status: Status, startedAt: Date, completedAt: Date? = nil, exerciseOrderPolicy: ExerciseOrderPolicyView, calculatedLoadTargets: [CalculatedLoadTarget]? = nil) {
+    public init(viewType: ViewType, sessionId: String, workoutAssignmentId: String, workoutId: String, prescriptionVersionId: String, status: Status, startedAt: Date, completedAt: Date? = nil, lastRecordedAt: Date, endedBy: WorkoutSessionEndedBy? = nil, exerciseOrderPolicy: ExerciseOrderPolicyView, calculatedLoadTargets: [CalculatedLoadTarget]? = nil) {
         self.viewType = viewType
         self.sessionId = sessionId
         self.workoutAssignmentId = workoutAssignmentId
@@ -56,6 +60,8 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
         self.status = status
         self.startedAt = startedAt
         self.completedAt = completedAt
+        self.lastRecordedAt = lastRecordedAt
+        self.endedBy = endedBy
         self.exerciseOrderPolicy = exerciseOrderPolicy
         self.calculatedLoadTargets = calculatedLoadTargets
     }
@@ -69,6 +75,8 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
         case status
         case startedAt
         case completedAt
+        case lastRecordedAt
+        case endedBy
         case exerciseOrderPolicy
         case calculatedLoadTargets
     }
@@ -85,6 +93,8 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(status, forKey: .status)
         try container.encode(startedAt, forKey: .startedAt)
         try container.encodeIfPresent(completedAt, forKey: .completedAt)
+        try container.encode(lastRecordedAt, forKey: .lastRecordedAt)
+        try container.encodeIfPresent(endedBy, forKey: .endedBy)
         try container.encode(exerciseOrderPolicy, forKey: .exerciseOrderPolicy)
         try container.encodeIfPresent(calculatedLoadTargets, forKey: .calculatedLoadTargets)
     }
@@ -95,6 +105,7 @@ extension WorkoutSessionSyncView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if viewType == .unknownDefaultOpenApi { return true }
         if status == .unknownDefaultOpenApi { return true }
+        if endedBy == .unknownDefaultOpenApi { return true }
         return false
     }
 }

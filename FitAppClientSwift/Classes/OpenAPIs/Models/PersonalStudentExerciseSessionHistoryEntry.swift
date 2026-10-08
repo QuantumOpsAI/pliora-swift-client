@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Uma sessão da série histórica daquela chave comparável: o instante terminal, o estado da sessão, a variante e o contexto de equipamento efetivamente usados e as séries que preservam **prescrito**, **alvo** e **realizado** separadamente. Carga e repetições permanecem fatos por série; nenhuma das duas é resumida pelo cliente. **Nenhum campo aqui é projeção, juízo ou estatística.** Não há delta calculado, percentual, média, tendência, escore, classificação, aderência nem rótulo de melhor ou pior execução: &#x60;30 kg x 3&#x60; e &#x60;25 kg x 12&#x60; não são ordenáveis pelo produto, e ordenar seria interpretação, que o contrato não transporta. */
+/** Uma sessão da série histórica daquela chave comparável: o início e, quando terminou, o fim e a causa do término, o estado da sessão, a variante e o contexto de equipamento efetivamente usados e as séries que preservam **prescrito**, **alvo** e **realizado** separadamente. Carga e repetições permanecem fatos por série; nenhuma das duas é resumida pelo cliente. **Nenhum campo aqui é projeção, juízo ou estatística.** Não há delta calculado, percentual, média, tendência, escore, classificação, aderência nem rótulo de melhor ou pior execução: &#x60;30 kg x 3&#x60; e &#x60;25 kg x 12&#x60; não são ordenáveis pelo produto, e ordenar seria interpretação, que o contrato não transporta. */
 public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable, Hashable {
 
     public enum SessionStatus: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -29,8 +29,11 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     public var sessionId: String
     /** Estado da sessão, com os mesmos valores que a execução já publica em `WorkoutSessionSyncView.status`; o conjunto é reusado sem alteração. */
     public var sessionStatus: SessionStatus
-    /** Instante terminal da sessão, do servidor. */
-    public var occurredAt: Date
+    /** Instante de início da sessão, do servidor. Existe em qualquer estado. */
+    public var startedAt: Date
+    /** Instante de término da sessão, do servidor, presente **se e somente se** a sessão é terminal (`COMPLETED` ou `ABANDONED`) e `null` em `IN_PROGRESS` e `INTERRUPTED`. Na sessão encerrada pelo aluno pela decisão do treino ou pelo servidor, é o instante do último registro. */
+    public var endedAt: Date?
+    public var endedBy: WorkoutSessionEndedBy?
     /** Variante efetivamente executada nesta sessão. Ela pertence à chave: uma variante diferente não entra nesta série. */
     public var executedVariantId: String
     /** Rótulo da variante executada, preservado verbatim e nunca usado no lugar de `executedVariantId`. O catálogo não é guardado (ADR-0014): nenhum nome vem dele; para exercício do catálogo, que tem uma variante só, é o `displayName` da prescrição. */
@@ -42,10 +45,12 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     /** Substituição daquele exercício naquela sessão, quando houve, com o motivo estruturado. Ausente quando não houve. */
     public var substitution: PersonalStudentExerciseSubstitutionView?
 
-    public init(sessionId: String, sessionStatus: SessionStatus, occurredAt: Date, executedVariantId: String, executedVariantLabel: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil) {
+    public init(sessionId: String, sessionStatus: SessionStatus, startedAt: Date, endedAt: Date?, endedBy: WorkoutSessionEndedBy? = nil, executedVariantId: String, executedVariantLabel: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil) {
         self.sessionId = sessionId
         self.sessionStatus = sessionStatus
-        self.occurredAt = occurredAt
+        self.startedAt = startedAt
+        self.endedAt = endedAt
+        self.endedBy = endedBy
         self.executedVariantId = executedVariantId
         self.executedVariantLabel = executedVariantLabel
         self.equipmentContextKey = equipmentContextKey
@@ -56,7 +61,9 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case sessionId
         case sessionStatus
-        case occurredAt
+        case startedAt
+        case endedAt
+        case endedBy
         case executedVariantId
         case executedVariantLabel
         case equipmentContextKey
@@ -70,7 +77,9 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(sessionId, forKey: .sessionId)
         try container.encode(sessionStatus, forKey: .sessionStatus)
-        try container.encode(occurredAt, forKey: .occurredAt)
+        try container.encode(startedAt, forKey: .startedAt)
+        try container.encode(endedAt, forKey: .endedAt)
+        try container.encodeIfPresent(endedBy, forKey: .endedBy)
         try container.encode(executedVariantId, forKey: .executedVariantId)
         try container.encode(executedVariantLabel, forKey: .executedVariantLabel)
         try container.encodeIfPresent(equipmentContextKey, forKey: .equipmentContextKey)
@@ -83,6 +92,7 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
 extension PersonalStudentExerciseSessionHistoryEntry: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if sessionStatus == .unknownDefaultOpenApi { return true }
+        if endedBy == .unknownDefaultOpenApi { return true }
         return false
     }
 }

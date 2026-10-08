@@ -11,6 +11,8 @@ Name | Type | Description | Notes
 **status** | [**DeferralStatus**](DeferralStatus.md) |  |
 **startedAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. |
 **completedAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. |
+**lastRecordedAt** | **Date** | O instante do servidor do último fato aceito na sessão, ou o do início quando ainda não há fato. É dele que correm as 12 horas até a interrupção; a retomada o leva ao instante em que foi confirmada. Registrar um fato não muda a revisão pública da sessão. |
+**endedBy** | [**WorkoutSessionEndedBy**](WorkoutSessionEndedBy.md) |  | [optional]
 **exerciseOrderPolicy** | [**ExerciseOrderPolicyView**](ExerciseOrderPolicyView.md) |  |
 **calculatedLoadTargets** | [CalculatedLoadTarget] | Um item por série **prescrita em percentual** do treino da sessão, na ordem da prescrição, cada &#x60;prescribedSetId&#x60; uma só vez; ausente quando nenhuma série do treino é em percentual. Fixado no início da sessão e nunca recalculado. O valor calculado vale para a **variante prescrita**: trocar de variante o tira, e a carga de referência não é transportada entre variantes. | [optional]
 **exerciseExecutionId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |

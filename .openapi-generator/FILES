@@ -566,6 +566,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutExecutionValidationProbl
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutNotFoundProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionConflictProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionForbiddenProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionResumeConflictProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionValidationProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SubmitAccountLinkingProofRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SubstitutionAuthorizationSource.swift
@@ -627,6 +628,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutAssignmentSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutAssignmentView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutCoreSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutLoad.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutSessionEndedBy.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutSessionNextAction.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutSessionStartResponse.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutSessionStartSource.swift
@@ -1201,6 +1203,7 @@ docs/StudentWorkoutExecutionValidationProblemDetails.md
 docs/StudentWorkoutNotFoundProblemDetails.md
 docs/StudentWorkoutSessionConflictProblemDetails.md
 docs/StudentWorkoutSessionForbiddenProblemDetails.md
+docs/StudentWorkoutSessionResumeConflictProblemDetails.md
 docs/StudentWorkoutSessionValidationProblemDetails.md
 docs/SubmitAccountLinkingProofRequest.md
 docs/SubstitutionAuthorizationSource.md
@@ -1264,6 +1267,7 @@ docs/WorkoutAssignmentView.md
 docs/WorkoutCoreSyncView.md
 docs/WorkoutExecutionAPI.md
 docs/WorkoutLoad.md
+docs/WorkoutSessionEndedBy.md
 docs/WorkoutSessionNextAction.md
 docs/WorkoutSessionStartResponse.md
 docs/WorkoutSessionStartSource.md

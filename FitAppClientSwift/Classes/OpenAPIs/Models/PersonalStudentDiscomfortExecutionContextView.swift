@@ -28,10 +28,13 @@ public struct PersonalStudentDiscomfortExecutionContextView: Codable, JSONEncoda
     public static let setsRule = ArrayRule(minItems: nil, maxItems: 100, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var sessionId: String
-    /** Estado da sessão, com os mesmos valores que a execução já publica em `WorkoutSessionSyncView.status`; o conjunto é reusado sem alteração. */
+    /** Estado da sessão, com os mesmos valores que a execução já publica em `WorkoutSessionSyncView.status`; o conjunto é reusado sem alteração. O relato pode ser lido com a sessão ainda `IN_PROGRESS` ou `INTERRUPTED`. */
     public var sessionStatus: SessionStatus
-    /** Instante da sessão, do servidor. */
-    public var sessionOccurredAt: Date
+    /** Instante de início da sessão, do servidor. Existe em qualquer estado. */
+    public var startedAt: Date
+    /** Instante de término da sessão, do servidor, presente **se e somente se** a sessão é terminal (`COMPLETED` ou `ABANDONED`) e `null` em `IN_PROGRESS` e `INTERRUPTED`. Na sessão encerrada pelo aluno pela decisão do treino ou pelo servidor, é o instante do último registro. */
+    public var endedAt: Date?
+    public var endedBy: WorkoutSessionEndedBy?
     /** Versão de prescrição atribuída sob a qual a sessão correu. Ausente quando a sessão não tem versão atribuída conhecida; ausência é ausência. */
     public var prescriptionVersionId: String?
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -45,10 +48,12 @@ public struct PersonalStudentDiscomfortExecutionContextView: Codable, JSONEncoda
     /** Substituição daquele exercício naquela sessão, quando houve. Ausente quando não houve; ausência é ausência, nunca uma substituição neutra presumida. */
     public var substitution: PersonalStudentExerciseSubstitutionView?
 
-    public init(sessionId: String, sessionStatus: SessionStatus, sessionOccurredAt: Date, prescriptionVersionId: String? = nil, exerciseId: String, executedVariantId: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil) {
+    public init(sessionId: String, sessionStatus: SessionStatus, startedAt: Date, endedAt: Date?, endedBy: WorkoutSessionEndedBy? = nil, prescriptionVersionId: String? = nil, exerciseId: String, executedVariantId: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil) {
         self.sessionId = sessionId
         self.sessionStatus = sessionStatus
-        self.sessionOccurredAt = sessionOccurredAt
+        self.startedAt = startedAt
+        self.endedAt = endedAt
+        self.endedBy = endedBy
         self.prescriptionVersionId = prescriptionVersionId
         self.exerciseId = exerciseId
         self.executedVariantId = executedVariantId
@@ -60,7 +65,9 @@ public struct PersonalStudentDiscomfortExecutionContextView: Codable, JSONEncoda
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case sessionId
         case sessionStatus
-        case sessionOccurredAt
+        case startedAt
+        case endedAt
+        case endedBy
         case prescriptionVersionId
         case exerciseId
         case executedVariantId
@@ -75,7 +82,9 @@ public struct PersonalStudentDiscomfortExecutionContextView: Codable, JSONEncoda
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(sessionId, forKey: .sessionId)
         try container.encode(sessionStatus, forKey: .sessionStatus)
-        try container.encode(sessionOccurredAt, forKey: .sessionOccurredAt)
+        try container.encode(startedAt, forKey: .startedAt)
+        try container.encode(endedAt, forKey: .endedAt)
+        try container.encodeIfPresent(endedBy, forKey: .endedBy)
         try container.encodeIfPresent(prescriptionVersionId, forKey: .prescriptionVersionId)
         try container.encode(exerciseId, forKey: .exerciseId)
         try container.encode(executedVariantId, forKey: .executedVariantId)
@@ -89,6 +98,7 @@ public struct PersonalStudentDiscomfortExecutionContextView: Codable, JSONEncoda
 extension PersonalStudentDiscomfortExecutionContextView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if sessionStatus == .unknownDefaultOpenApi { return true }
+        if endedBy == .unknownDefaultOpenApi { return true }
         return false
     }
 }

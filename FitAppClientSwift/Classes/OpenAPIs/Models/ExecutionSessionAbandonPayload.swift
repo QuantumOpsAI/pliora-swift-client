@@ -23,6 +23,7 @@ public struct ExecutionSessionAbandonPayload: Codable, JSONEncodable, Hashable {
     public var sessionId: String
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var abandonedAt: Date
+    /** `USER_REQUESTED` é o descarte pelo aluno. `INTERRUPTED` é o motivo do abandono que o servidor faz sozinho, sete dias depois da interrupção, quando não há série executada; o app não o envia. */
     public var reason: Reason
 
     public init(sessionId: String, abandonedAt: Date, reason: Reason) {
