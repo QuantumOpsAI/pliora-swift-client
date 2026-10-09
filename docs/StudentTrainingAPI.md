@@ -4,7 +4,9 @@ All URIs are relative to */api/v1*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**getStudentConsistency**](StudentTrainingAPI.md#getstudentconsistency) | **GET** /student/progress/consistency | Ler a consistência semanal do aluno
 [**getStudentExerciseDemonstration**](StudentTrainingAPI.md#getstudentexercisedemonstration) | **GET** /student/exercises/{exerciseId}/demonstration | Obter a demonstração em vídeo de um exercício do catálogo prescrito ao aluno
+[**getStudentExerciseProgress**](StudentTrainingAPI.md#getstudentexerciseprogress) | **GET** /student/exercise-progress/{exerciseId} | Ler a evolução de um exercício numa variante
 [**getStudentNotificationConsent**](StudentTrainingAPI.md#getstudentnotificationconsent) | **GET** /student/notification-consent | Ler o consentimento de notificações vigente do aluno
 [**getStudentOfflineWorkoutBundle**](StudentTrainingAPI.md#getstudentofflineworkoutbundle) | **GET** /student/workout-sessions/{sessionId}/bundle | Obter o bundle tipado da sessão, com o progresso já aceito pelo servidor
 [**getStudentSchedule**](StudentTrainingAPI.md#getstudentschedule) | **GET** /student/schedule | Obter a programação de treino do aluno num intervalo de datas
@@ -15,8 +17,62 @@ Method | HTTP request | Description
 [**getStudentTodayWorkout**](StudentTrainingAPI.md#getstudenttodayworkout) | **GET** /student/today/workout | Obter o card independente do treino de hoje
 [**getStudentWorkoutSessionResult**](StudentTrainingAPI.md#getstudentworkoutsessionresult) | **GET** /student/workout-sessions/{sessionId}/result | Ler o resultado de uma sessão de treino terminada
 [**getStudentWorkoutSummary**](StudentTrainingAPI.md#getstudentworkoutsummary) | **GET** /student/workouts/{workoutId}/summary | Obter o resumo de um treino prescrito do aluno antes de iniciá-lo
+[**listStudentExerciseProgress**](StudentTrainingAPI.md#liststudentexerciseprogress) | **GET** /student/exercise-progress | Listar os exercícios que o aluno já executou
+[**listStudentWorkoutSessions**](StudentTrainingAPI.md#liststudentworkoutsessions) | **GET** /student/workout-sessions | Ler o histórico de treinos feitos do aluno
 [**startStudentWorkoutSession**](StudentTrainingAPI.md#startstudentworkoutsession) | **POST** /student/workout-sessions | Iniciar a sessão de treino do aluno
 
+
+# **getStudentConsistency**
+```swift
+    open class func getStudentConsistency(acceptLanguage: String? = nil, weeks: Int? = nil, completion: @escaping (_ data: StudentConsistencyView?, _ error: Error?) -> Void)
+```
+
+Ler a consistência semanal do aluno
+
+A consistência das últimas semanas, para as barras da aba Progresso: por semana, de segunda a domingo no fuso do vínculo, quantos treinos o aluno concluiu e — quando o plano diz — quantos o plano previa. `weeks` de 1 a 12, padrão 8: a resposta traz exatamente essa quantidade de semanas seguidas, da mais antiga à corrente, que é a última. **`sessionsCompleted`** conta as sessões `COMPLETED` com `localDate` na semana, inclusive a encerrada automaticamente como concluída; a descartada não conta. É um fato lido, e a semana sem treino concluído é `0` — não é ausência de leitura. **`workoutsPlanned`** vem dos dias da ativação vigente na semana, e não das atribuições já geradas, que em dias da semana só nascem por leitura e nunca para o dia passado. Por isso o campo se chama `workoutsPlanned`, e não `workoutsAssigned`. É **ausente** em sequência livre e em semana sem ativação vigente, e **nunca zero**. `planMode` é o modo da ativação vigente em `asOf` (`WEEKDAYS` ou `SEQUENCE`) e é **ausente** quando não há ativação vigente. `partialWeek` marca a semana que ainda não terminou em `asOf`, que é a corrente. **Fuso e semana corrente.** O fuso é o do vínculo vigente (ativo ou pausado) em `asOf`; sem vínculo vigente, é o do último vínculo que o aluno teve, o mesmo sob o qual o `localDate` das sessões foi gravado; o aluno que nunca teve vínculo não tem sessão, e as semanas saem com `sessionsCompleted` `0`, calculadas em UTC. A semana corrente é a que contém a data civil de `asOf` nesse fuso, e `asOf` traz o deslocamento dele. **O que esta leitura nunca publica, e a proibição é de contrato, não de tela:** escore, percentual e sequência de dias. Nenhum campo, em nenhuma forma, traz nota, taxa, razão entre treinos feitos e previstos, contagem de dias seguidos, de dias sem treinar ou de semanas perdidas, nem meta criada pelo produto. `2 de 4` são dois números, e a tela os diz sem os dividir. Isto é leitura do aluno sobre si, e não o motivo \"baixa aderência\" da fila do personal. **Leitura de treino feito.** Autoriza pela conta dona dos fatos, e não pelo vínculo: responde com o vínculo pausado, encerrado ou trocado — e sem ativação vigente, que então não tem `planMode` nem denominador. O `403` só responde a conta sem o contexto de aluno (`FORBIDDEN`). Nada desta leitura é publicado ao personal. A resposta declara `Cache-Control: private, no-store`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+let weeks = 987 // Int | Quantas semanas ler, terminando na corrente, de 1 a 12; o padrão é 8. (optional) (default to 8)
+
+// Ler a consistência semanal do aluno
+StudentTrainingAPI.getStudentConsistency(acceptLanguage: acceptLanguage, weeks: weeks) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+ **weeks** | **Int** | Quantas semanas ler, terminando na corrente, de 1 a 12; o padrão é 8. | [optional] [default to 8]
+
+### Return type
+
+[**StudentConsistencyView**](StudentConsistencyView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getStudentExerciseDemonstration**
 ```swift
@@ -58,6 +114,66 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**StudentExerciseDemonstrationView**](StudentExerciseDemonstrationView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStudentExerciseProgress**
+```swift
+    open class func getStudentExerciseProgress(exerciseId: String, acceptLanguage: String? = nil, variantId: String? = nil, equipmentContextKey: String? = nil, cursor: String? = nil, limit: Int? = nil, completion: @escaping (_ data: StudentExerciseProgressView?, _ error: Error?) -> Void)
+```
+
+Ler a evolução de um exercício numa variante
+
+A evolução do exercício na variante pedida, para a tela de evolução (o mesmo conteúdo da Tela A da sessão, fora dela): as execuções por data, do mais recente ao mais antigo, e os recordes da variante. Cada execução é uma sessão, com as séries **executadas** nela — tipo, repetições ou duração, carga e unidade, exatamente como foram gravadas; a série pulada não aparece. **Um par de variante e contexto por leitura.** A chave de comparabilidade é o par `variantId` mais `equipmentContextKey`. `variantId` ausente resolve o **par inteiro** — variante e contexto — de execução mais recente, e a resposta diz qual leu em `variant`. Com `variantId`, `equipmentContextKey` fecha o par e, ausente, não é curinga: lê o par sem contexto. `equipmentContextKey` sem `variantId` é `422 VALIDATION_FAILED`. **Nenhuma leitura soma, compara ou ordena variantes diferentes**: a lista de execuções e os recordes são só da variante lida, e a resposta não traz total, média, tendência nem veredicto de melhor execução. **Unidade gravada, sem conversão.** Cada série traz o valor e a unidade em que foi gravada (`KG`, `LB`, `LEVEL` ou `BODYWEIGHT`), e o servidor **não converte nem compara por massa**: a mesma variante em `KG` e em `LB` são séries separadas por unidade gravada. A preferência kg/lb do aluno é só de exibição, não existe no contrato e não aparece em nenhum parâmetro; quem converte, só para exibir, é o app. **Recordes da variante** (`records`) são projeção com `origin: PROJECTION`, sobre as séries elegíveis da variante — `WORKING` e `TO_FAILURE`, tratadas juntas; `WARM_UP`, `DROP_SET` e a série pulada ficam fora —, o melhor de cada critério e de cada unidade gravada, e são devolvidos inteiros em toda página, não só pelas sessões dela. `BODYWEIGHT` só produz `MAX_REPS_AT_LOAD` e `MAX_DURATION`, nunca `MAX_LOAD`; `LEVEL` produz `MAX_LOAD` na unidade `LEVEL`, nunca convertido nem somado a kg. **Página de até 20 sessões**, por cursor opaco: `limit` de 1 a 20, padrão 20, e `nextCursor` nulo na última página. **Recurso de outra conta responde como inexistente.** Exercício que o aluno nunca executou, de outra conta, ou variante que não é uma variante executada dele para este exercício respondem o mesmo `404 EXERCISE_PROGRESS_NOT_FOUND`, de forma indistinguível. Autoriza pela conta dona dos fatos, e não pelo vínculo; o `403` só responde a conta sem o contexto de aluno (`FORBIDDEN`). Nada desta leitura é publicado ao personal, e ela não devolve texto livre nem relato de desconforto. A resposta declara `Cache-Control: private, no-store`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let exerciseId = "exerciseId_example" // String | O exercício, como `listStudentExerciseProgress` o devolve. Um exercício que o aluno não executou é inexistente para ele.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+let variantId = "variantId_example" // String | A variante a ler. Ausente, resolve o par inteiro — variante e contexto — de execução mais recente do exercício, e então `equipmentContextKey` não pode vir. (optional)
+let equipmentContextKey = "equipmentContextKey_example" // String | O contexto de equipamento da variante, como `variants[]` de `listStudentExerciseProgress` o devolve. Código de máquina estável, nunca nome de aparelho exibível. Só vale com `variantId`: sem ele é `422 VALIDATION_FAILED`. Ausente, com `variantId`, lê o par sem contexto — não é curinga. (optional)
+let cursor = "cursor_example" // String | Cursor opaco retornado por uma coleção paginada. (optional)
+let limit = 987 // Int | Quantidade de sessões da página, de 1 a 20; o padrão é 20. (optional) (default to 20)
+
+// Ler a evolução de um exercício numa variante
+StudentTrainingAPI.getStudentExerciseProgress(exerciseId: exerciseId, acceptLanguage: acceptLanguage, variantId: variantId, equipmentContextKey: equipmentContextKey, cursor: cursor, limit: limit) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **exerciseId** | **String** | O exercício, como &#x60;listStudentExerciseProgress&#x60; o devolve. Um exercício que o aluno não executou é inexistente para ele. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+ **variantId** | **String** | A variante a ler. Ausente, resolve o par inteiro — variante e contexto — de execução mais recente do exercício, e então &#x60;equipmentContextKey&#x60; não pode vir. | [optional]
+ **equipmentContextKey** | **String** | O contexto de equipamento da variante, como &#x60;variants[]&#x60; de &#x60;listStudentExerciseProgress&#x60; o devolve. Código de máquina estável, nunca nome de aparelho exibível. Só vale com &#x60;variantId&#x60;: sem ele é &#x60;422 VALIDATION_FAILED&#x60;. Ausente, com &#x60;variantId&#x60;, lê o par sem contexto — não é curinga. | [optional]
+ **cursor** | **String** | Cursor opaco retornado por uma coleção paginada. | [optional]
+ **limit** | **Int** | Quantidade de sessões da página, de 1 a 20; o padrão é 20. | [optional] [default to 20]
+
+### Return type
+
+[**StudentExerciseProgressView**](StudentExerciseProgressView.md)
 
 ### Authorization
 
@@ -568,6 +684,118 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**WorkoutSummaryView**](WorkoutSummaryView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **listStudentExerciseProgress**
+```swift
+    open class func listStudentExerciseProgress(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, completion: @escaping (_ data: StudentExerciseProgressPage?, _ error: Error?) -> Void)
+```
+
+Listar os exercícios que o aluno já executou
+
+A lista de exercícios da aba Progresso: um item por exercício que o aluno já executou, com o rótulo mais recente que uma prescrição deu a ele (`displayName`) e, por variante executada, a data da última execução e quantas execuções houve. Cada item abre `getStudentExerciseProgress`. Lista vazia é \"nenhum exercício registrado ainda\" — nunca erro, nunca indisponibilidade. **Variante e contexto são a chave.** A chave de comparabilidade é a variante executada mais o contexto de equipamento, e cada par `variantId` e `equipmentContextKey` é um item de `variants[]`. `executionCount` conta as sessões em que o par teve ao menos uma série executada, e `lastExecutedOn` é a data civil (`localDate`) da mais recente. Variantes diferentes nunca são somadas, comparadas nem ordenadas por desempenho: nenhuma leitura soma, compara ou ordena variantes diferentes, e esta não traz carga, repetição nem recorde. **Paginação por cursor opaco**, `limit` de 1 a 100, padrão 20, `nextCursor` nulo na última página. A ordem é do servidor, estável entre páginas, da execução mais recente à mais antiga; ela não expressa desempenho. **Leitura de treino feito.** Autoriza pela conta dona dos fatos, e não pelo vínculo: responde com o vínculo pausado, encerrado ou trocado. O `403` só responde a conta sem o contexto de aluno (`FORBIDDEN`). Nada desta leitura é publicado ao personal. A resposta declara `Cache-Control: private, no-store`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+let cursor = "cursor_example" // String | Cursor opaco retornado por uma coleção paginada. (optional)
+let limit = 987 // Int | Tamanho da página, de 1 a 100; o padrão é 20. (optional) (default to 20)
+
+// Listar os exercícios que o aluno já executou
+StudentTrainingAPI.listStudentExerciseProgress(acceptLanguage: acceptLanguage, cursor: cursor, limit: limit) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+ **cursor** | **String** | Cursor opaco retornado por uma coleção paginada. | [optional]
+ **limit** | **Int** | Tamanho da página, de 1 a 100; o padrão é 20. | [optional] [default to 20]
+
+### Return type
+
+[**StudentExerciseProgressPage**](StudentExerciseProgressPage.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **listStudentWorkoutSessions**
+```swift
+    open class func listStudentWorkoutSessions(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, from: Date? = nil, to: Date? = nil, completion: @escaping (_ data: StudentWorkoutSessionHistoryPage?, _ error: Error?) -> Void)
+```
+
+Ler o histórico de treinos feitos do aluno
+
+O histórico do aluno: os treinos que ele terminou, do mais recente ao mais antigo, para a aba Progresso (os treinos e os recordes recentes) e para o calendário do histórico. **Entram** as sessões `COMPLETED` e `ABANDONED` com ao menos uma série executada — o treino concluído, o encerrado automaticamente, o encerrado pelo servidor por pausa, encerramento ou troca de vínculo e o descartado com série feita, este com `status: ABANDONED`. **Não entram** a sessão aberta (`IN_PROGRESS` ou `INTERRUPTED`) nem a terminada sem nenhuma série executada. A ordem é a do início da sessão (`startedAt`), do mais recente ao mais antigo, e é total: o empate é desfeito pelo `sessionId`, decrescente. **Dois modos, que não se misturam.** Sem `from` e `to`, a leitura pagina por cursor opaco: `limit` de 1 a 50, padrão 20, e `nextCursor` nulo na última página. Com `from` e `to` — datas civis, que vêm juntas —, ela devolve **todas** as sessões do intervalo, sem cursor: é o calendário do histórico (`Q-19`, decisão do owner), **um mês por leitura**, e a tela deriva dos itens os dias marcados e a lista do mês. Não há leitura própria de dias do mês. O intervalo tem no máximo 62 dias entre `from` e `to`, os dois extremos incluídos nos itens: `to` menos `from` é de no máximo 62 dias, isto é, até 63 dias de calendário; acima disso é `422 HISTORY_RANGE_TOO_LARGE`. Também é `422 VALIDATION_FAILED` `to` anterior a `from`, só um dos dois, ou `cursor` ou `limit` junto de `from` e `to`. **O filtro compara com a data civil gravada na sessão.** `from` e `to` (os dois extremos entram) comparam com `localDate`, fixada no início da sessão, e **não** com o fuso do vínculo atual: a sessão não muda de dia porque o aluno trocou de personal ou de fuso. Um dia pode ter mais de uma sessão, e cada uma é um item; a marca do dia é decisão da tela. **`firstSessionOn`** é a data civil da primeira sessão do aluno que entra neste histórico, em qualquer dos dois modos e sem depender de `from`, `to` nem do cursor. Serve de limite inferior da navegação de mês. **Nulo** quer dizer que o aluno nunca terminou um treino com série executada: é o estado de quem nunca treinou, e não um erro nem um zero. **Leitura de treino feito.** Autoriza pela conta dona dos fatos, e não pelo vínculo: responde com o vínculo pausado, encerrado ou trocado, e a troca de personal não apaga nem esconde o passado do aluno. O histórico é só o da conta autenticada: não existe parâmetro que aponte outra conta, e o `403` só responde a conta sem o contexto de aluno (`FORBIDDEN`). **O que o item nunca traz.** Do treino, a linha do histórico e os recordes recentes: o nome, o dia, a duração, as séries feitas de previstas, os recordes resumidos. Não traz volume, nota de esforço, relato de desconforto nem texto livre; nenhum percentual de aderência, escore, sequência de dias ou marca de falta. O resultado completo de cada sessão é `getStudentWorkoutSessionResult`. A resposta declara `Cache-Control: private, no-store`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+let cursor = "cursor_example" // String | Cursor opaco retornado por uma coleção paginada. (optional)
+let limit = 987 // Int | Tamanho da página no modo por cursor, de 1 a 50; o padrão é 20. Não se combina com `from` e `to`. (optional) (default to 20)
+let from = Date() // Date | Início do intervalo do calendário, data civil (inclusive), comparada com o `localDate` gravado na sessão. Vem junto de `to`. (optional)
+let to = Date() // Date | Fim do intervalo do calendário, data civil (inclusive), comparada com o `localDate` gravado na sessão. Vem junto de `from`, não antes dele e a no máximo 62 dias dele. (optional)
+
+// Ler o histórico de treinos feitos do aluno
+StudentTrainingAPI.listStudentWorkoutSessions(acceptLanguage: acceptLanguage, cursor: cursor, limit: limit, from: from, to: to) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+ **cursor** | **String** | Cursor opaco retornado por uma coleção paginada. | [optional]
+ **limit** | **Int** | Tamanho da página no modo por cursor, de 1 a 50; o padrão é 20. Não se combina com &#x60;from&#x60; e &#x60;to&#x60;. | [optional] [default to 20]
+ **from** | **Date** | Início do intervalo do calendário, data civil (inclusive), comparada com o &#x60;localDate&#x60; gravado na sessão. Vem junto de &#x60;to&#x60;. | [optional]
+ **to** | **Date** | Fim do intervalo do calendário, data civil (inclusive), comparada com o &#x60;localDate&#x60; gravado na sessão. Vem junto de &#x60;from&#x60;, não antes dele e a no máximo 62 dias dele. | [optional]
+
+### Return type
+
+[**StudentWorkoutSessionHistoryPage**](StudentWorkoutSessionHistoryPage.md)
 
 ### Authorization
 

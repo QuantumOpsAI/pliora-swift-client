@@ -13,6 +13,59 @@ import AnyCodable
 open class StudentTrainingAPI {
 
     /**
+     Ler a consistência semanal do aluno
+
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter weeks: (query) Quantas semanas ler, terminando na corrente, de 1 a 12; o padrão é 8. (optional, default to 8)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getStudentConsistency(acceptLanguage: String? = nil, weeks: Int? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentConsistencyView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getStudentConsistencyWithRequestBuilder(acceptLanguage: acceptLanguage, weeks: weeks).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Ler a consistência semanal do aluno
+     - GET /student/progress/consistency
+     - A consistência das últimas semanas, para as barras da aba Progresso: por semana, de segunda a domingo no fuso do vínculo, quantos treinos o aluno concluiu e — quando o plano diz — quantos o plano previa. `weeks` de 1 a 12, padrão 8: a resposta traz exatamente essa quantidade de semanas seguidas, da mais antiga à corrente, que é a última. **`sessionsCompleted`** conta as sessões `COMPLETED` com `localDate` na semana, inclusive a encerrada automaticamente como concluída; a descartada não conta. É um fato lido, e a semana sem treino concluído é `0` — não é ausência de leitura. **`workoutsPlanned`** vem dos dias da ativação vigente na semana, e não das atribuições já geradas, que em dias da semana só nascem por leitura e nunca para o dia passado. Por isso o campo se chama `workoutsPlanned`, e não `workoutsAssigned`. É **ausente** em sequência livre e em semana sem ativação vigente, e **nunca zero**. `planMode` é o modo da ativação vigente em `asOf` (`WEEKDAYS` ou `SEQUENCE`) e é **ausente** quando não há ativação vigente. `partialWeek` marca a semana que ainda não terminou em `asOf`, que é a corrente. **Fuso e semana corrente.** O fuso é o do vínculo vigente (ativo ou pausado) em `asOf`; sem vínculo vigente, é o do último vínculo que o aluno teve, o mesmo sob o qual o `localDate` das sessões foi gravado; o aluno que nunca teve vínculo não tem sessão, e as semanas saem com `sessionsCompleted` `0`, calculadas em UTC. A semana corrente é a que contém a data civil de `asOf` nesse fuso, e `asOf` traz o deslocamento dele. **O que esta leitura nunca publica, e a proibição é de contrato, não de tela:** escore, percentual e sequência de dias. Nenhum campo, em nenhuma forma, traz nota, taxa, razão entre treinos feitos e previstos, contagem de dias seguidos, de dias sem treinar ou de semanas perdidas, nem meta criada pelo produto. `2 de 4` são dois números, e a tela os diz sem os dividir. Isto é leitura do aluno sobre si, e não o motivo \"baixa aderência\" da fila do personal. **Leitura de treino feito.** Autoriza pela conta dona dos fatos, e não pelo vínculo: responde com o vínculo pausado, encerrado ou trocado — e sem ativação vigente, que então não tem `planMode` nem denominador. O `403` só responde a conta sem o contexto de aluno (`FORBIDDEN`). Nada desta leitura é publicado ao personal. A resposta declara `Cache-Control: private, no-store`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter weeks: (query) Quantas semanas ler, terminando na corrente, de 1 a 12; o padrão é 8. (optional, default to 8)
+     - returns: RequestBuilder<StudentConsistencyView>
+     */
+    open class func getStudentConsistencyWithRequestBuilder(acceptLanguage: String? = nil, weeks: Int? = nil) -> RequestBuilder<StudentConsistencyView> {
+        let localVariablePath = "/student/progress/consistency"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "weeks": (wrappedValue: weeks?.encodeToJSON(), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentConsistencyView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      Obter a demonstração em vídeo de um exercício do catálogo prescrito ao aluno
 
      - parameter exerciseId: (path) Exercício como o aluno o recebe no treino (o &#x60;exerciseId&#x60; do item &#x60;EXERCISE&#x60; do bundle). Malformado, inexistente ou não recebido respondem de forma indistinguível.
@@ -61,6 +114,73 @@ open class StudentTrainingAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<StudentExerciseDemonstrationView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Ler a evolução de um exercício numa variante
+
+     - parameter exerciseId: (path) O exercício, como &#x60;listStudentExerciseProgress&#x60; o devolve. Um exercício que o aluno não executou é inexistente para ele.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter variantId: (query) A variante a ler. Ausente, resolve o par inteiro — variante e contexto — de execução mais recente do exercício, e então &#x60;equipmentContextKey&#x60; não pode vir. (optional)
+     - parameter equipmentContextKey: (query) O contexto de equipamento da variante, como &#x60;variants[]&#x60; de &#x60;listStudentExerciseProgress&#x60; o devolve. Código de máquina estável, nunca nome de aparelho exibível. Só vale com &#x60;variantId&#x60;: sem ele é &#x60;422 VALIDATION_FAILED&#x60;. Ausente, com &#x60;variantId&#x60;, lê o par sem contexto — não é curinga. (optional)
+     - parameter cursor: (query) Cursor opaco retornado por uma coleção paginada. (optional)
+     - parameter limit: (query) Quantidade de sessões da página, de 1 a 20; o padrão é 20. (optional, default to 20)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getStudentExerciseProgress(exerciseId: String, acceptLanguage: String? = nil, variantId: String? = nil, equipmentContextKey: String? = nil, cursor: String? = nil, limit: Int? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentExerciseProgressView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getStudentExerciseProgressWithRequestBuilder(exerciseId: exerciseId, acceptLanguage: acceptLanguage, variantId: variantId, equipmentContextKey: equipmentContextKey, cursor: cursor, limit: limit).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Ler a evolução de um exercício numa variante
+     - GET /student/exercise-progress/{exerciseId}
+     - A evolução do exercício na variante pedida, para a tela de evolução (o mesmo conteúdo da Tela A da sessão, fora dela): as execuções por data, do mais recente ao mais antigo, e os recordes da variante. Cada execução é uma sessão, com as séries **executadas** nela — tipo, repetições ou duração, carga e unidade, exatamente como foram gravadas; a série pulada não aparece. **Um par de variante e contexto por leitura.** A chave de comparabilidade é o par `variantId` mais `equipmentContextKey`. `variantId` ausente resolve o **par inteiro** — variante e contexto — de execução mais recente, e a resposta diz qual leu em `variant`. Com `variantId`, `equipmentContextKey` fecha o par e, ausente, não é curinga: lê o par sem contexto. `equipmentContextKey` sem `variantId` é `422 VALIDATION_FAILED`. **Nenhuma leitura soma, compara ou ordena variantes diferentes**: a lista de execuções e os recordes são só da variante lida, e a resposta não traz total, média, tendência nem veredicto de melhor execução. **Unidade gravada, sem conversão.** Cada série traz o valor e a unidade em que foi gravada (`KG`, `LB`, `LEVEL` ou `BODYWEIGHT`), e o servidor **não converte nem compara por massa**: a mesma variante em `KG` e em `LB` são séries separadas por unidade gravada. A preferência kg/lb do aluno é só de exibição, não existe no contrato e não aparece em nenhum parâmetro; quem converte, só para exibir, é o app. **Recordes da variante** (`records`) são projeção com `origin: PROJECTION`, sobre as séries elegíveis da variante — `WORKING` e `TO_FAILURE`, tratadas juntas; `WARM_UP`, `DROP_SET` e a série pulada ficam fora —, o melhor de cada critério e de cada unidade gravada, e são devolvidos inteiros em toda página, não só pelas sessões dela. `BODYWEIGHT` só produz `MAX_REPS_AT_LOAD` e `MAX_DURATION`, nunca `MAX_LOAD`; `LEVEL` produz `MAX_LOAD` na unidade `LEVEL`, nunca convertido nem somado a kg. **Página de até 20 sessões**, por cursor opaco: `limit` de 1 a 20, padrão 20, e `nextCursor` nulo na última página. **Recurso de outra conta responde como inexistente.** Exercício que o aluno nunca executou, de outra conta, ou variante que não é uma variante executada dele para este exercício respondem o mesmo `404 EXERCISE_PROGRESS_NOT_FOUND`, de forma indistinguível. Autoriza pela conta dona dos fatos, e não pelo vínculo; o `403` só responde a conta sem o contexto de aluno (`FORBIDDEN`). Nada desta leitura é publicado ao personal, e ela não devolve texto livre nem relato de desconforto. A resposta declara `Cache-Control: private, no-store`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter exerciseId: (path) O exercício, como &#x60;listStudentExerciseProgress&#x60; o devolve. Um exercício que o aluno não executou é inexistente para ele.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter variantId: (query) A variante a ler. Ausente, resolve o par inteiro — variante e contexto — de execução mais recente do exercício, e então &#x60;equipmentContextKey&#x60; não pode vir. (optional)
+     - parameter equipmentContextKey: (query) O contexto de equipamento da variante, como &#x60;variants[]&#x60; de &#x60;listStudentExerciseProgress&#x60; o devolve. Código de máquina estável, nunca nome de aparelho exibível. Só vale com &#x60;variantId&#x60;: sem ele é &#x60;422 VALIDATION_FAILED&#x60;. Ausente, com &#x60;variantId&#x60;, lê o par sem contexto — não é curinga. (optional)
+     - parameter cursor: (query) Cursor opaco retornado por uma coleção paginada. (optional)
+     - parameter limit: (query) Quantidade de sessões da página, de 1 a 20; o padrão é 20. (optional, default to 20)
+     - returns: RequestBuilder<StudentExerciseProgressView>
+     */
+    open class func getStudentExerciseProgressWithRequestBuilder(exerciseId: String, acceptLanguage: String? = nil, variantId: String? = nil, equipmentContextKey: String? = nil, cursor: String? = nil, limit: Int? = nil) -> RequestBuilder<StudentExerciseProgressView> {
+        var localVariablePath = "/student/exercise-progress/{exerciseId}"
+        let exerciseIdPreEscape = "\(APIHelper.mapValueToPathItem(exerciseId))"
+        let exerciseIdPostEscape = exerciseIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{exerciseId}", with: exerciseIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "variantId": (wrappedValue: variantId?.encodeToJSON(), isExplode: true),
+            "equipmentContextKey": (wrappedValue: equipmentContextKey?.encodeToJSON(), isExplode: true),
+            "cursor": (wrappedValue: cursor?.encodeToJSON(), isExplode: true),
+            "limit": (wrappedValue: limit?.encodeToJSON(), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentExerciseProgressView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
@@ -564,6 +684,124 @@ open class StudentTrainingAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<WorkoutSummaryView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Listar os exercícios que o aluno já executou
+
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter cursor: (query) Cursor opaco retornado por uma coleção paginada. (optional)
+     - parameter limit: (query) Tamanho da página, de 1 a 100; o padrão é 20. (optional, default to 20)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func listStudentExerciseProgress(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentExerciseProgressPage?, _ error: Error?) -> Void)) -> RequestTask {
+        return listStudentExerciseProgressWithRequestBuilder(acceptLanguage: acceptLanguage, cursor: cursor, limit: limit).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Listar os exercícios que o aluno já executou
+     - GET /student/exercise-progress
+     - A lista de exercícios da aba Progresso: um item por exercício que o aluno já executou, com o rótulo mais recente que uma prescrição deu a ele (`displayName`) e, por variante executada, a data da última execução e quantas execuções houve. Cada item abre `getStudentExerciseProgress`. Lista vazia é \"nenhum exercício registrado ainda\" — nunca erro, nunca indisponibilidade. **Variante e contexto são a chave.** A chave de comparabilidade é a variante executada mais o contexto de equipamento, e cada par `variantId` e `equipmentContextKey` é um item de `variants[]`. `executionCount` conta as sessões em que o par teve ao menos uma série executada, e `lastExecutedOn` é a data civil (`localDate`) da mais recente. Variantes diferentes nunca são somadas, comparadas nem ordenadas por desempenho: nenhuma leitura soma, compara ou ordena variantes diferentes, e esta não traz carga, repetição nem recorde. **Paginação por cursor opaco**, `limit` de 1 a 100, padrão 20, `nextCursor` nulo na última página. A ordem é do servidor, estável entre páginas, da execução mais recente à mais antiga; ela não expressa desempenho. **Leitura de treino feito.** Autoriza pela conta dona dos fatos, e não pelo vínculo: responde com o vínculo pausado, encerrado ou trocado. O `403` só responde a conta sem o contexto de aluno (`FORBIDDEN`). Nada desta leitura é publicado ao personal. A resposta declara `Cache-Control: private, no-store`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter cursor: (query) Cursor opaco retornado por uma coleção paginada. (optional)
+     - parameter limit: (query) Tamanho da página, de 1 a 100; o padrão é 20. (optional, default to 20)
+     - returns: RequestBuilder<StudentExerciseProgressPage>
+     */
+    open class func listStudentExerciseProgressWithRequestBuilder(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil) -> RequestBuilder<StudentExerciseProgressPage> {
+        let localVariablePath = "/student/exercise-progress"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "cursor": (wrappedValue: cursor?.encodeToJSON(), isExplode: true),
+            "limit": (wrappedValue: limit?.encodeToJSON(), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentExerciseProgressPage>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Ler o histórico de treinos feitos do aluno
+
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter cursor: (query) Cursor opaco retornado por uma coleção paginada. (optional)
+     - parameter limit: (query) Tamanho da página no modo por cursor, de 1 a 50; o padrão é 20. Não se combina com &#x60;from&#x60; e &#x60;to&#x60;. (optional, default to 20)
+     - parameter from: (query) Início do intervalo do calendário, data civil (inclusive), comparada com o &#x60;localDate&#x60; gravado na sessão. Vem junto de &#x60;to&#x60;. (optional)
+     - parameter to: (query) Fim do intervalo do calendário, data civil (inclusive), comparada com o &#x60;localDate&#x60; gravado na sessão. Vem junto de &#x60;from&#x60;, não antes dele e a no máximo 62 dias dele. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func listStudentWorkoutSessions(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, from: Date? = nil, to: Date? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentWorkoutSessionHistoryPage?, _ error: Error?) -> Void)) -> RequestTask {
+        return listStudentWorkoutSessionsWithRequestBuilder(acceptLanguage: acceptLanguage, cursor: cursor, limit: limit, from: from, to: to).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Ler o histórico de treinos feitos do aluno
+     - GET /student/workout-sessions
+     - O histórico do aluno: os treinos que ele terminou, do mais recente ao mais antigo, para a aba Progresso (os treinos e os recordes recentes) e para o calendário do histórico. **Entram** as sessões `COMPLETED` e `ABANDONED` com ao menos uma série executada — o treino concluído, o encerrado automaticamente, o encerrado pelo servidor por pausa, encerramento ou troca de vínculo e o descartado com série feita, este com `status: ABANDONED`. **Não entram** a sessão aberta (`IN_PROGRESS` ou `INTERRUPTED`) nem a terminada sem nenhuma série executada. A ordem é a do início da sessão (`startedAt`), do mais recente ao mais antigo, e é total: o empate é desfeito pelo `sessionId`, decrescente. **Dois modos, que não se misturam.** Sem `from` e `to`, a leitura pagina por cursor opaco: `limit` de 1 a 50, padrão 20, e `nextCursor` nulo na última página. Com `from` e `to` — datas civis, que vêm juntas —, ela devolve **todas** as sessões do intervalo, sem cursor: é o calendário do histórico (`Q-19`, decisão do owner), **um mês por leitura**, e a tela deriva dos itens os dias marcados e a lista do mês. Não há leitura própria de dias do mês. O intervalo tem no máximo 62 dias entre `from` e `to`, os dois extremos incluídos nos itens: `to` menos `from` é de no máximo 62 dias, isto é, até 63 dias de calendário; acima disso é `422 HISTORY_RANGE_TOO_LARGE`. Também é `422 VALIDATION_FAILED` `to` anterior a `from`, só um dos dois, ou `cursor` ou `limit` junto de `from` e `to`. **O filtro compara com a data civil gravada na sessão.** `from` e `to` (os dois extremos entram) comparam com `localDate`, fixada no início da sessão, e **não** com o fuso do vínculo atual: a sessão não muda de dia porque o aluno trocou de personal ou de fuso. Um dia pode ter mais de uma sessão, e cada uma é um item; a marca do dia é decisão da tela. **`firstSessionOn`** é a data civil da primeira sessão do aluno que entra neste histórico, em qualquer dos dois modos e sem depender de `from`, `to` nem do cursor. Serve de limite inferior da navegação de mês. **Nulo** quer dizer que o aluno nunca terminou um treino com série executada: é o estado de quem nunca treinou, e não um erro nem um zero. **Leitura de treino feito.** Autoriza pela conta dona dos fatos, e não pelo vínculo: responde com o vínculo pausado, encerrado ou trocado, e a troca de personal não apaga nem esconde o passado do aluno. O histórico é só o da conta autenticada: não existe parâmetro que aponte outra conta, e o `403` só responde a conta sem o contexto de aluno (`FORBIDDEN`). **O que o item nunca traz.** Do treino, a linha do histórico e os recordes recentes: o nome, o dia, a duração, as séries feitas de previstas, os recordes resumidos. Não traz volume, nota de esforço, relato de desconforto nem texto livre; nenhum percentual de aderência, escore, sequência de dias ou marca de falta. O resultado completo de cada sessão é `getStudentWorkoutSessionResult`. A resposta declara `Cache-Control: private, no-store`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter cursor: (query) Cursor opaco retornado por uma coleção paginada. (optional)
+     - parameter limit: (query) Tamanho da página no modo por cursor, de 1 a 50; o padrão é 20. Não se combina com &#x60;from&#x60; e &#x60;to&#x60;. (optional, default to 20)
+     - parameter from: (query) Início do intervalo do calendário, data civil (inclusive), comparada com o &#x60;localDate&#x60; gravado na sessão. Vem junto de &#x60;to&#x60;. (optional)
+     - parameter to: (query) Fim do intervalo do calendário, data civil (inclusive), comparada com o &#x60;localDate&#x60; gravado na sessão. Vem junto de &#x60;from&#x60;, não antes dele e a no máximo 62 dias dele. (optional)
+     - returns: RequestBuilder<StudentWorkoutSessionHistoryPage>
+     */
+    open class func listStudentWorkoutSessionsWithRequestBuilder(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, from: Date? = nil, to: Date? = nil) -> RequestBuilder<StudentWorkoutSessionHistoryPage> {
+        let localVariablePath = "/student/workout-sessions"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "cursor": (wrappedValue: cursor?.encodeToJSON(), isExplode: true),
+            "limit": (wrappedValue: limit?.encodeToJSON(), isExplode: true),
+            "from": (wrappedValue: from?.encodeToJSON(), isExplode: true),
+            "to": (wrappedValue: to?.encodeToJSON(), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentWorkoutSessionHistoryPage>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
