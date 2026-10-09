@@ -10,20 +10,25 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Decisão de um item do catálogo de privacidade. O cliente envia **tipo e decisão**; não envia versão, texto nem data, e um tipo fora do catálogo do servidor recusa o pedido inteiro com &#x60;422 VALIDATION_ERROR&#x60;, sem efeito nenhum. */
+/** Decisão explícita de um item do catálogo de privacidade **apresentado**. O cliente envia tipo, decisão e a &#x60;documentVersion&#x60; que o contexto lhe apresentou (&#x60;DEC-PHOME-19&#x60; §3.1): aceitar só o tipo não prova qual texto foi apresentado. Não envia texto nem data. Versão diferente da apresentada — ou que deixou de poder ser aceita — é &#x60;412 PRIVACY_CONTEXT_STALE&#x60;, e o servidor exige nova apresentação e novo ato, nunca aceita silenciosamente outra versão. Um tipo fora do catálogo do servidor recusa o pedido inteiro com &#x60;422 VALIDATION_ERROR&#x60;, sem efeito nenhum. */
 public struct StudentPrivacyDecisionInput: Codable, JSONEncodable, Hashable {
 
+    public static let documentVersionRule = StringRule(minLength: 1, maxLength: 32, pattern: nil)
     public var consentType: StudentConsentType
     public var decision: StudentConsentDecision
+    /** A versão do termo que o contexto pré-aceite apresentou, ecoada sem alteração. */
+    public var documentVersion: String
 
-    public init(consentType: StudentConsentType, decision: StudentConsentDecision) {
+    public init(consentType: StudentConsentType, decision: StudentConsentDecision, documentVersion: String) {
         self.consentType = consentType
         self.decision = decision
+        self.documentVersion = documentVersion
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case consentType
         case decision
+        case documentVersion
     }
 
     // Encodable protocol methods
@@ -32,6 +37,7 @@ public struct StudentPrivacyDecisionInput: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(consentType, forKey: .consentType)
         try container.encode(decision, forKey: .decision)
+        try container.encode(documentVersion, forKey: .documentVersion)
     }
 }
 

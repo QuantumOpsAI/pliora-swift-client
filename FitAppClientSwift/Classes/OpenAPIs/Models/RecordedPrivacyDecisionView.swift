@@ -10,13 +10,13 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Uma decisão de privacidade como ficou gravada, na versão que o servidor tinha em vigor no instante do commit. A versão é opaca para o cliente e nunca foi proposta por ele; o texto do termo não trafega aqui. Recusas também são gravadas: negar é decisão registrada, não ausência. */
+/** Uma decisão de privacidade como ficou gravada, sobre **exatamente** a versão apresentada e ecoada, validada pelo servidor no commit do vínculo, com autoria, vínculo e instante. A versão nunca foi escolhida pelo cliente; o texto exato aceito do termo obrigatório é recuperável em &#x60;getStudentAnamnesisConsent&#x60;. Recusas de itens facultativos também são gravadas: negar é decisão registrada, não ausência. */
 public struct RecordedPrivacyDecisionView: Codable, JSONEncodable, Hashable {
 
     public static let documentVersionRule = StringRule(minLength: 1, maxLength: 32, pattern: nil)
     public var consentType: StudentConsentType
     public var decision: StudentConsentDecision
-    /** Versão do termo resolvida pelo servidor; o cliente não a escolhe nem a valida. */
+    /** Versão do termo apresentada, ecoada e validada pelo servidor. */
     public var documentVersion: String
 
     public init(consentType: StudentConsentType, decision: StudentConsentDecision, documentVersion: String) {

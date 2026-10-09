@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** A mesma forma fecha &#x60;existingDraftId&#x60;, em um ramo próprio para não reescrever o anterior: sem &#x60;DRAFT_ALREADY_OPEN&#x60; ele é proibido, e &#x60;DRAFT_ALREADY_OPEN&#x60; sem ele também, porque a recusa que não diz qual é o rascunho aberto deixa o app sem o que abrir ou descartar. */
+/** Aceite do termo revogado: &#x60;SHARING_GRANT_REQUIRED&#x60; é o único motivo da recusa quando presente — a recusa de liberação não nomeia nada da ficha sem a base de autorização. */
 public struct PersonalPrescriptionConflictProblemDetails: Codable, JSONEncodable, Hashable {
 
     public enum Status: Int, Codable, CaseIterable, CaseIterableDefaultsLast {

@@ -10,32 +10,39 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Recorte que o personal do vínculo ativo lê. Antes da primeira conclusão carrega somente estado; depois dela, a última versão concluída e as referências das anteriores. Rascunho do aluno nunca aparece aqui, em nenhuma forma. */
+/** O conteúdo e a prontidão só existem com a ficha deste vínculo concluída: ficha concluída sem a versão que a sustenta, versão sem ficha concluída e prontidão antes da primeira conclusão são combinações que o servidor nunca emite. O bloco &#x60;anamnesis&#x60; e o &#x60;access&#x60; dos itens concordam: item &#x60;CURRENT_RELATIONSHIP&#x60; existe se e somente se a ficha deste vínculo está concluída, e item &#x60;PREVIOUS_RELATIONSHIP&#x60; se e somente se &#x60;hasAuthorizedPreviousVersions&#x60; — a resposta \&quot;não há anamnese autorizada neste vínculo\&quot; nunca carrega referência. Antes da primeira conclusão desta ficha, &#x60;MEDICAL_CLEARANCE_REQUIRED&#x60; nunca aparece: só o rascunho privado o sustentaria. */
 public struct PersonalStudentAnamnesisView: Codable, JSONEncodable, Hashable {
 
     public static let studentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let relationshipIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let authorizedVersionsRule = ArrayRule(minItems: nil, maxItems: nil, uniqueItems: true)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var studentId: String
-    public var anamnesisState: StudentAnamnesisState
-    public var latestCompletedVersion: StudentAnamnesisVersionView?
-    public var completedVersions: [StudentAnamnesisVersionRef]
-    public var readiness: StudentReadinessView
+    /** Vínculo ativo que autoriza esta leitura, e dono da ficha cujo preenchimento `anamnesis.currentFormState` descreve. As escritas do personal sobre a ficha o repetem no corpo. */
+    public var relationshipId: String
+    public var anamnesis: PersonalStudentOperationAnamnesisView
+    /** Conjunto autorizado, em ordem do servidor: primeiro as versões deste vínculo, da mais recente para a mais antiga, depois as anteriores autorizadas, da mais recente para a mais antiga. Vazio é **ausência confirmada de versão autorizada neste vínculo** — nunca falha de leitura, nunca \"o aluno nunca concluiu\". A autorização é aplicada **antes** de selecionar, contar e ordenar. */
+    public var authorizedVersions: Set<PersonalAuthorizedAnamnesisVersionRef>
+    public var latestCurrentVersion: StudentAnamnesisVersionView?
+    public var readiness: StudentReadinessView?
     public var prescriptionEligibility: StudentPrescriptionEligibilityView
 
-    public init(studentId: String, anamnesisState: StudentAnamnesisState, latestCompletedVersion: StudentAnamnesisVersionView? = nil, completedVersions: [StudentAnamnesisVersionRef], readiness: StudentReadinessView, prescriptionEligibility: StudentPrescriptionEligibilityView) {
+    public init(studentId: String, relationshipId: String, anamnesis: PersonalStudentOperationAnamnesisView, authorizedVersions: Set<PersonalAuthorizedAnamnesisVersionRef>, latestCurrentVersion: StudentAnamnesisVersionView? = nil, readiness: StudentReadinessView? = nil, prescriptionEligibility: StudentPrescriptionEligibilityView) {
         self.studentId = studentId
-        self.anamnesisState = anamnesisState
-        self.latestCompletedVersion = latestCompletedVersion
-        self.completedVersions = completedVersions
+        self.relationshipId = relationshipId
+        self.anamnesis = anamnesis
+        self.authorizedVersions = authorizedVersions
+        self.latestCurrentVersion = latestCurrentVersion
         self.readiness = readiness
         self.prescriptionEligibility = prescriptionEligibility
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case studentId
-        case anamnesisState
-        case latestCompletedVersion
-        case completedVersions
+        case relationshipId
+        case anamnesis
+        case authorizedVersions
+        case latestCurrentVersion
         case readiness
         case prescriptionEligibility
     }
@@ -45,21 +52,15 @@ public struct PersonalStudentAnamnesisView: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(studentId, forKey: .studentId)
-        try container.encode(anamnesisState, forKey: .anamnesisState)
-        try container.encodeIfPresent(latestCompletedVersion, forKey: .latestCompletedVersion)
-        try container.encode(completedVersions, forKey: .completedVersions)
-        try container.encode(readiness, forKey: .readiness)
+        try container.encode(relationshipId, forKey: .relationshipId)
+        try container.encode(anamnesis, forKey: .anamnesis)
+        try container.encode(authorizedVersions, forKey: .authorizedVersions)
+        try container.encodeIfPresent(latestCurrentVersion, forKey: .latestCurrentVersion)
+        try container.encodeIfPresent(readiness, forKey: .readiness)
         try container.encode(prescriptionEligibility, forKey: .prescriptionEligibility)
     }
 }
 
-
-extension PersonalStudentAnamnesisView: UnknownCaseCheckable {
-    public var containsUnknownDefaultOpenApiCase: Bool {
-        if anamnesisState == .unknownDefaultOpenApi { return true }
-        return false
-    }
-}
 
 /// Prevent credentials and identity proofs from leaking through logs.
 extension PersonalStudentAnamnesisView: CustomStringConvertible {

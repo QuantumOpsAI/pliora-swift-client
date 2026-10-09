@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Parâmetros do bloqueio de elegibilidade. As razões vigentes viajam **nomeadas e acumuláveis**, exatamente na forma que &#x60;StudentPrescriptionEligibilityView&#x60; já publica, e este contrato **não** cria um segundo vocabulário de razão para o mesmo fato. O item é único por vínculo: resolver uma razão altera esta lista, não a identidade do item, e ele some quando a última razão cessa. O cliente não conta razões para decidir gravidade e não promove um item a mais crítico por ter mais razões. Nenhuma razão carrega conteúdo clínico. */
+/** &#x60;SHARING_GRANT_REQUIRED&#x60; (aceite do termo revogado, &#x60;DEC-PHOME-19&#x60;) é o único motivo quando presente: nenhum motivo derivado da ficha viaja sem a base que autoriza lê-lo. */
 public struct PersonalAttentionEligibilityParameters: Codable, JSONEncodable, Hashable {
 
     public enum ReasonCode: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -21,7 +21,7 @@ public struct PersonalAttentionEligibilityParameters: Codable, JSONEncodable, Ha
     public var reasonCode: ReasonCode
     /** Razões de bloqueio vigentes no instante `asOf`, acumuláveis e nomeadas. */
     public var blockingReasons: Set<StudentPrescriptionEligibilityBlockingReason>
-    /** Instante em que o bloqueio passou a vigorar — a mais antiga das razões vigentes, porque o item é único e persiste enquanto qualquer uma delas vigorar. */
+    /** Instante em que o bloqueio passou a vigorar — a mais antiga das razões vigentes, porque o item é único e persiste enquanto qualquer uma delas vigorar. Com `SHARING_GRANT_REQUIRED` é o instante da revogação do aceite. */
     public var blockedSince: Date
 
     public init(reasonCode: ReasonCode, blockingReasons: Set<StudentPrescriptionEligibilityBlockingReason>, blockedSince: Date) {

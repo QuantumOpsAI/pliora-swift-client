@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** As combinações que o servidor nunca emite, declaradas como proibição e não como &#x60;if&#x60;/&#x60;then&#x60;: um vínculo pausado ou encerrado nesta projeção, que só cobre vínculos ativos, e uma sessão concluída sem atividade operacional, já que concluir uma sessão é uma das atividades que o campo consolida. A forma é a que o gate de compatibilidade percorre — ele recursa em &#x60;allOf&#x60;, &#x60;anyOf&#x60; e &#x60;not&#x60; e nunca em &#x60;if&#x60;/&#x60;then&#x60;/&#x60;else&#x60;. */
+/** As combinações que o servidor nunca emite, declaradas como proibição e não como &#x60;if&#x60;/&#x60;then&#x60;: um vínculo pausado ou encerrado nesta projeção, que só cobre vínculos ativos, uma sessão concluída sem atividade operacional, já que concluir uma sessão é uma das atividades que o campo consolida, e &#x60;MEDICAL_CLEARANCE_REQUIRED&#x60; antes da primeira conclusão da ficha deste vínculo, que só o rascunho privado do aluno sustentaria (&#x60;DEC-PHOME-19&#x60; §2.5). A forma é a que o gate de compatibilidade percorre — ele recursa em &#x60;allOf&#x60;, &#x60;anyOf&#x60; e &#x60;not&#x60; e nunca em &#x60;if&#x60;/&#x60;then&#x60;/&#x60;else&#x60;. */
 public struct PersonalStudentOperationItemView: Codable, JSONEncodable, Hashable {
 
     public static let relationshipIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -33,7 +33,7 @@ public struct PersonalStudentOperationItemView: Codable, JSONEncodable, Hashable
     public var assignment: PersonalStudentOperationAssignmentView
     /** Referência da última sessão **concluída** deste aluno, por identidade, reusando a mesma referência executada que a semana do aluno publica. Ausente quando não há sessão concluída — ausência é ausência, nunca data zero nem sessão vazia. Ela não transporta carga, repetição, série nem sequência de sessões. */
     public var lastCompletedSession: PersonalStudentScheduleDayExecuted?
-    /** Instante **do servidor** da atividade operacional mais recente deste vínculo, definido como o mais recente entre os fatos que esta projeção já representa: conclusão de sessão, conclusão de versão da anamnese, publicação ou atribuição de prescrição e relato de desconforto. É um conjunto fechado, e não uma disjunção aberta. Ausente quando nenhum desses fatos existe. Nunca vem do relógio do dispositivo e nunca é comparado entre identidades diferentes. */
+    /** Instante **do servidor** da atividade operacional mais recente deste vínculo, definido como o mais recente entre os fatos que esta projeção já representa: conclusão de sessão, conclusão de versão da anamnese **da ficha deste vínculo**, publicação ou atribuição de prescrição e relato de desconforto. É um conjunto fechado, e não uma disjunção aberta. Ausente quando nenhum desses fatos existe. Nunca vem do relógio do dispositivo e nunca é comparado entre identidades diferentes. Versão de vínculo anterior — autorizada ou não — nunca move este instante, a ordem das linhas nem o cursor (`DEC-PHOME-19`). */
     public var lastOperationalActivityAt: Date?
     public var openAttention: PersonalStudentOpenAttentionView
 

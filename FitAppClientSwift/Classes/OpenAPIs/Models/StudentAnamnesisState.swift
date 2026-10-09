@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Estado da anamnese funcional. &#x60;COMPLETED&#x60; afirma apenas que existe ao menos uma versão concluída; não afirma elegibilidade para prescrição. */
+/** Preenchimento da **ficha de anamnese de um vínculo** (&#x60;DEC-PHOME-19&#x60;), e de nenhum outro: &#x60;NO_ANAMNESIS&#x60; é a ficha ainda não iniciada, &#x60;IN_PROGRESS&#x60; é a ficha com rascunho e sem conclusão, e &#x60;COMPLETED&#x60; é a ficha com ao menos uma versão concluída **nela**, inclusive durante uma edição posterior privada. Não é o fato global de conclusão — uma versão de outro vínculo nunca torna esta ficha &#x60;COMPLETED&#x60; — e não afirma elegibilidade para prescrição. */
 public enum StudentAnamnesisState: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case noAnamnesis = "NO_ANAMNESIS"
     case inProgress = "IN_PROGRESS"

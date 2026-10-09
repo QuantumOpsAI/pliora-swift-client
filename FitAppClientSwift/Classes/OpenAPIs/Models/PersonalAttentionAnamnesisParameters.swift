@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Parâmetros da versão concluída pendente de revisão. Viaja a **referência** da versão, e nada do seu conteúdo: nenhuma seção, nenhuma resposta e nenhum rascunho, que permanece invisível ao personal. Distinguir primeira conclusão de edição posterior é ler &#x60;version.versionNumber&#x60;, que a referência já publica — não existe um segundo campo dizendo o mesmo fato. &#x60;version.versionId&#x60; é também o alvo de &#x60;acknowledgePersonalStudentAnamnesisVersion&#x60;, o ato pelo qual este item sai da fila. */
+/** Parâmetros da versão concluída pendente de revisão — sempre uma versão **da ficha deste vínculo** (&#x60;DEC-PHOME-19&#x60;); versão de vínculo anterior autorizada pelo aluno nunca faz nascer este item, e a data não substitui a identidade do vínculo. Viaja a **referência** da versão, e nada do seu conteúdo: nenhuma seção, nenhuma resposta e nenhum rascunho, que permanece invisível ao personal. Distinguir primeira conclusão de edição posterior é ler &#x60;version.versionNumber&#x60;, que a referência já publica — não existe um segundo campo dizendo o mesmo fato. &#x60;version.versionId&#x60; é também o alvo de &#x60;acknowledgePersonalStudentAnamnesisVersion&#x60;, o ato pelo qual este item sai da fila. */
 public struct PersonalAttentionAnamnesisParameters: Codable, JSONEncodable, Hashable {
 
     public enum ReasonCode: String, Codable, CaseIterable, CaseIterableDefaultsLast {

@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Prontidão para atividade física, decidida pelo servidor. Registrar liberação médica ou conceder dispensa não tem superfície de Experience API nesta fatia: os estados são publicados, os atos que os produzem não são contratados aqui. Nenhum estado de prontidão impede concluir a anamnese. */
+/** Prontidão para atividade física, decidida pelo servidor. Registrar liberação médica ou conceder dispensa não tem superfície de Experience API nesta fatia: os estados são publicados, os atos que os produzem não são contratados aqui. Nenhum estado de prontidão impede concluir a anamnese. **A prontidão e a necessidade de liberação médica derivam só da ficha do vínculo atual** (&#x60;DEC-PHOME-19&#x60;): nenhuma versão de vínculo anterior, autorizada ou não, é fonte delas, e o personal só as lê depois da primeira conclusão dessa ficha. */
 public struct StudentReadinessView: Codable, JSONEncodable, Hashable {
 
     public static let instrumentVersionRule = StringRule(minLength: 1, maxLength: 40, pattern: nil)

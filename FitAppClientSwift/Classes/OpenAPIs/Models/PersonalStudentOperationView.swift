@@ -19,7 +19,7 @@ public struct PersonalStudentOperationView: Codable, JSONEncodable, Hashable {
     public var asOf: Date
     /** Selo de origem reusado sem variação. Nesta leitura é sempre `PROJECTION`; como o item é derivado, o corte `asOf` é obrigatório. */
     public var origin: SyncItemOrigin
-    /** Instante da mais antiga das razões de bloqueio ainda vigentes, igual ao `blockedSince` da fila, sem exigir que exista item aberto. É fato do bloqueio e nunca o instante da consulta. Obrigatório quando `item.prescriptionEligibility.status` é `BLOCKED`; ausente quando `ELIGIBLE`. */
+    /** Instante da mais antiga das razões de bloqueio ainda vigentes, igual ao `blockedSince` da fila, sem exigir que exista item aberto. É fato do bloqueio e nunca o instante da consulta. Com `SHARING_GRANT_REQUIRED` é o instante da revogação do aceite. Obrigatório quando `item.prescriptionEligibility.status` é `BLOCKED`; ausente quando `ELIGIBLE`. */
     public var blockedSince: Date?
 
     public init(item: PersonalStudentOperationItemView, asOf: Date, origin: SyncItemOrigin, blockedSince: Date? = nil) {

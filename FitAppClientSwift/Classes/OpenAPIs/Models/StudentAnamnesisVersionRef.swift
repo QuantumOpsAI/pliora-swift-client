@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Referência a uma versão concluída, sem o seu conteúdo. */
+/** Referência a uma versão concluída, sem o seu conteúdo. &#x60;versionNumber&#x60; é local à ficha do vínculo em que a versão nasceu, e nunca um contador global capaz de revelar outro vínculo. */
 public struct StudentAnamnesisVersionRef: Codable, JSONEncodable, Hashable {
 
     public static let versionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)

@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Decisão de uma categoria do catálogo fechado de compartilhamento. &#x60;GRANTED&#x60; é grant de **leitura** e nada mais. */
+/** Decisão de uma categoria do catálogo fechado de compartilhamento. &#x60;GRANTED&#x60; é grant de **leitura** e nada mais. A anamnese não é categoria (&#x60;DEC-PHOME-19&#x60;): versão de anamnese de vínculo anterior só chega ao personal novo por autorização explícita, por versão e vínculo destinatário, em &#x60;setStudentAnamnesisPreviousVersionsGrant&#x60;. */
 public struct StudentSharingGrantInput: Codable, JSONEncodable, Hashable {
 
     public var category: StudentSharingCategory

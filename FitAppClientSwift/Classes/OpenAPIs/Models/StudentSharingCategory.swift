@@ -10,9 +10,8 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Categoria de compartilhamento que o aluno pode autorizar ao novo personal numa troca. **Lista fechada**: são exatamente estas cinco, e uma sexta categoria é escopo inventado. A autorização é grant de **leitura** — não copia o fato, não reatribui autoria, não muda procedência e não cria segunda cópia. A configuração de coleta do personal anterior **nunca** é herdada e não está aqui. **Os identificadores são os valores persistidos pelo servidor**, e a lista é a mesma que a restrição fechada do banco aceita: alinhar aqui é o que impede um grant válido no contrato e recusado na gravação. */
+/** Categoria de compartilhamento que o aluno pode autorizar ao novo personal numa troca. **Lista fechada**: são exatamente estas quatro, e uma quinta categoria é escopo inventado. A autorização é grant de **leitura** — não copia o fato, não reatribui autoria, não muda procedência e não cria segunda cópia. A configuração de coleta do personal anterior **nunca** é herdada e não está aqui. **Os identificadores são os valores persistidos pelo servidor**, e a lista é a mesma que a restrição fechada do banco aceita: alinhar aqui é o que impede um grant válido no contrato e recusado na gravação. **&#x60;HEALTH_FORM&#x60; foi removida** (&#x60;DEC-PHOME-19&#x60;, decisão do orquestrador de 2026-10-09, reversível): ela só cobria a anamnese funcional e a triagem, e nenhuma outra leitura a consultava. A anamnese não é categoria: versões de vínculos anteriores só por &#x60;setStudentAnamnesisPreviousVersionsGrant&#x60;, versão a versão, revogável, e a ficha do vínculo atual não tem alternância. A restrição fechada do banco acompanha a remoção na mesma entrega do backend. */
 public enum StudentSharingCategory: String, Codable, CaseIterable, CaseIterableDefaultsLast {
-    case healthForm = "HEALTH_FORM"
     case priorTrainerMeasurements = "PRIOR_TRAINER_MEASUREMENTS"
     case workoutHistory = "WORKOUT_HISTORY"
     case studentDeclaredSeries = "STUDENT_DECLARED_SERIES"

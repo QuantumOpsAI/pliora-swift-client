@@ -13,7 +13,7 @@ Name | Type | Description | Notes
 **intensity** | **Int** | Intensidade declarada na mesma escala inteira já publicada na execução. |
 **version** | [**StudentAnamnesisVersionRef**](StudentAnamnesisVersionRef.md) |  |
 **blockingReasons** | Set<StudentPrescriptionEligibilityBlockingReason> | Razões de bloqueio vigentes no instante &#x60;asOf&#x60;, acumuláveis e nomeadas. |
-**blockedSince** | **Date** | Instante em que o bloqueio passou a vigorar — a mais antiga das razões vigentes, porque o item é único e persiste enquanto qualquer uma delas vigorar. |
+**blockedSince** | **Date** | Instante em que o bloqueio passou a vigorar — a mais antiga das razões vigentes, porque o item é único e persiste enquanto qualquer uma delas vigorar. Com &#x60;SHARING_GRANT_REQUIRED&#x60; é o instante da revogação do aceite. |
 **exerciseLabel** | **String** | Rótulo do exercício na prescrição — o &#x60;displayName&#x60; que o personal deu, o mesmo que a versão publicada e o bundle exibem —, preservado sem tradução e sem substituir &#x60;exerciseId&#x60;. O catálogo não é guardado (ADR-0014): nenhum nome vem dele. |
 **variantId** | **String** | Variante do exercício. Ela faz parte da chave de comparabilidade: carga de variantes diferentes não é equivalente e nunca entra na mesma janela. |
 **variantLabel** | **String** | Rótulo da variante, preservado sem tradução e sem substituir &#x60;variantId&#x60;. Uma variante prescrita de exercício do catálogo, que tem uma só, leva o &#x60;displayName&#x60; da prescrição; o catálogo não é guardado (ADR-0014) e nenhum nome vem dele. |

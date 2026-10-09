@@ -10,16 +10,21 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Envelope de escrita de uma única seção tipada no rascunho privado. */
+/** Envelope de escrita de uma única seção tipada no rascunho privado da ficha do vínculo &#x60;relationshipId&#x60;, que é o vínculo atual lido em &#x60;anamnesis.relationshipId&#x60;. */
 public struct SaveStudentAnamnesisSectionRequest: Codable, JSONEncodable, Hashable {
 
+    public static let relationshipIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
+    public var relationshipId: String
     public var section: StudentAnamnesisSection
 
-    public init(section: StudentAnamnesisSection) {
+    public init(relationshipId: String, section: StudentAnamnesisSection) {
+        self.relationshipId = relationshipId
         self.section = section
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
+        case relationshipId
         case section
     }
 
@@ -27,6 +32,7 @@ public struct SaveStudentAnamnesisSectionRequest: Codable, JSONEncodable, Hashab
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(relationshipId, forKey: .relationshipId)
         try container.encode(section, forKey: .section)
     }
 }

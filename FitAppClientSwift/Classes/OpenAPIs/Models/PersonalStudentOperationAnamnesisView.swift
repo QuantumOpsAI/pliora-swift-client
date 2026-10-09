@@ -10,36 +10,57 @@ import Foundation
 import AnyCodable
 #endif
 
-/** As combinações proibidas do estado da anamnese, na forma que o gate de compatibilidade percorre: concluída sem a versão que a sustenta, e versão publicada com estado que não a comporta. */
+/** As combinações que o servidor nunca emite, na forma que o gate de compatibilidade percorre: ficha concluída sem a versão que a sustenta, versão publicada com ficha que não a comporta, ficha concluída ou versão anterior autorizada sem o fato global de conclusão, a variante de acesso negado com qualquer outra dimensão, e o bloco sem a variante e sem as três dimensões. */
 public struct PersonalStudentOperationAnamnesisView: Codable, JSONEncodable, Hashable {
 
-    public var state: StudentAnamnesisState
-    /** Referência à versão concluída mais recente — identidade, número e data —, sem o seu conteúdo, reusando a referência já publicada. Presente exatamente quando `state` é `COMPLETED`, e ausente nos outros dois estados; a ausência é ausência, nunca versão zero. */
-    public var latestCompletedVersion: StudentAnamnesisVersionRef?
+    public enum AccessDeniedCode: String, Codable, CaseIterable, CaseIterableDefaultsLast {
+        case sharingGrantRequired = "SHARING_GRANT_REQUIRED"
+        case unknownDefaultOpenApi = "unknown_default_open_api"
+    }
+    /** Variante **acesso negado**, só na linha operacional: o aceite do termo deste vínculo foi revogado e a base de autorização se perdeu. Presente, o bloco não carrega mais nada — nem fato global, preenchimento, referência, número, data ou contagem —, o aluno continua na lista e a elegibilidade é `BLOCKED` só com `SHARING_GRANT_REQUIRED`. Ausente, as três dimensões são obrigatórias. */
+    public var accessDeniedCode: AccessDeniedCode?
+    /** Fato global binário de conclusão, derivado no servidor. Verdadeiro não diz qual ficha, quando nem quantas vezes. */
+    public var hasCompletedAnamnesis: Bool?
+    /** Preenchimento da ficha **deste vínculo**. Antes da primeira conclusão dela o personal conhece somente este estado; uma ficha anterior concluída nunca o torna `COMPLETED`. */
+    public var currentFormState: StudentAnamnesisState?
+    /** Referência à versão concluída mais recente **da ficha deste vínculo** — identidade, número local e data —, sem conteúdo. Presente exatamente quando `currentFormState` é `COMPLETED`; uma versão anterior autorizada nunca ocupa este lugar. */
+    public var latestCurrentVersion: StudentAnamnesisVersionRef?
+    /** Verdadeiro quando o aluno autorizou a este vínculo ao menos uma versão de vínculo anterior. As referências estão em `getPersonalStudentAnamnesis`; versão anterior nunca é a ficha atual e não satisfaz o preenchimento dela. */
+    public var hasAuthorizedPreviousVersions: Bool?
 
-    public init(state: StudentAnamnesisState, latestCompletedVersion: StudentAnamnesisVersionRef? = nil) {
-        self.state = state
-        self.latestCompletedVersion = latestCompletedVersion
+    public init(accessDeniedCode: AccessDeniedCode? = nil, hasCompletedAnamnesis: Bool? = nil, currentFormState: StudentAnamnesisState? = nil, latestCurrentVersion: StudentAnamnesisVersionRef? = nil, hasAuthorizedPreviousVersions: Bool? = nil) {
+        self.accessDeniedCode = accessDeniedCode
+        self.hasCompletedAnamnesis = hasCompletedAnamnesis
+        self.currentFormState = currentFormState
+        self.latestCurrentVersion = latestCurrentVersion
+        self.hasAuthorizedPreviousVersions = hasAuthorizedPreviousVersions
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
-        case state
-        case latestCompletedVersion
+        case accessDeniedCode
+        case hasCompletedAnamnesis
+        case currentFormState
+        case latestCurrentVersion
+        case hasAuthorizedPreviousVersions
     }
 
     // Encodable protocol methods
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(state, forKey: .state)
-        try container.encodeIfPresent(latestCompletedVersion, forKey: .latestCompletedVersion)
+        try container.encodeIfPresent(accessDeniedCode, forKey: .accessDeniedCode)
+        try container.encodeIfPresent(hasCompletedAnamnesis, forKey: .hasCompletedAnamnesis)
+        try container.encodeIfPresent(currentFormState, forKey: .currentFormState)
+        try container.encodeIfPresent(latestCurrentVersion, forKey: .latestCurrentVersion)
+        try container.encodeIfPresent(hasAuthorizedPreviousVersions, forKey: .hasAuthorizedPreviousVersions)
     }
 }
 
 
 extension PersonalStudentOperationAnamnesisView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
-        if state == .unknownDefaultOpenApi { return true }
+        if accessDeniedCode == .unknownDefaultOpenApi { return true }
+        if currentFormState == .unknownDefaultOpenApi { return true }
         return false
     }
 }

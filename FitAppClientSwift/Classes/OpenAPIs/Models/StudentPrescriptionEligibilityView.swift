@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Estado derivado e calculado pelo servidor; nenhum cliente o infere. Os motivos de bloqueio são acumuláveis e nomeados: resolver um não resolve os outros. A elegibilidade incide sobre publicar prescrição nova e nunca despublica, apaga ou reescreve versão já publicada. */
+/** &#x60;SHARING_GRANT_REQUIRED&#x60; é o único motivo quando presente, e nunca convive com &#x60;ELIGIBLE&#x60; (\&quot;contém\&quot; escrito como &#x60;not: {items: {not: …}}&#x60;). */
 public struct StudentPrescriptionEligibilityView: Codable, JSONEncodable, Hashable {
 
     public enum Status: String, Codable, CaseIterable, CaseIterableDefaultsLast {

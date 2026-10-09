@@ -19,6 +19,7 @@ public struct PersonalStudentAnamnesisForbiddenProblemDetails: Codable, JSONEnco
     public enum Code: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case forbidden = "FORBIDDEN"
         case relationshipInactive = "RELATIONSHIP_INACTIVE"
+        case relationshipPaused = "RELATIONSHIP_PAUSED"
         case sharingGrantRequired = "SHARING_GRANT_REQUIRED"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }

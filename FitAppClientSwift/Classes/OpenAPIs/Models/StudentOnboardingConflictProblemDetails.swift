@@ -19,6 +19,7 @@ public struct StudentOnboardingConflictProblemDetails: Codable, JSONEncodable, H
     public enum Code: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case idempotencyConflict = "IDEMPOTENCY_CONFLICT"
         case anamnesisDraftEmpty = "ANAMNESIS_DRAFT_EMPTY"
+        case anamnesisRelationshipMismatch = "ANAMNESIS_RELATIONSHIP_MISMATCH"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)

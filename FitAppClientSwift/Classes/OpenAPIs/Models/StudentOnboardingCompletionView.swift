@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Confirmação autoritativa da conclusão. Resposta canônica única: a mesma para menor e para adulto, sem variante de conclusão pendente. */
+/** Confirmação autoritativa da conclusão **da ficha do vínculo atual**. Resposta canônica única: a mesma para menor e para adulto, sem variante de conclusão pendente. Ficha concluída, onboarding concluído e elegibilidade continuam fatos distintos. */
 public struct StudentOnboardingCompletionView: Codable, JSONEncodable, Hashable {
 
     public var onboardingState: StudentOnboardingState

@@ -10,42 +10,53 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Estado da anamnese do próprio aluno, com o rascunho privado que ele pode retomar. O rascunho pertence ao aluno e nunca é projetado para o personal. */
+/** Uma solicitação de preenchimento pendente numa ficha já concluída: a conclusão é o fato que a satisfaz. */
 public struct StudentAnamnesisStateView: Codable, JSONEncodable, Hashable {
 
+    public static let relationshipIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    /** Vínculo dono desta ficha: o vínculo atual do aluno, o mesmo identificador antes e depois de uma pausa. As duas escritas da ficha o repetem no corpo, e uma ficha de outro vínculo nunca é escrita por engano. */
+    public var relationshipId: String
     public var state: StudentAnamnesisState
-    /** Verdadeiro somente quando existe ao menos uma versão concluída; rascunho não conta. */
+    /** Verdadeiro somente quando **esta ficha** tem ao menos uma versão concluída; rascunho não conta, e versão de outro vínculo também não. */
     public var completed: Bool
-    /** Versões concluídas, da mais recente para a mais antiga; nenhuma é reescrita. */
+    /** Versões concluídas desta ficha, da mais recente para a mais antiga; nenhuma é reescrita, e nenhuma versão de outra ficha aparece aqui. */
     public var completedVersions: [StudentAnamnesisVersionRef]
     public var latestCompletedVersion: StudentAnamnesisVersionView?
     public var draft: StudentAnamnesisDraftView
+    /** Instante do servidor em que o personal do vínculo **solicitou dentro do app** o preenchimento desta ficha, presente somente enquanto a solicitação está pendente. A conclusão da ficha a satisfaz, e o campo some. É o único lugar em que o aluno a encontra: não há push, badge, mensagem, prazo nem texto do personal. */
+    public var completionRequestedAt: Date?
 
-    public init(state: StudentAnamnesisState, completed: Bool, completedVersions: [StudentAnamnesisVersionRef], latestCompletedVersion: StudentAnamnesisVersionView? = nil, draft: StudentAnamnesisDraftView) {
+    public init(relationshipId: String, state: StudentAnamnesisState, completed: Bool, completedVersions: [StudentAnamnesisVersionRef], latestCompletedVersion: StudentAnamnesisVersionView? = nil, draft: StudentAnamnesisDraftView, completionRequestedAt: Date? = nil) {
+        self.relationshipId = relationshipId
         self.state = state
         self.completed = completed
         self.completedVersions = completedVersions
         self.latestCompletedVersion = latestCompletedVersion
         self.draft = draft
+        self.completionRequestedAt = completionRequestedAt
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
+        case relationshipId
         case state
         case completed
         case completedVersions
         case latestCompletedVersion
         case draft
+        case completionRequestedAt
     }
 
     // Encodable protocol methods
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(relationshipId, forKey: .relationshipId)
         try container.encode(state, forKey: .state)
         try container.encode(completed, forKey: .completed)
         try container.encode(completedVersions, forKey: .completedVersions)
         try container.encodeIfPresent(latestCompletedVersion, forKey: .latestCompletedVersion)
         try container.encode(draft, forKey: .draft)
+        try container.encodeIfPresent(completionRequestedAt, forKey: .completionRequestedAt)
     }
 }
 

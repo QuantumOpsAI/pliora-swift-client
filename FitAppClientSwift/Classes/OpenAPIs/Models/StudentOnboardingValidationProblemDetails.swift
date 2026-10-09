@@ -21,6 +21,7 @@ public struct StudentOnboardingValidationProblemDetails: Codable, JSONEncodable,
         case anamnesisIncomplete = "ANAMNESIS_INCOMPLETE"
         case anamnesisSectionNotApplicable = "ANAMNESIS_SECTION_NOT_APPLICABLE"
         case anamnesisSectionKeyMismatch = "ANAMNESIS_SECTION_KEY_MISMATCH"
+        case anamnesisVersionSelectionInvalid = "ANAMNESIS_VERSION_SELECTION_INVALID"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -31,7 +32,7 @@ public struct StudentOnboardingValidationProblemDetails: Codable, JSONEncodable,
     /** Resumo legível e estável para a classe do problema. server_localized; `code` é a autoridade estável para lógica de cliente, `title` nunca deve ser usado como chave de decisão. */
     public var title: String
     public var status: Status
-    /** Catálogo fechado desta família. Nenhum código de consentimento existe aqui: a triagem de prontidão tem base própria. */
+    /** Catálogo fechado desta família. Nenhum código de consentimento existe aqui: a triagem de prontidão tem base própria. `ANAMNESIS_VERSION_SELECTION_INVALID` é a seleção de versões anteriores que inclui versão que não é do aluno, que não está concluída ou que nasceu no próprio vínculo destinatário; a seleção inteira é recusada, e o erro não diz qual versão. */
     public var code: Code
     /** Explicação contextual segura para exibição ou diagnóstico. */
     public var detail: String?

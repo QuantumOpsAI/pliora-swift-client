@@ -21,6 +21,7 @@ public struct StudentInvitationAcceptancePreconditionProblemDetails: Codable, JS
         case ageAssuranceRequired = "AGE_ASSURANCE_REQUIRED"
         case ageNotEligible = "AGE_NOT_ELIGIBLE"
         case activeRelationshipConfirmationRequired = "ACTIVE_RELATIONSHIP_CONFIRMATION_REQUIRED"
+        case consentRequired = "CONSENT_REQUIRED"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)

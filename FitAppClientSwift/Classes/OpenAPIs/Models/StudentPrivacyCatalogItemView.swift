@@ -10,17 +10,25 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Um item do catálogo de privacidade vigente, com o texto do servidor e, quando recusá-lo tiver consequência, o texto dessa consequência. A **versão é do servidor** e o cliente não a propõe, não a valida e não a escolhe. **Nenhum item é obrigatório, e este schema não tem como dizer que algum seja.** A &#x60;DOC-ONBOARDING-ASSESSMENT&#x60; §10.1 (S4) é explícita: os itens são independentes, \&quot;recusar um não impede conceder os outros\&quot;, e recusar o compartilhamento com o personal **esvazia** a relação — não impede o vínculo — e isso precisa ser dito **antes** da confirmação, \&quot;sem transformar a recusa em erro\&quot;. Uma propriedade de obrigatoriedade aqui afirmaria uma regra de produto que a autoridade nega, e nenhuma recusa desta operação a implementaria. */
+/** O termo obrigatório é exatamente &#x60;SHARE_DATA_WITH_PERSONAL&#x60;: ele nunca vem facultativo, e nenhum outro vem obrigatório. */
 public struct StudentPrivacyCatalogItemView: Codable, JSONEncodable, Hashable {
 
     public static let documentVersionRule = StringRule(minLength: 1, maxLength: 32, pattern: nil)
+    public static let documentTextRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let documentSha256Rule = StringRule(minLength: nil, maxLength: nil, pattern: "/^[0-9a-f]{64}$/")
     public static let declineConsequenceRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let summaryRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public var consentType: StudentConsentType
-    /** Versão vigente do termo, resolvida pelo servidor. */
+    /** Versão imutável do termo apresentado, resolvida pelo servidor e ecoada pelo cliente em `privacyDecisions[].documentVersion`. */
     public var documentVersion: String
-    /** O que recusar este item faz com a relação, no locale negociado, para ser exibido **antes** da confirmação. Presente somente quando recusar tem consequência que a pessoa precisa conhecer — recusar o compartilhamento com o personal, por exemplo, **esvazia a relação**. É texto a exibir, **nunca** um bloqueio: recusar é decisão registrada e não vira erro, e o aceite não é recusado por causa dela (`DOC-ONBOARDING-ASSESSMENT` §10.1, S4). Nenhum cliente deriva obrigatoriedade daqui, porque não existe item obrigatório nesta versão. **Lacuna registrada, e não fechada aqui: o campo é opcional.** Um servidor que sirva o catálogo sem ele em `SHARE_DATA_WITH_PERSONAL` satisfaz este contrato e mesmo assim descumpre a §10.1, porque o app não teria o que exibir. Este schema **permite** cumprir a §10.1; ele **não garante** que ela seja cumprida, e a obrigação continua vivendo na §10.1, não aqui. Torná-lo obrigatório forçaria texto em item sem consequência, e obrigação condicional por `consentType` não se expressa limpo em JSON Schema — a escolha é deliberada, e quem implementar o servidor precisa sabê-la. */
+    /** O texto exato e imutável desta versão, no locale negociado, apresentado por inteiro antes da confirmação. É o texto que o comprovante do aceite preserva. */
+    public var documentText: String
+    /** SHA-256, em hexadecimal minúsculo, dos bytes UTF-8 de `documentText`. O aceite grava texto, hash, locale e versão juntos, e o comprovante devolve os mesmos. */
+    public var documentSha256: String
+    /** `true` somente em `SHARE_DATA_WITH_PERSONAL`: sem o ato `GRANTED` sobre ele o aceite é recusado com `403 CONSENT_REQUIRED`, sem consumir o convite. O cliente não deriva obrigatoriedade do tipo: lê este campo. */
+    public var acceptanceRequired: Bool
+    /** O que recusar este item faz, no locale negociado, para ser exibido **antes** da confirmação. Num item facultativo é texto a exibir, nunca um bloqueio; no item obrigatório diz que sem ele não é possível seguir com o vínculo. Nenhum cliente deriva obrigatoriedade daqui — ela está em `acceptanceRequired`. */
     public var declineConsequence: String?
     /** Título do item, no locale negociado. */
     public var title: String
@@ -29,9 +37,12 @@ public struct StudentPrivacyCatalogItemView: Codable, JSONEncodable, Hashable {
     /** Endereço do texto completo, quando o servidor publica um. */
     public var learnMoreUrl: String?
 
-    public init(consentType: StudentConsentType, documentVersion: String, declineConsequence: String? = nil, title: String, summary: String, learnMoreUrl: String? = nil) {
+    public init(consentType: StudentConsentType, documentVersion: String, documentText: String, documentSha256: String, acceptanceRequired: Bool, declineConsequence: String? = nil, title: String, summary: String, learnMoreUrl: String? = nil) {
         self.consentType = consentType
         self.documentVersion = documentVersion
+        self.documentText = documentText
+        self.documentSha256 = documentSha256
+        self.acceptanceRequired = acceptanceRequired
         self.declineConsequence = declineConsequence
         self.title = title
         self.summary = summary
@@ -41,6 +52,9 @@ public struct StudentPrivacyCatalogItemView: Codable, JSONEncodable, Hashable {
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case consentType
         case documentVersion
+        case documentText
+        case documentSha256
+        case acceptanceRequired
         case declineConsequence
         case title
         case summary
@@ -53,6 +67,9 @@ public struct StudentPrivacyCatalogItemView: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(consentType, forKey: .consentType)
         try container.encode(documentVersion, forKey: .documentVersion)
+        try container.encode(documentText, forKey: .documentText)
+        try container.encode(documentSha256, forKey: .documentSha256)
+        try container.encode(acceptanceRequired, forKey: .acceptanceRequired)
         try container.encodeIfPresent(declineConsequence, forKey: .declineConsequence)
         try container.encode(title, forKey: .title)
         try container.encode(summary, forKey: .summary)

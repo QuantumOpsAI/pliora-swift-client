@@ -10,12 +10,13 @@ import Foundation
 import AnyCodable
 #endif
 
-/** &#x60;MEDICAL_CLEARANCE_REQUIRED&#x60; corresponde à prontidão aguardando liberação e **não** bloqueia concluir a anamnese. &#x60;GUARDIAN_AUTHORIZATION_REQUIRED&#x60; é o **único** ponto de contato contratual da autorização de responsável: não existe operação para conceder, revogar, consultar ou convidar, e nenhum campo desta API expõe identidade, nome ou contato do responsável. */
+/** &#x60;SHARING_GRANT_REQUIRED&#x60; é a **base de autorização deste vínculo perdida**: o aceite de &#x60;SHARE_DATA_WITH_PERSONAL&#x60; que autoriza a ficha foi revogado (&#x60;DEC-PHOME-19&#x60; §3.1, fail-closed). Quando presente é o **único** motivo — nada derivado da ficha ou da triagem é nomeado sem a base que autoriza lê-lo — e &#x60;blockedSince&#x60; é o instante da revogação. &#x60;ANAMNESIS_NOT_COMPLETED&#x60; é a exigência **opcional** do personal sobre a ficha do vínculo atual (&#x60;DEC-PHOME-19&#x60;), nunca uma regra que o sistema liga sozinho. &#x60;MEDICAL_CLEARANCE_REQUIRED&#x60; corresponde à prontidão aguardando liberação e **não** bloqueia concluir a anamnese. &#x60;GUARDIAN_AUTHORIZATION_REQUIRED&#x60; é o **único** ponto de contato contratual da autorização de responsável: não existe operação para conceder, revogar, consultar ou convidar, e nenhum campo desta API expõe identidade, nome ou contato do responsável. */
 public enum StudentPrescriptionEligibilityBlockingReason: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case relationshipNotActive = "RELATIONSHIP_NOT_ACTIVE"
     case anamnesisNotCompleted = "ANAMNESIS_NOT_COMPLETED"
     case medicalClearanceRequired = "MEDICAL_CLEARANCE_REQUIRED"
     case guardianAuthorizationRequired = "GUARDIAN_AUTHORIZATION_REQUIRED"
+    case sharingGrantRequired = "SHARING_GRANT_REQUIRED"
     case unknownDefaultOpenApi = "unknown_default_open_api"
 }
 
