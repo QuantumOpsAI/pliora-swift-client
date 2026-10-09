@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Sessão aberta do aluno, presente se e somente se &#x60;status&#x60; é &#x60;SESSION_IN_PROGRESS&#x60;, em andamento ou interrompida. Existe para que a tela leve à retomada, ou à decisão sobre o treino interrompido, em vez de oferecer um novo início. Traz as contagens que o cartão mostra, contadas pelo servidor, e nunca a execução série a série. */
+/** Sessão aberta do aluno, presente se e somente se &#x60;status&#x60; é &#x60;SESSION_IN_PROGRESS&#x60;, em andamento ou interrompida. Existe para que a tela leve à retomada, ou à decisão sobre o treino interrompido, em vez de oferecer um novo início. Traz as contagens que o cartão mostra, contadas pelo servidor, e nunca a execução série a série. **Descanso em curso.** Com a sessão &#x60;IN_PROGRESS&#x60; e um descanso correndo, traz também o início dele (&#x60;restStartedAt&#x60;) e, quando há descanso prescrito, o alvo (&#x60;restDurationSeconds&#x60;), para a barra de treino em andamento mostrar &#x60;Descanso · mm:ss&#x60; — o restante até o alvo e, passado o alvo, o decorrido, como a tela de descanso; sem alvo, o decorrido. O servidor os deriva dos fatos que já tem, sem fato novo, sem operação nova e sem relógio do cliente na conta; o app conta a partir de &#x60;restStartedAt&#x60; com o relógio do aparelho, sem contador próprio e sem nova leitura por segundo. Sem &#x60;restStartedAt&#x60; não há linha de descanso, e a barra mostra o tempo decorrido da sessão — nunca &#x60;Descanso · 00:00&#x60;. */
 public struct StudentTodayCardOpenSessionView: Codable, JSONEncodable, Hashable {
 
     public static let sessionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -18,6 +18,7 @@ public struct StudentTodayCardOpenSessionView: Codable, JSONEncodable, Hashable 
     public static let prescriptionVersionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let completedSetCountRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let totalSetCountRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let restDurationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     /** A identidade da sessão, a mesma que o início adotou. */
     public var sessionId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -33,8 +34,12 @@ public struct StudentTodayCardOpenSessionView: Codable, JSONEncodable, Hashable 
     public var totalSetCount: Int
     /** Maior instante de servidor entre o início da sessão e qualquer fato aceito nela; é dele que se conta o prazo da interrupção. */
     public var lastRecordedAt: Date
+    /** Início do descanso em curso. É o `completedAt` da **última série registrada** na sessão, quando ela é `COMPLETED` ou `PARTIAL` e ainda não tem descanso registrado (nenhum `REST_PERIOD` com `afterSetExecutionId` igual a ela) — o mesmo instante de que o pacote da sessão deriva o descanso em curso, para a barra e a tela de descanso concordarem. A emenda de uma série não muda o `completedAt` dela, e não cria nem desloca descanso. O fim do descanso só chega ao servidor quando o aparelho o registra (`recordStudentRestPeriod`); até lá ele segue correndo nesta leitura, como na tela de descanso. **Ausente**, e então `restDurationSeconds` também: com a sessão `INTERRUPTED`; sem série registrada; quando a última série registrada é `SKIPPED`, que vai direto à série seguinte e não volta à anterior para achar um descanso; quando a última série já tem descanso registrado; e quando a posição dela não tem tela de descanso — membro de bloco que não é o último da rodada, sem descanso entre estações. */
+    public var restStartedAt: Date?
+    /** Alvo prescrito do descanso em curso, em segundos: o mesmo `restSeconds` que o pacote da sessão publica para aquela série (`PrescribedSetSyncView.restSeconds`), com a regra de bloco dele — o descanso entre estações depois de um membro que não é o último da rodada, e o do bloco depois do último. Só existe com `restStartedAt`. **Não inclui o ajuste** de `−15 s`/`+15 s` do aluno, que só existe no aparelho até o descanso ser registrado. **Ausente** quando não há descanso prescrito depois da série — depois da última rodada de um bloco, ou fora de bloco sem descanso —, e então a barra conta para cima, como a tela de descanso. A ausência nunca é zero: o campo nunca vale `0`, e o descanso prescrito de zero segundo também fica ausente, porque passado o alvo a barra já mostra o decorrido. */
+    public var restDurationSeconds: Int?
 
-    public init(sessionId: String, workoutId: String, prescriptionVersionId: String, status: StudentTodayCardSessionStatus, startedAt: Date, completedSetCount: Int, totalSetCount: Int, lastRecordedAt: Date) {
+    public init(sessionId: String, workoutId: String, prescriptionVersionId: String, status: StudentTodayCardSessionStatus, startedAt: Date, completedSetCount: Int, totalSetCount: Int, lastRecordedAt: Date, restStartedAt: Date? = nil, restDurationSeconds: Int? = nil) {
         self.sessionId = sessionId
         self.workoutId = workoutId
         self.prescriptionVersionId = prescriptionVersionId
@@ -43,6 +48,8 @@ public struct StudentTodayCardOpenSessionView: Codable, JSONEncodable, Hashable 
         self.completedSetCount = completedSetCount
         self.totalSetCount = totalSetCount
         self.lastRecordedAt = lastRecordedAt
+        self.restStartedAt = restStartedAt
+        self.restDurationSeconds = restDurationSeconds
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -54,6 +61,8 @@ public struct StudentTodayCardOpenSessionView: Codable, JSONEncodable, Hashable 
         case completedSetCount
         case totalSetCount
         case lastRecordedAt
+        case restStartedAt
+        case restDurationSeconds
     }
 
     // Encodable protocol methods
@@ -68,6 +77,8 @@ public struct StudentTodayCardOpenSessionView: Codable, JSONEncodable, Hashable 
         try container.encode(completedSetCount, forKey: .completedSetCount)
         try container.encode(totalSetCount, forKey: .totalSetCount)
         try container.encode(lastRecordedAt, forKey: .lastRecordedAt)
+        try container.encodeIfPresent(restStartedAt, forKey: .restStartedAt)
+        try container.encodeIfPresent(restDurationSeconds, forKey: .restDurationSeconds)
     }
 }
 

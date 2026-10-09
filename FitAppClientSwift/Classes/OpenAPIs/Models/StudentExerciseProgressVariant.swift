@@ -21,7 +21,7 @@ public struct StudentExerciseProgressVariant: Codable, JSONEncodable, Hashable {
     public var variantId: String
     /** O rótulo da variante, preservado verbatim — o que o seletor da evolução mostra (`Barra`, `Halteres`). Para o exercício do catálogo, que tem uma variante só, é o `displayName`. */
     public var variantLabel: String
-    /** O contexto de equipamento que fecha a chave de comparabilidade. Código de máquina estável, nunca nome de aparelho exibível. **Ausente** quando o contexto não discrimina; ausência é ausência, e nunca um equipamento padrão presumido. */
+    /** O contexto de equipamento que fecha a chave de comparabilidade com a variante. Código de máquina estável e opaco, nunca nome de aparelho exibível nem texto a interpretar. O cliente o devolve exatamente como veio, em `equipmentContextKey` de `getStudentExerciseProgress`, para ler o mesmo par, e nunca o deriva, completa ou presume: do lado do cliente não existe equipamento padrão. **Ausente** só quando o servidor não publica contexto para o par; ausência é ausência, e o pedido do mesmo par também o omite. */
     public var equipmentContextKey: String?
     /** O dia civil (`localDate`) da sessão mais recente em que o par foi executado. */
     public var lastExecutedOn: Date

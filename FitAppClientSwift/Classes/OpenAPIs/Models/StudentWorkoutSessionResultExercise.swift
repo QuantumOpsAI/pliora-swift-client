@@ -32,7 +32,7 @@ public struct StudentWorkoutSessionResultExercise: Codable, JSONEncodable, Hasha
     public static let discomfortsRule = ArrayRule(minItems: 1, maxItems: 50, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var exerciseExecutionId: String
-    /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
+    /** O exercício da variante executada — o prescrito, ou o da alternativa quando o aluno executou outro exercício —, na **mesma identidade** que `listStudentExerciseProgress` devolve em `exerciseId` e que `getStudentExerciseProgress` recebe no caminho: é com ele que o resumo abre a evolução do exercício. Esta leitura não traz o contexto de equipamento, que fecha com a variante o par da evolução; aberta daqui só com `exerciseId`, a evolução lê o par de execução mais recente do exercício, que pode não ser o desta sessão. A evolução segue a privacidade das leituras de progresso — só a conta dona dos fatos —, e exercício sem série executada em sessão alguma não tem evolução (`404 EXERCISE_PROGRESS_NOT_FOUND`). */
     public var exerciseId: String
     /** O rótulo do exercício, o `displayName` que o personal deu na prescrição, preservado verbatim e invariante de locale. */
     public var displayName: String
