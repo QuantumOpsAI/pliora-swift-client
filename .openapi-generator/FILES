@@ -586,6 +586,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentTrainingForbiddenProblemDetails
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTrainingGoal.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTrainingLocation.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTrainingPlanState.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentTrainingRateLimitedProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTrainingUnauthenticatedProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutExecutionConflictProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutExecutionNotFoundProblemDetails.swift
@@ -1268,6 +1269,7 @@ docs/StudentTrainingForbiddenProblemDetails.md
 docs/StudentTrainingGoal.md
 docs/StudentTrainingLocation.md
 docs/StudentTrainingPlanState.md
+docs/StudentTrainingRateLimitedProblemDetails.md
 docs/StudentTrainingUnauthenticatedProblemDetails.md
 docs/StudentWorkoutExecutionConflictProblemDetails.md
 docs/StudentWorkoutExecutionNotFoundProblemDetails.md
