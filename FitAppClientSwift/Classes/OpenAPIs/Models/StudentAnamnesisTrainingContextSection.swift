@@ -23,11 +23,11 @@ public struct StudentAnamnesisTrainingContextSection: Codable, JSONEncodable, Ha
     public var trainingLocation: StudentTrainingLocation
     /** Texto após trim, sem Markdown ou HTML; exigido com `trainingLocation: OTHER` e proibido sem ele — a regra é do schema, não da prosa. */
     public var otherTrainingLocation: String?
-    /** Contexto de disponibilidade declarado pelo aluno. **Lista vazia declara ausência de equipamento** — treinar só com o peso do corpo —, pela mesma regra das listas do histórico; por isso o catálogo não tem `NONE` nem `BODYWEIGHT_ONLY`, que seriam a mesma declaração dita duas vezes e admitiriam a combinação contraditória `[NONE, DUMBBELLS]`. A lista não se confunde com o equipamento registrado na execução, não cria catálogo e não cria tenancy de academia. */
-    public var availableEquipment: Set<StudentAvailableEquipment>
+    /** Contexto de disponibilidade declarado pelo aluno, relativo ao `trainingLocation` — em academia, acesso ou restrição conhecida, nunca posse, e nenhum local presume disponibilidade não declarada. **Campo ausente é \"não informado\"** — a pergunta ficou sem resposta — e é distinto da **lista vazia presente**, que declara nenhum equipamento disponível — treinar só com o peso do corpo. A presença do campo é o que separa os dois fatos; por isso o catálogo não tem `NONE` nem `BODYWEIGHT_ONLY`, que confundiriam \"não informou\" com \"não tem\" e admitiriam a combinação contraditória `[NONE, DUMBBELLS]`. A lista não se confunde com o equipamento registrado na execução, não cria catálogo e não cria tenancy de academia. */
+    public var availableEquipment: Set<StudentAvailableEquipment>?
     public var preferredTimeOfDay: StudentPreferredTimeOfDay?
 
-    public init(sectionKey: String, previousExperience: StudentTrainingExperience, availableDaysPerWeek: Int, sessionDuration: DurationMinutesRange, trainingLocation: StudentTrainingLocation, otherTrainingLocation: String? = nil, availableEquipment: Set<StudentAvailableEquipment>, preferredTimeOfDay: StudentPreferredTimeOfDay? = nil) {
+    public init(sectionKey: String, previousExperience: StudentTrainingExperience, availableDaysPerWeek: Int, sessionDuration: DurationMinutesRange, trainingLocation: StudentTrainingLocation, otherTrainingLocation: String? = nil, availableEquipment: Set<StudentAvailableEquipment>? = nil, preferredTimeOfDay: StudentPreferredTimeOfDay? = nil) {
         self.sectionKey = sectionKey
         self.previousExperience = previousExperience
         self.availableDaysPerWeek = availableDaysPerWeek
@@ -59,7 +59,7 @@ public struct StudentAnamnesisTrainingContextSection: Codable, JSONEncodable, Ha
         try container.encode(sessionDuration, forKey: .sessionDuration)
         try container.encode(trainingLocation, forKey: .trainingLocation)
         try container.encodeIfPresent(otherTrainingLocation, forKey: .otherTrainingLocation)
-        try container.encode(availableEquipment, forKey: .availableEquipment)
+        try container.encodeIfPresent(availableEquipment, forKey: .availableEquipment)
         try container.encodeIfPresent(preferredTimeOfDay, forKey: .preferredTimeOfDay)
     }
 }

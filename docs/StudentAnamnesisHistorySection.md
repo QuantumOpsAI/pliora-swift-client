@@ -4,7 +4,6 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **sectionKey** | **String** |  |
-**dateOfBirth** | **Date** | Data civil no calendário ISO 8601, sem horário ou timezone. |
 **injuriesAndSurgeries** | [StudentAnamnesisHistoryEntry] |  |
 **currentLimitations** | [StudentAnamnesisBodyRegionLimitation] |  |
 **reportedConditions** | [StudentAnamnesisHistoryEntry] |  |

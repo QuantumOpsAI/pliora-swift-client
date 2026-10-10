@@ -10,20 +10,28 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Objetivo principal e prazo esperado, declarados pelo aluno. */
+/** Objetivo principal, objetivos secundários e prazo esperado, declarados pelo aluno. O principal é **sempre exatamente um**; os secundários são **zero a dois** do mesmo catálogo, sem duplicatas e **nunca iguais ao principal** — a exclusão é regra do schema, não da prosa. A ordem dos secundários **não** indica prioridade: não existe terceiro grau de hierarquia, peso nem pontuação. \&quot;Outro\&quot; exige texto próprio em cada contexto: &#x60;otherGoal&#x60; descreve o principal e &#x60;otherSecondaryGoal&#x60; descreve o secundário \&quot;Outro\&quot; — dados distintos, e um nunca preenche nem é exibido no lugar do outro. Os objetivos são intenção declarada pelo aluno, não prescrição automática. Seções sem &#x60;secondaryGoals&#x60; — inclusive versões concluídas anteriores a este campo — significam **nenhum objetivo secundário**, nunca \&quot;não informado\&quot;. */
 public struct StudentAnamnesisGoalSection: Codable, JSONEncodable, Hashable {
 
     public static let otherGoalRule = StringRule(minLength: 1, maxLength: 80, pattern: "/^(?!\\s*(?:[-+>]|[0-9]+\\.)\\s)(?!.*(?:[*_`#\\[\\]<>|]|---)).+$/")
+    public static let secondaryGoalsRule = ArrayRule(minItems: 1, maxItems: 2, uniqueItems: true)
+    public static let otherSecondaryGoalRule = StringRule(minLength: 1, maxLength: 80, pattern: "/^(?!\\s*(?:[-+>]|[0-9]+\\.)\\s)(?!.*(?:[*_`#\\[\\]<>|]|---)).+$/")
     public var sectionKey: String
     public var primaryGoal: StudentTrainingGoal
     /** Texto após trim, sem Markdown ou HTML; exigido com `primaryGoal: OTHER` e proibido sem ele — a regra é do schema, não da prosa. */
     public var otherGoal: String?
+    /** Objetivos secundários, do mesmo catálogo do principal: um ou dois valores distintos e nunca iguais a `primaryGoal`. **Campo ausente é a única forma de declarar nenhum secundário** — por isso `minItems: 1`: a lista vazia seria a mesma declaração dita duas vezes. */
+    public var secondaryGoals: Set<StudentTrainingGoal>?
+    /** Texto após trim, sem Markdown ou HTML; exigido quando `secondaryGoals` contém `OTHER` e proibido sem ele — a regra é do schema, não da prosa. É dado distinto de `otherGoal`: a descrição do \"Outro\" principal e a do \"Outro\" secundário nunca se preenchem nem se exibem uma no lugar da outra. */
+    public var otherSecondaryGoal: String?
     public var expectedTimeframe: StudentGoalTimeframe
 
-    public init(sectionKey: String, primaryGoal: StudentTrainingGoal, otherGoal: String? = nil, expectedTimeframe: StudentGoalTimeframe) {
+    public init(sectionKey: String, primaryGoal: StudentTrainingGoal, otherGoal: String? = nil, secondaryGoals: Set<StudentTrainingGoal>? = nil, otherSecondaryGoal: String? = nil, expectedTimeframe: StudentGoalTimeframe) {
         self.sectionKey = sectionKey
         self.primaryGoal = primaryGoal
         self.otherGoal = otherGoal
+        self.secondaryGoals = secondaryGoals
+        self.otherSecondaryGoal = otherSecondaryGoal
         self.expectedTimeframe = expectedTimeframe
     }
 
@@ -31,6 +39,8 @@ public struct StudentAnamnesisGoalSection: Codable, JSONEncodable, Hashable {
         case sectionKey
         case primaryGoal
         case otherGoal
+        case secondaryGoals
+        case otherSecondaryGoal
         case expectedTimeframe
     }
 
@@ -41,6 +51,8 @@ public struct StudentAnamnesisGoalSection: Codable, JSONEncodable, Hashable {
         try container.encode(sectionKey, forKey: .sectionKey)
         try container.encode(primaryGoal, forKey: .primaryGoal)
         try container.encodeIfPresent(otherGoal, forKey: .otherGoal)
+        try container.encodeIfPresent(secondaryGoals, forKey: .secondaryGoals)
+        try container.encodeIfPresent(otherSecondaryGoal, forKey: .otherSecondaryGoal)
         try container.encode(expectedTimeframe, forKey: .expectedTimeframe)
     }
 }
