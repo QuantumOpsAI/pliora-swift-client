@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Catálogo de equipamento declarado disponível. Ausência de equipamento é a **lista vazia**, nunca um valor do catálogo: &#x60;NONE&#x60; e &#x60;BODYWEIGHT_ONLY&#x60; diriam a mesma coisa que a lista vazia já diz e tornariam representável a combinação contraditória de \&quot;nenhum equipamento\&quot; com um equipamento. */
+/** Catálogo de equipamento declarado disponível. \&quot;Nenhum equipamento\&quot; é a **lista vazia presente** em &#x60;availableEquipment&#x60;, e \&quot;pergunta não respondida\&quot; é o **campo ausente** — nunca um valor do catálogo: &#x60;NONE&#x60; e &#x60;BODYWEIGHT_ONLY&#x60; apagariam a distinção entre os dois fatos e tornariam representável a combinação contraditória de \&quot;nenhum equipamento\&quot; com um equipamento. */
 public enum StudentAvailableEquipment: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case dumbbells = "DUMBBELLS"
     case barbell = "BARBELL"

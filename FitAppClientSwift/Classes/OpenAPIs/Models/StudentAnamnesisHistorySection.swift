@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Histórico e restrições declaradas pelo aluno sobre si. A data de nascimento é **insumo** da decisão do servidor sobre elegibilidade e exigência de autorização de responsável, nunca a decisão: nenhum cliente embute idade-limite ou regra de maioridade. As listas são obrigatórias e uma lista vazia declara ausência; ela não é lacuna nem zero. */
+/** Histórico e restrições declaradas pelo aluno sobre si. A anamnese **não** recolhe data de nascimento: ela pertence à autoridade única do servidor, estabelecida antes do vínculo, e nenhum cliente embute idade-limite ou regra de maioridade. As listas são obrigatórias e uma lista vazia declara ausência; ela não é lacuna nem zero. */
 public struct StudentAnamnesisHistorySection: Codable, JSONEncodable, Hashable {
 
     public enum SectionKey: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -22,16 +22,13 @@ public struct StudentAnamnesisHistorySection: Codable, JSONEncodable, Hashable {
     public static let reportedConditionsRule = ArrayRule(minItems: nil, maxItems: 50, uniqueItems: false)
     public static let medicationsInUseRule = ArrayRule(minItems: nil, maxItems: 50, uniqueItems: false)
     public var sectionKey: SectionKey
-    /** Data civil no calendário ISO 8601, sem horário ou timezone. */
-    public var dateOfBirth: Date
     public var injuriesAndSurgeries: [StudentAnamnesisHistoryEntry]
     public var currentLimitations: [StudentAnamnesisBodyRegionLimitation]
     public var reportedConditions: [StudentAnamnesisHistoryEntry]
     public var medicationsInUse: [StudentAnamnesisMedicationEntry]
 
-    public init(sectionKey: SectionKey, dateOfBirth: Date, injuriesAndSurgeries: [StudentAnamnesisHistoryEntry], currentLimitations: [StudentAnamnesisBodyRegionLimitation], reportedConditions: [StudentAnamnesisHistoryEntry], medicationsInUse: [StudentAnamnesisMedicationEntry]) {
+    public init(sectionKey: SectionKey, injuriesAndSurgeries: [StudentAnamnesisHistoryEntry], currentLimitations: [StudentAnamnesisBodyRegionLimitation], reportedConditions: [StudentAnamnesisHistoryEntry], medicationsInUse: [StudentAnamnesisMedicationEntry]) {
         self.sectionKey = sectionKey
-        self.dateOfBirth = dateOfBirth
         self.injuriesAndSurgeries = injuriesAndSurgeries
         self.currentLimitations = currentLimitations
         self.reportedConditions = reportedConditions
@@ -40,7 +37,6 @@ public struct StudentAnamnesisHistorySection: Codable, JSONEncodable, Hashable {
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case sectionKey
-        case dateOfBirth
         case injuriesAndSurgeries
         case currentLimitations
         case reportedConditions
@@ -52,7 +48,6 @@ public struct StudentAnamnesisHistorySection: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(sectionKey, forKey: .sectionKey)
-        try container.encode(dateOfBirth, forKey: .dateOfBirth)
         try container.encode(injuriesAndSurgeries, forKey: .injuriesAndSurgeries)
         try container.encode(currentLimitations, forKey: .currentLimitations)
         try container.encode(reportedConditions, forKey: .reportedConditions)
