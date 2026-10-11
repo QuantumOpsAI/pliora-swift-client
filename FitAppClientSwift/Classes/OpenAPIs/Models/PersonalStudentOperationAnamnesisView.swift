@@ -10,38 +10,30 @@ import Foundation
 import AnyCodable
 #endif
 
-/** As combinações que o servidor nunca emite, na forma que o gate de compatibilidade percorre: ficha concluída sem a versão que a sustenta, versão publicada com ficha que não a comporta, ficha concluída ou versão anterior autorizada sem o fato global de conclusão, a variante de acesso negado com qualquer outra dimensão, e o bloco sem a variante e sem as três dimensões. */
+/** As combinações que o servidor nunca emite, na forma que o gate de compatibilidade percorre: ficha concluída sem a versão que a sustenta, versão publicada com ficha que não a comporta, a variante de acesso negado com qualquer outra dimensão, e o bloco sem a variante e sem o preenchimento. */
 public struct PersonalStudentOperationAnamnesisView: Codable, JSONEncodable, Hashable {
 
     public enum AccessDeniedCode: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case sharingGrantRequired = "SHARING_GRANT_REQUIRED"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
-    /** Variante **acesso negado**, só na linha operacional: o aceite do termo deste vínculo foi revogado e a base de autorização se perdeu. Presente, o bloco não carrega mais nada — nem fato global, preenchimento, referência, número, data ou contagem —, o aluno continua na lista e a elegibilidade é `BLOCKED` só com `SHARING_GRANT_REQUIRED`. Ausente, as três dimensões são obrigatórias. */
+    /** Variante **acesso negado**, só na linha operacional: o aceite do termo deste vínculo foi revogado e a base de autorização se perdeu. Presente, o bloco não carrega mais nada — nem preenchimento, referência, número, data ou contagem —, o aluno continua na lista e a elegibilidade é `BLOCKED` só com `SHARING_GRANT_REQUIRED`. Ausente, as duas dimensões são obrigatórias. */
     public var accessDeniedCode: AccessDeniedCode?
-    /** Fato global binário de conclusão, derivado no servidor. Verdadeiro não diz qual ficha, quando nem quantas vezes. */
-    public var hasCompletedAnamnesis: Bool?
-    /** Preenchimento da ficha **deste vínculo**. Antes da primeira conclusão dela o personal conhece somente este estado; uma ficha anterior concluída nunca o torna `COMPLETED`. */
+    /** Preenchimento da ficha **deste vínculo**. Antes da primeira conclusão dela o personal conhece somente este estado; uma ficha de outro vínculo nunca o torna `COMPLETED`. */
     public var currentFormState: StudentAnamnesisState?
-    /** Referência à versão concluída mais recente **da ficha deste vínculo** — identidade, número local e data —, sem conteúdo. Presente exatamente quando `currentFormState` é `COMPLETED`; uma versão anterior autorizada nunca ocupa este lugar. */
+    /** Referência à versão concluída mais recente **da ficha deste vínculo** — identidade, número local e data —, sem conteúdo. Presente exatamente quando `currentFormState` é `COMPLETED`. */
     public var latestCurrentVersion: StudentAnamnesisVersionRef?
-    /** Verdadeiro quando o aluno autorizou a este vínculo ao menos uma versão de vínculo anterior. As referências estão em `getPersonalStudentAnamnesis`; versão anterior nunca é a ficha atual e não satisfaz o preenchimento dela. */
-    public var hasAuthorizedPreviousVersions: Bool?
 
-    public init(accessDeniedCode: AccessDeniedCode? = nil, hasCompletedAnamnesis: Bool? = nil, currentFormState: StudentAnamnesisState? = nil, latestCurrentVersion: StudentAnamnesisVersionRef? = nil, hasAuthorizedPreviousVersions: Bool? = nil) {
+    public init(accessDeniedCode: AccessDeniedCode? = nil, currentFormState: StudentAnamnesisState? = nil, latestCurrentVersion: StudentAnamnesisVersionRef? = nil) {
         self.accessDeniedCode = accessDeniedCode
-        self.hasCompletedAnamnesis = hasCompletedAnamnesis
         self.currentFormState = currentFormState
         self.latestCurrentVersion = latestCurrentVersion
-        self.hasAuthorizedPreviousVersions = hasAuthorizedPreviousVersions
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case accessDeniedCode
-        case hasCompletedAnamnesis
         case currentFormState
         case latestCurrentVersion
-        case hasAuthorizedPreviousVersions
     }
 
     // Encodable protocol methods
@@ -49,10 +41,8 @@ public struct PersonalStudentOperationAnamnesisView: Codable, JSONEncodable, Has
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(accessDeniedCode, forKey: .accessDeniedCode)
-        try container.encodeIfPresent(hasCompletedAnamnesis, forKey: .hasCompletedAnamnesis)
         try container.encodeIfPresent(currentFormState, forKey: .currentFormState)
         try container.encodeIfPresent(latestCurrentVersion, forKey: .latestCurrentVersion)
-        try container.encodeIfPresent(hasAuthorizedPreviousVersions, forKey: .hasAuthorizedPreviousVersions)
     }
 }
 

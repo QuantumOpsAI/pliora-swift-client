@@ -3,7 +3,6 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**access** | [**PersonalAnamnesisVersionAccess**](PersonalAnamnesisVersionAccess.md) |  |
 **versionId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **versionNumber** | **Int** |  |
 **completedAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. |

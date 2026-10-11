@@ -182,7 +182,6 @@ FitAppClientSwift/Classes/OpenAPIs/Models/PersonalAnamnesisReviewAcknowledgement
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalAnamnesisReviewAcknowledgementUnauthenticatedProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalAnamnesisReviewAcknowledgementValidationProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalAnamnesisReviewAcknowledgementView.swift
-FitAppClientSwift/Classes/OpenAPIs/Models/PersonalAnamnesisVersionAccess.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalAttentionAnamnesisParameters.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalAttentionDestination.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalAttentionDiscomfortParameters.swift
@@ -445,7 +444,6 @@ FitAppClientSwift/Classes/OpenAPIs/Models/SessionResponse.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SetAmendmentSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SetExecutionSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SetPersonalStudentAnamnesisRequirementRequest.swift
-FitAppClientSwift/Classes/OpenAPIs/Models/SetStudentAnamnesisPreviousVersionsGrantRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SocialIdentityJourneyRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SocialIdentityProofRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StartAccountLinkingChallengeRequest.swift
@@ -467,7 +465,6 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisGoalSection.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisHistoryEntry.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisHistorySection.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisMedicationEntry.swift
-FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisPreviousVersionsGrantView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisReadinessFollowUpSection.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisReadinessScreeningSection.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisSection.swift
@@ -852,7 +849,6 @@ docs/PersonalAnamnesisReviewAcknowledgementNotFoundProblemDetails.md
 docs/PersonalAnamnesisReviewAcknowledgementUnauthenticatedProblemDetails.md
 docs/PersonalAnamnesisReviewAcknowledgementValidationProblemDetails.md
 docs/PersonalAnamnesisReviewAcknowledgementView.md
-docs/PersonalAnamnesisVersionAccess.md
 docs/PersonalAttentionAnamnesisParameters.md
 docs/PersonalAttentionDestination.md
 docs/PersonalAttentionDiscomfortParameters.md
@@ -1124,7 +1120,6 @@ docs/SessionsAPI.md
 docs/SetAmendmentSyncView.md
 docs/SetExecutionSyncView.md
 docs/SetPersonalStudentAnamnesisRequirementRequest.md
-docs/SetStudentAnamnesisPreviousVersionsGrantRequest.md
 docs/SocialIdentityJourneyRequest.md
 docs/SocialIdentityProofRequest.md
 docs/StartAccountLinkingChallengeRequest.md
@@ -1146,7 +1141,6 @@ docs/StudentAnamnesisGoalSection.md
 docs/StudentAnamnesisHistoryEntry.md
 docs/StudentAnamnesisHistorySection.md
 docs/StudentAnamnesisMedicationEntry.md
-docs/StudentAnamnesisPreviousVersionsGrantView.md
 docs/StudentAnamnesisReadinessFollowUpSection.md
 docs/StudentAnamnesisReadinessScreeningSection.md
 docs/StudentAnamnesisSection.md
