@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** O conteúdo e a prontidão só existem com a ficha deste vínculo concluída: ficha concluída sem a versão que a sustenta, versão sem ficha concluída e prontidão antes da primeira conclusão são combinações que o servidor nunca emite. O bloco &#x60;anamnesis&#x60; e o &#x60;access&#x60; dos itens concordam: item &#x60;CURRENT_RELATIONSHIP&#x60; existe se e somente se a ficha deste vínculo está concluída, e item &#x60;PREVIOUS_RELATIONSHIP&#x60; se e somente se &#x60;hasAuthorizedPreviousVersions&#x60; — a resposta \&quot;não há anamnese autorizada neste vínculo\&quot; nunca carrega referência. Antes da primeira conclusão desta ficha, &#x60;MEDICAL_CLEARANCE_REQUIRED&#x60; nunca aparece: só o rascunho privado o sustentaria. */
+/** O conteúdo e a prontidão só existem com a ficha deste vínculo concluída: ficha concluída sem a versão que a sustenta, versão sem ficha concluída e prontidão antes da primeira conclusão são combinações que o servidor nunca emite. O bloco &#x60;anamnesis&#x60; e os itens de &#x60;authorizedVersions&#x60; concordam: item existe se e somente se a ficha deste vínculo está concluída — antes dela a lista é vazia. Antes da primeira conclusão desta ficha, &#x60;MEDICAL_CLEARANCE_REQUIRED&#x60; nunca aparece: só o rascunho privado o sustentaria. */
 public struct PersonalStudentAnamnesisView: Codable, JSONEncodable, Hashable {
 
     public static let studentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -21,7 +21,7 @@ public struct PersonalStudentAnamnesisView: Codable, JSONEncodable, Hashable {
     /** Vínculo ativo que autoriza esta leitura, e dono da ficha cujo preenchimento `anamnesis.currentFormState` descreve. As escritas do personal sobre a ficha o repetem no corpo. */
     public var relationshipId: String
     public var anamnesis: PersonalStudentOperationAnamnesisView
-    /** Conjunto autorizado, em ordem do servidor: primeiro as versões deste vínculo, da mais recente para a mais antiga, depois as anteriores autorizadas, da mais recente para a mais antiga. Vazio é **ausência confirmada de versão autorizada neste vínculo** — nunca falha de leitura, nunca \"o aluno nunca concluiu\". A autorização é aplicada **antes** de selecionar, contar e ordenar. */
+    /** As versões concluídas **da ficha deste vínculo**, da mais recente para a mais antiga — o único conjunto que existe: não há versões de outras fichas para autorizar (`DEC-PHOME-20`). Vazio é **ausência confirmada de versão concluída nesta ficha** — nunca falha de leitura. A autorização é aplicada **antes** de selecionar, contar e ordenar. */
     public var authorizedVersions: Set<PersonalAuthorizedAnamnesisVersionRef>
     public var latestCurrentVersion: StudentAnamnesisVersionView?
     public var readiness: StudentReadinessView?

@@ -5,17 +5,15 @@ All URIs are relative to */api/v1*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**completeStudentOnboarding**](StudentOnboardingAPI.md#completestudentonboarding) | **POST** /student/onboarding/complete | Concluir a anamnese funcional, fixando uma versão concluída imutável
-[**getPersonalStudentAnamnesis**](StudentOnboardingAPI.md#getpersonalstudentanamnesis) | **GET** /personal/students/{studentId}/anamnesis | Ler, como personal do vínculo, a anamnese autorizada a este vínculo
+[**getPersonalStudentAnamnesis**](StudentOnboardingAPI.md#getpersonalstudentanamnesis) | **GET** /personal/students/{studentId}/anamnesis | Ler, como personal do vínculo, a anamnese deste vínculo
 [**getPersonalStudentAnamnesisControls**](StudentOnboardingAPI.md#getpersonalstudentanamnesiscontrols) | **GET** /personal/students/{studentId}/anamnesis/controls | Ler a exigência opcional e a solicitação de preenchimento da ficha deste vínculo
-[**getPersonalStudentAnamnesisVersion**](StudentOnboardingAPI.md#getpersonalstudentanamnesisversion) | **GET** /personal/students/{studentId}/anamnesis/versions/{anamnesisVersionId} | Ler o conteúdo de uma versão da anamnese autorizada a este vínculo
+[**getPersonalStudentAnamnesisVersion**](StudentOnboardingAPI.md#getpersonalstudentanamnesisversion) | **GET** /personal/students/{studentId}/anamnesis/versions/{anamnesisVersionId} | Ler o conteúdo de uma versão da ficha deste vínculo
 [**getStudentAnamnesisConsent**](StudentOnboardingAPI.md#getstudentanamnesisconsent) | **GET** /student/anamnesis/consent | Recuperar o termo exato aceito no vínculo atual
-[**getStudentAnamnesisPreviousVersionsGrant**](StudentOnboardingAPI.md#getstudentanamnesispreviousversionsgrant) | **GET** /student/anamnesis/previous-versions-grant | Ler quais versões anteriores o aluno autoriza ao personal do vínculo atual
 [**getStudentOnboarding**](StudentOnboardingAPI.md#getstudentonboarding) | **GET** /student/onboarding | Ler a entrada do aluno — onboarding, anamnese funcional, prontidão e elegibilidade
 [**listStudentAnamnesisVersions**](StudentOnboardingAPI.md#liststudentanamnesisversions) | **GET** /student/anamnesis/versions | Ler o próprio acervo de versões concluídas da anamnese, de todos os vínculos
 [**requestPersonalStudentAnamnesisCompletion**](StudentOnboardingAPI.md#requestpersonalstudentanamnesiscompletion) | **PUT** /personal/students/{studentId}/anamnesis/controls/completion-request | Solicitar, dentro do app, o preenchimento da ficha deste vínculo
 [**saveStudentAnamnesisSection**](StudentOnboardingAPI.md#savestudentanamnesissection) | **PUT** /student/onboarding/anamnesis/{sectionKey} | Salvar uma seção tipada da anamnese no rascunho privado do aluno
 [**setPersonalStudentAnamnesisRequirement**](StudentOnboardingAPI.md#setpersonalstudentanamnesisrequirement) | **PUT** /personal/students/{studentId}/anamnesis/controls/requirement | Exigir, ou deixar de exigir, a conclusão da ficha deste vínculo para novas liberações
-[**setStudentAnamnesisPreviousVersionsGrant**](StudentOnboardingAPI.md#setstudentanamnesispreviousversionsgrant) | **PUT** /student/anamnesis/previous-versions-grant | Autorizar, restringir ou revogar versões anteriores ao personal do vínculo atual
 
 
 # **completeStudentOnboarding**
@@ -25,7 +23,7 @@ Method | HTTP request | Description
 
 Concluir a anamnese funcional, fixando uma versão concluída imutável
 
-Transforma o rascunho privado vigente em uma **versão concluída imutável**, com `If-Match` obrigatório, ecoando a mesma e única revisão desta superfície — `anamnesis.draft.revision`, publicada como `ETag` na leitura. Concluir **cria versão**; editar depois e concluir de novo cria **outra** versão e **preserva** a anterior, que continua consultável. Nenhuma versão é reescrita, apagada ou substituída em silêncio. A idempotência é **por versão, não por aluno**: repetir a mesma tentativa sobre a mesma `revision` devolve a mesma versão em vez de criar outra, e portanto produz no máximo uma notificação por versão concluída. A entrega real ao personal **não** é pós-condição desta operação e não é afirmada por ela. **Resposta canônica única, sem ramificação por idade.** Menor e adulto concluem exatamente da mesma forma. Triagem de prontidão pendente e autorização de responsável ausente **não** impedem concluir: elas aparecem apenas como motivos nomeados e acumuláveis em `prescriptionEligibility`. Não existe, aqui, resposta de \"conclusão pendente por responsável\", nem operação de autorização embutida. Concluir afirma que existe versão concluída; **não** afirma elegibilidade para prescrição. **Conclui a ficha do vínculo atual, não uma anamnese global (`DEC-PHOME-19`).** O corpo repete `relationshipId`, o vínculo dono da ficha lida; vínculo trocado depois da leitura é `409 ANAMNESIS_RELATIONSHIP_MISMATCH` e vínculo encerrado, sem outro atual, é `403 RELATIONSHIP_INACTIVE` — a ficha encerrada fica congelada, sem versão nova. Com o vínculo pausado a conclusão é aceita. A versão nasce com o aluno como autor, a ficha e o vínculo de origem, a revisão do rascunho e o instante do servidor; `versionNumber` é local à ficha. A conclusão é **única por ficha e revisão do rascunho**: duas conclusões concorrentes da mesma revisão, mesmo com chaves diferentes, devolvem a mesma versão, sem número duplicado; revisão velha é `412`, nunca last-write-wins. Nada de outra ficha conclui esta, e uma versão anterior autorizada ao personal não a substitui. A conclusão satisfaz, no mesmo commit, a solicitação de preenchimento pendente desta ficha. A repetição reautoriza o vínculo antes de devolver o resultado guardado.
+Transforma o rascunho privado vigente em uma **versão concluída imutável**, com `If-Match` obrigatório, ecoando a mesma e única revisão desta superfície — `anamnesis.draft.revision`, publicada como `ETag` na leitura. Concluir **cria versão**; editar depois e concluir de novo cria **outra** versão e **preserva** a anterior, que continua consultável. Nenhuma versão é reescrita, apagada ou substituída em silêncio. A idempotência é **por versão, não por aluno**: repetir a mesma tentativa sobre a mesma `revision` devolve a mesma versão em vez de criar outra, e portanto produz no máximo uma notificação por versão concluída. A entrega real ao personal **não** é pós-condição desta operação e não é afirmada por ela. **Resposta canônica única, sem ramificação por idade.** Menor e adulto concluem exatamente da mesma forma. Triagem de prontidão pendente e autorização de responsável ausente **não** impedem concluir: elas aparecem apenas como motivos nomeados e acumuláveis em `prescriptionEligibility`. Não existe, aqui, resposta de \"conclusão pendente por responsável\", nem operação de autorização embutida. Concluir afirma que existe versão concluída; **não** afirma elegibilidade para prescrição. **Conclui a ficha do vínculo atual, não uma anamnese global (`DEC-PHOME-19`).** O corpo repete `relationshipId`, o vínculo dono da ficha lida; vínculo trocado depois da leitura é `409 ANAMNESIS_RELATIONSHIP_MISMATCH` e vínculo encerrado, sem outro atual, é `403 RELATIONSHIP_INACTIVE` — a ficha encerrada fica congelada, sem versão nova. Com o vínculo pausado a conclusão é aceita. A versão nasce com o aluno como autor, a ficha e o vínculo de origem, a revisão do rascunho e o instante do servidor; `versionNumber` é local à ficha. A conclusão é **única por ficha e revisão do rascunho**: duas conclusões concorrentes da mesma revisão, mesmo com chaves diferentes, devolvem a mesma versão, sem número duplicado; revisão velha é `412`, nunca last-write-wins. Nada de outra ficha conclui esta, e nenhuma versão de outra ficha a substitui. A conclusão satisfaz, no mesmo commit, a solicitação de preenchimento pendente desta ficha. A repetição reautoriza o vínculo antes de devolver o resultado guardado.
 
 ### Example
 ```swift
@@ -79,9 +77,9 @@ Name | Type | Description  | Notes
     open class func getPersonalStudentAnamnesis(studentId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentAnamnesisView?, _ error: Error?) -> Void)
 ```
 
-Ler, como personal do vínculo, a anamnese autorizada a este vínculo
+Ler, como personal do vínculo, a anamnese deste vínculo
 
-Leitura sem efeito colateral, autorizada somente ao personal do vínculo **ativo**, e reautorizada a cada chamada (`DEC-PHOME-19`). Cada novo vínculo tem a sua ficha, mesmo quando o aluno volta ao mesmo personal; a resposta fala da ficha **deste** vínculo e do que o aluno autorizou **a este** vínculo, e de nada mais. **Três dimensões separadas, no mesmo bloco da linha operacional.** `anamnesis` publica o fato global binário de conclusão, o preenchimento da ficha deste vínculo e se há versão anterior autorizada; `authorizedVersions` publica o conjunto autorizado por referência; nenhuma dimensão é inferida de outra, e o `COMPLETED` de antes — uma conclusão em qualquer ficha — não existe mais aqui. **O que autoriza cada versão.** A versão concluída da ficha deste vínculo é legível porque o aluno aceitou explicitamente o termo no commit do vínculo — consentimento registrado, não presumido, sem alternância. Uma versão de vínculo anterior só é legível quando o aluno a escolheu, por versão, para este vínculo (`setStudentAnamnesisPreviousVersionsGrant`), e deixa de ser quando ele revoga. A autorização é aplicada **antes** de selecionar a versão mais recente, contar, ordenar e projetar metadados: o servidor nunca entrega o acervo para o app filtrar. **Antes da primeira conclusão desta ficha a resposta é apenas estado:** `currentFormState` `NO_ANAMNESIS` ou `IN_PROGRESS`, sem conteúdo, resumo, contagem, percentual, data ou prontidão do rascunho. **Depois dela** viajam a referência e o conteúdo da versão mais recente da ficha deste vínculo, em `latestCurrentVersion`. Uma edição em curso do aluno é invisível aqui e **não** devolve o estado a \"em andamento\": o personal continua vendo a última versão concluída até que outra seja concluída. **Sem versão autorizada.** Com o fato global verdadeiro e `authorizedVersions` vazio, o app mostra a cópia do próprio catálogo para \"não há anamnese autorizada neste vínculo\"; não afirma que o aluno nunca concluiu, e o servidor não manda texto. Falha de leitura é erro com nova tentativa, nunca esta ausência. O conteúdo de uma versão anterior autorizada é lido em `getPersonalStudentAnamnesisVersion`, com o mesmo predicado. A operação existe porque a leitura profissional não cabe, de modo compatível, na projeção do próprio aluno: o ator, a autorização e o recorte projetado são outros, e colapsá-los exporia rascunho privado. Ela **não** expõe identidade, nome ou contato de responsável, **não** oferece caminho para conceder, revogar ou consultar autorização de responsável e **não** registra liberação médica ou dispensa: essas superfícies não têm contrato nesta fatia. A autorização de responsável aparece exclusivamente como motivo nomeado em `prescriptionEligibility`. Um aluno inexistente e um aluno de outra relação respondem de forma indistinguível. Vínculo pausado ou encerrado é `403` próprio, e nenhuma recusa expõe o fato global. Resposta `private, no-store`: nada fica em cache que restaure, depois de uma revogação, o que deixou de ser autorizado.
+Leitura sem efeito colateral, autorizada somente ao personal do vínculo **ativo**, e reautorizada a cada chamada (`DEC-PHOME-19`). Cada novo vínculo tem a sua ficha, mesmo quando o aluno volta ao mesmo personal; a resposta fala da ficha **deste** vínculo, e de nada mais (`DEC-PHOME-20`): nenhuma versão de outra ficha é visível aqui — nem conteúdo, metadados, referência nem a existência dela. **Duas dimensões separadas, no mesmo bloco da linha operacional.** `anamnesis` publica o preenchimento da ficha deste vínculo e a referência da versão concluída mais recente dela; `authorizedVersions` publica as versões concluídas **da ficha deste vínculo** por referência; nenhuma dimensão é inferida de outra. **O que autoriza cada versão.** Toda versão legível aqui é da ficha deste vínculo, legível porque o aluno aceitou explicitamente o termo no commit do vínculo — consentimento registrado, não presumido, sem alternância. Não existe autorização de versões de outros vínculos. A autorização é aplicada **antes** de selecionar a versão mais recente, contar, ordenar e projetar metadados: o servidor nunca entrega o acervo para o app filtrar. **Antes da primeira conclusão desta ficha a resposta é apenas estado:** `currentFormState` `NO_ANAMNESIS` ou `IN_PROGRESS`, sem conteúdo, resumo, contagem, percentual, data ou prontidão do rascunho. **Depois dela** viajam a referência e o conteúdo da versão mais recente da ficha deste vínculo, em `latestCurrentVersion`. Uma edição em curso do aluno é invisível aqui e **não** devolve o estado a \"em andamento\": o personal continua vendo a última versão concluída até que outra seja concluída. Falha de leitura é erro com nova tentativa, nunca uma ausência declarada. O conteúdo de cada versão da ficha deste vínculo é lido em `getPersonalStudentAnamnesisVersion`, com o mesmo predicado. A operação existe porque a leitura profissional não cabe, de modo compatível, na projeção do próprio aluno: o ator, a autorização e o recorte projetado são outros, e colapsá-los exporia rascunho privado. Ela **não** expõe identidade, nome ou contato de responsável, **não** oferece caminho para conceder, revogar ou consultar autorização de responsável e **não** registra liberação médica ou dispensa: essas superfícies não têm contrato nesta fatia. A autorização de responsável aparece exclusivamente como motivo nomeado em `prescriptionEligibility`. Um aluno inexistente e um aluno de outra relação respondem de forma indistinguível. Vínculo pausado ou encerrado é `403` próprio, e nenhuma recusa expõe nada sobre outras fichas. Resposta `private, no-store`: nada fica em cache que restaure, depois de uma revogação, o que deixou de ser autorizado.
 
 ### Example
 ```swift
@@ -91,7 +89,7 @@ import FitAppClientSwift
 let studentId = "studentId_example" // String | Aluno do vínculo ativo do personal autenticado.
 let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
 
-// Ler, como personal do vínculo, a anamnese autorizada a este vínculo
+// Ler, como personal do vínculo, a anamnese deste vínculo
 StudentOnboardingAPI.getPersonalStudentAnamnesis(studentId: studentId, acceptLanguage: acceptLanguage) { (response, error) in
     guard error == nil else {
         print(error)
@@ -183,9 +181,9 @@ Name | Type | Description  | Notes
     open class func getPersonalStudentAnamnesisVersion(studentId: String, anamnesisVersionId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentAnamnesisVersionView?, _ error: Error?) -> Void)
 ```
 
-Ler o conteúdo de uma versão da anamnese autorizada a este vínculo
+Ler o conteúdo de uma versão da ficha deste vínculo
 
-Conteúdo de **uma** versão concluída, relido e reautorizado a cada chamada pelo **mesmo predicado** de `getPersonalStudentAnamnesis` (`DEC-PHOME-19`): versão da ficha deste vínculo, legível pelo aceite real do termo, ou versão de vínculo anterior que o aluno autorizou a este vínculo e não revogou. O identificador opaco não concede acesso: versão inexistente, de outro aluno, de outro vínculo não autorizada ou cuja autorização foi revogada respondem o **mesmo** `404 STUDENT_RESOURCE_NOT_FOUND`, sem confirmar existência, número, data ou fato global. Vínculo pausado ou encerrado é o `403` próprio. Rascunho nunca é legível aqui. Resposta `private, no-store`: depois de uma revogação, nenhuma releitura devolve o conteúdo antes autorizado.
+Conteúdo de **uma** versão concluída da ficha **deste vínculo**, relido e reautorizado a cada chamada pelo **mesmo predicado** de `getPersonalStudentAnamnesis` (`DEC-PHOME-19`): a versão é legível pelo aceite real do termo. Desde `DEC-PHOME-20` nenhuma versão de outra ficha é legível aqui, por nenhum caminho. O identificador opaco não concede acesso: versão inexistente, de outro aluno ou **de qualquer ficha que não a deste vínculo** respondem o **mesmo** `404 STUDENT_RESOURCE_NOT_FOUND`, sem confirmar existência, número ou data. Vínculo pausado ou encerrado é o `403` próprio. Rascunho nunca é legível aqui. Resposta `private, no-store`: depois de uma revogação, nenhuma releitura devolve o conteúdo antes autorizado.
 
 ### Example
 ```swift
@@ -196,7 +194,7 @@ let studentId = "studentId_example" // String | Aluno do vínculo ativo do perso
 let anamnesisVersionId = "anamnesisVersionId_example" // String | Versão pedida; identidade opaca, que não autoriza nada por si.
 let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
 
-// Ler o conteúdo de uma versão da anamnese autorizada a este vínculo
+// Ler o conteúdo de uma versão da ficha deste vínculo
 StudentOnboardingAPI.getPersonalStudentAnamnesisVersion(studentId: studentId, anamnesisVersionId: anamnesisVersionId, acceptLanguage: acceptLanguage) { (response, error) in
     guard error == nil else {
         print(error)
@@ -282,56 +280,6 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **getStudentAnamnesisPreviousVersionsGrant**
-```swift
-    open class func getStudentAnamnesisPreviousVersionsGrant(acceptLanguage: String? = nil, completion: @escaping (_ data: StudentAnamnesisPreviousVersionsGrantView?, _ error: Error?) -> Void)
-```
-
-Ler quais versões anteriores o aluno autoriza ao personal do vínculo atual
-
-O conjunto de versões de vínculos anteriores que o aluno autorizou, uma a uma, ao personal do **vínculo atual** (`DEC-PHOME-19` §3.2). Antes de qualquer escolha é vazio, com `updatedAt` ausente: nada vem marcado, nada é herdado de outro vínculo e nenhuma escolha é inferida. Não diz nada sobre a ficha atual, cujo acesso decorre do aceite real do termo e não tem alternância. O `ETag` é `revision`. Sem vínculo atual é `403 RELATIONSHIP_INACTIVE`; identidade sem contexto de aluno, `403 FORBIDDEN`.
-
-### Example
-```swift
-// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
-import FitAppClientSwift
-
-let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
-
-// Ler quais versões anteriores o aluno autoriza ao personal do vínculo atual
-StudentOnboardingAPI.getStudentAnamnesisPreviousVersionsGrant(acceptLanguage: acceptLanguage) { (response, error) in
-    guard error == nil else {
-        print(error)
-        return
-    }
-
-    if (response) {
-        dump(response)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
-
-### Return type
-
-[**StudentAnamnesisPreviousVersionsGrantView**](StudentAnamnesisPreviousVersionsGrantView.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json, application/problem+json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
 # **getStudentOnboarding**
 ```swift
     open class func getStudentOnboarding(acceptLanguage: String? = nil, completion: @escaping (_ data: StudentOnboardingView?, _ error: Error?) -> Void)
@@ -389,7 +337,7 @@ Name | Type | Description  | Notes
 
 Ler o próprio acervo de versões concluídas da anamnese, de todos os vínculos
 
-O acervo do **próprio** aluno (`DEC-PHOME-19` §3.2): toda versão concluída de que a conta é autora, de qualquer ficha, com o vínculo em que nasceu, sem conteúdo. É daqui que o aluno escolhe, versão a versão, quais versões de vínculos anteriores autorizar ao personal do vínculo atual, em `setStudentAnamnesisPreviousVersionsGrant` — a anamnese não é categoria de compartilhamento da troca. Ler não copia, não importa e não pré-preenche a ficha atual, e não concede nada a ninguém. O personal **nunca** recebe este acervo. A autoria é o predicado: qualquer conta autenticada lê o próprio acervo, com ou sem vínculo vigente, e uma conta que nunca concluiu recebe lista vazia. Não reabre leitura profissional de vínculo encerrado.
+O acervo do **próprio** aluno (`DEC-PHOME-19` §3.2): toda versão concluída de que a conta é autora, de qualquer ficha, com o vínculo em que nasceu, sem conteúdo. O aluno **conserva** este acervo ao trocar de personal (`DEC-PHOME-20`): ele nunca perde as próprias versões — o que deixou de existir é a possibilidade de apresentá-las a outro profissional. Ler não copia, não importa e não pré-preenche a ficha atual, e não concede nada a ninguém. O personal **nunca** recebe este acervo. A autoria é o predicado: qualquer conta autenticada lê o próprio acervo, com ou sem vínculo vigente, e uma conta que nunca concluiu recebe lista vazia. Não reabre leitura profissional de vínculo encerrado.
 
 ### Example
 ```swift
@@ -553,7 +501,7 @@ Name | Type | Description  | Notes
 
 Exigir, ou deixar de exigir, a conclusão da ficha deste vínculo para novas liberações
 
-Registra a **escolha explícita** do personal, com autoria, vínculo, instante do servidor e revisão nova (`DEC-PHOME-19` §5, resposta A). **Somente novas liberações:** ligada, e enquanto a ficha deste vínculo não estiver concluída, `publishPersonalPrescriptionDraft`, `assignPersonalStudentWorkout` e `activatePersonalStudentPlan` recusam com `409 STUDENT_NOT_ELIGIBLE` e `ANAMNESIS_NOT_COMPLETED`, avaliado pelo servidor no mesmo ponto transacional da ação, sem confiar em leitura anterior do app — e também `updatePersonalStudentPlanActivation`, que troca a programação a partir de hoje. Nada já liberado é retirado, despublicado, suspenso ou bloqueado; iniciar, retomar ou concluir treino já liberado e sessão em andamento nunca são recusados por ela. Cada escolha fica num histórico **append-only** (autor, vínculo, instante, revisão); esta operação e a leitura publicam a vigente. Desligar retira **somente** esse motivo: prontidão, idade, vínculo e os demais portões continuam. A escolha não dispensa a ficha, que continua obrigatória como processo, não concede acesso a respostas e não muda `DEC-CONV-9`. Conclusão de outro vínculo, versão anterior autorizada, aceite do termo e reconhecimento de revisão não satisfazem a condição. **Compare-and-set:** `If-Match` ecoa `revision` lida em `getPersonalStudentAnamnesisControls`; revisão velha é `412 PRECONDITION_FAILED`, sem gravar e sem mesclar. `relationshipId` diferente do vínculo ativo — inclusive um vínculo anterior com o mesmo aluno — é `409 ANAMNESIS_RELATIONSHIP_MISMATCH`. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado, sem novo ato, **depois** de reautorizar o vínculo: perdida a autorização, a repetição recebe a recusa corrente, nunca a resposta antiga. Outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`. Sem rede não há escolha confirmada.
+Registra a **escolha explícita** do personal, com autoria, vínculo, instante do servidor e revisão nova (`DEC-PHOME-19` §5, resposta A). **Somente novas liberações:** ligada, e enquanto a ficha deste vínculo não estiver concluída, `publishPersonalPrescriptionDraft`, `assignPersonalStudentWorkout` e `activatePersonalStudentPlan` recusam com `409 STUDENT_NOT_ELIGIBLE` e `ANAMNESIS_NOT_COMPLETED`, avaliado pelo servidor no mesmo ponto transacional da ação, sem confiar em leitura anterior do app — e também `updatePersonalStudentPlanActivation`, que troca a programação a partir de hoje. Nada já liberado é retirado, despublicado, suspenso ou bloqueado; iniciar, retomar ou concluir treino já liberado e sessão em andamento nunca são recusados por ela. Cada escolha fica num histórico **append-only** (autor, vínculo, instante, revisão); esta operação e a leitura publicam a vigente. Desligar retira **somente** esse motivo: prontidão, idade, vínculo e os demais portões continuam. A escolha não dispensa a ficha, que continua obrigatória como processo, não concede acesso a respostas e não muda `DEC-CONV-9`. Conclusão de outro vínculo, aceite do termo e reconhecimento de revisão não satisfazem a condição. **Compare-and-set:** `If-Match` ecoa `revision` lida em `getPersonalStudentAnamnesisControls`; revisão velha é `412 PRECONDITION_FAILED`, sem gravar e sem mesclar. `relationshipId` diferente do vínculo ativo — inclusive um vínculo anterior com o mesmo aluno — é `409 ANAMNESIS_RELATIONSHIP_MISMATCH`. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado, sem novo ato, **depois** de reautorizar o vínculo: perdida a autorização, a repetição recebe a recusa corrente, nunca a resposta antiga. Outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`. Sem rede não há escolha confirmada.
 
 ### Example
 ```swift
@@ -592,62 +540,6 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**PersonalStudentAnamnesisControlsView**](PersonalStudentAnamnesisControlsView.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json, application/problem+json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **setStudentAnamnesisPreviousVersionsGrant**
-```swift
-    open class func setStudentAnamnesisPreviousVersionsGrant(idempotencyKey: String, ifMatch: String, setStudentAnamnesisPreviousVersionsGrantRequest: SetStudentAnamnesisPreviousVersionsGrantRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: StudentAnamnesisPreviousVersionsGrantView?, _ error: Error?) -> Void)
-```
-
-Autorizar, restringir ou revogar versões anteriores ao personal do vínculo atual
-
-**Substitui exatamente** o conjunto de versões de vínculos anteriores autorizadas ao personal do vínculo atual (`DEC-PHOME-19` §3.2): a lista enviada passa a ser o conjunto, sem mesclar com o anterior; lista vazia revoga tudo. Revogar retira a leitura na próxima releitura do personal e **não apaga** versão nenhuma do acervo do aluno. A autorização é por versão e por vínculo destinatário: não alcança versões futuras, nunca alcança a ficha do vínculo atual — cujo acesso decorre do aceite do termo, sem alternância —, não satisfaz o preenchimento obrigatório da ficha atual, não promove a versão a atual e não faz nascer item na fila do personal. Cada ato fica registrado com autoria, vínculo destinatário, instante e revisão. **Validação atômica:** cada versão precisa ser do próprio aluno, concluída e de vínculo **diferente** do destinatário; uma só que falhe recusa o conjunto inteiro com `422 ANAMNESIS_VERSION_SELECTION_INVALID`, sem dizer qual — inclusive a de outra conta, que não tem a existência confirmada. **Compare-and-set:** `If-Match` ecoa `revision`; revisão velha é `412 PRECONDITION_FAILED`, sem gravar e sem mesclar duas escolhas. `relationshipId` diferente do vínculo atual — porque ele foi trocado ou encerrado depois da leitura — é `409 ANAMNESIS_RELATIONSHIP_MISMATCH`. Sem vínculo atual, `403 RELATIONSHIP_INACTIVE`. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`. Sem rede não há autorização confirmada.
-
-### Example
-```swift
-// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
-import FitAppClientSwift
-
-let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
-let ifMatch = "ifMatch_example" // String | ETag exata da revisão lida pelo cliente; impede last-write-wins.
-let setStudentAnamnesisPreviousVersionsGrantRequest = SetStudentAnamnesisPreviousVersionsGrantRequest(relationshipId: "relationshipId_example", versionIds: ["versionIds_example"]) // SetStudentAnamnesisPreviousVersionsGrantRequest |
-let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
-
-// Autorizar, restringir ou revogar versões anteriores ao personal do vínculo atual
-StudentOnboardingAPI.setStudentAnamnesisPreviousVersionsGrant(idempotencyKey: idempotencyKey, ifMatch: ifMatch, setStudentAnamnesisPreviousVersionsGrantRequest: setStudentAnamnesisPreviousVersionsGrantRequest, acceptLanguage: acceptLanguage) { (response, error) in
-    guard error == nil else {
-        print(error)
-        return
-    }
-
-    if (response) {
-        dump(response)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
- **ifMatch** | **String** | ETag exata da revisão lida pelo cliente; impede last-write-wins. |
- **setStudentAnamnesisPreviousVersionsGrantRequest** | [**SetStudentAnamnesisPreviousVersionsGrantRequest**](SetStudentAnamnesisPreviousVersionsGrantRequest.md) |  |
- **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
-
-### Return type
-
-[**StudentAnamnesisPreviousVersionsGrantView**](StudentAnamnesisPreviousVersionsGrantView.md)
 
 ### Authorization
 

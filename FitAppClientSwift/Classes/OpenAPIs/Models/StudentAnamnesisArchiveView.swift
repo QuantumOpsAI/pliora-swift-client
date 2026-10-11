@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Acervo do **próprio** aluno: todas as versões concluídas de que ele é autor, de todas as suas fichas, com o vínculo de origem de cada uma. Existe para que ele escolha, versão a versão, o que autorizar ao personal atual. Não copia, não importa e não preenche a ficha atual, e não é arquivo profissional. */
+/** Acervo do **próprio** aluno: todas as versões concluídas de que ele é autor, de todas as suas fichas, com o vínculo de origem de cada uma. Trocar de personal não apaga nem esconde nada daqui (&#x60;DEC-PHOME-20&#x60;) — o que não existe é apresentar estas versões a outro profissional. Não copia, não importa e não preenche a ficha atual, e não é arquivo profissional. */
 public struct StudentAnamnesisArchiveView: Codable, JSONEncodable, Hashable {
 
     public static let versionsRule = ArrayRule(minItems: nil, maxItems: nil, uniqueItems: true)

@@ -10,27 +10,24 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Referência de uma versão **autorizada** ao personal deste vínculo, sem conteúdo. &#x60;versionNumber&#x60; é local à ficha de origem. O vínculo e o profissional de origem de uma versão anterior não viajam. */
+/** Referência de uma versão concluída **da ficha deste vínculo**, legível pelo aceite real do termo, sem conteúdo. &#x60;versionNumber&#x60; é local a esta ficha. */
 public struct PersonalAuthorizedAnamnesisVersionRef: Codable, JSONEncodable, Hashable {
 
     public static let versionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let versionNumberRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
-    public var access: PersonalAnamnesisVersionAccess
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var versionId: String
     public var versionNumber: Int
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var completedAt: Date
 
-    public init(access: PersonalAnamnesisVersionAccess, versionId: String, versionNumber: Int, completedAt: Date) {
-        self.access = access
+    public init(versionId: String, versionNumber: Int, completedAt: Date) {
         self.versionId = versionId
         self.versionNumber = versionNumber
         self.completedAt = completedAt
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
-        case access
         case versionId
         case versionNumber
         case completedAt
@@ -40,17 +37,8 @@ public struct PersonalAuthorizedAnamnesisVersionRef: Codable, JSONEncodable, Has
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(access, forKey: .access)
         try container.encode(versionId, forKey: .versionId)
         try container.encode(versionNumber, forKey: .versionNumber)
         try container.encode(completedAt, forKey: .completedAt)
-    }
-}
-
-
-extension PersonalAuthorizedAnamnesisVersionRef: UnknownCaseCheckable {
-    public var containsUnknownDefaultOpenApiCase: Bool {
-        if access == .unknownDefaultOpenApi { return true }
-        return false
     }
 }

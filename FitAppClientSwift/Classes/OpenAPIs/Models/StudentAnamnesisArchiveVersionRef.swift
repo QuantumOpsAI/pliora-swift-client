@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Uma versão concluída do próprio aluno, sem conteúdo, com o vínculo em que ela nasceu. Só as de vínculo diferente do destinatário podem ser autorizadas a ele. */
+/** Uma versão concluída do próprio aluno, sem conteúdo, com o vínculo em que ela nasceu. */
 public struct StudentAnamnesisArchiveVersionRef: Codable, JSONEncodable, Hashable {
 
     public static let relationshipIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
