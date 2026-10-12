@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Próximo passo operacional gravado junto de uma decisão &#x60;NOT_RELEASED&#x60; — &#x60;REVIEW_LATER&#x60; ou &#x60;EXTERNAL_EVALUATION_REFERRAL&#x60; — projetado na leitura protegida, na fila e na notificação. Não é diagnóstico nem tratamento. */
+/** Próximo passo operacional gravado junto de uma decisão &#x60;NOT_RELEASED&#x60; — &#x60;REVIEW_LATER&#x60; ou &#x60;EXTERNAL_EVALUATION_REFERRAL&#x60;. Viaja somente nas leituras protegidas do caso: na visão do personal (&#x60;nextStep&#x60; do caso e da decisão em vigor) e na visão do próprio aluno, onde é o único fato da decisão que o titular recebe, exigido exatamente em &#x60;NOT_RELEASED&#x60;. A fila de atenção não o carrega — transporta só &#x60;caseId&#x60; e o sinal &#x60;newResponseToAnalyze&#x60; — e nenhuma notificação ou push o contém (&#x60;DOC-ANAMNESIS-BY-RELATIONSHIP&#x60; §5.3: o push é genérico). Não é diagnóstico nem tratamento. */
 public enum AnamnesisAnalysisNextStep: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case reviewLater = "REVIEW_LATER"
     case externalEvaluationReferral = "EXTERNAL_EVALUATION_REFERRAL"

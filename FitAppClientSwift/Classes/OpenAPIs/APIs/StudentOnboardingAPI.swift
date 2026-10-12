@@ -314,6 +314,59 @@ open class StudentOnboardingAPI {
     }
 
     /**
+     Ler o caso de análise vigente da ficha deste vínculo
+
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getPersonalStudentAnamnesisAnalysis(studentId: String, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalStudentAnamnesisAnalysisView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getPersonalStudentAnamnesisAnalysisWithRequestBuilder(studentId: studentId, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Ler o caso de análise vigente da ficha deste vínculo
+     - GET /personal/students/{studentId}/anamnesis/analysis
+     - Leitura protegida do **caso de análise vigente** da ficha deste vínculo, para o personal autorizado (`DEC-PHOME-19` §5, `pliora-contracts#317`). É a forma dedicada do mesmo recorte que `getPersonalStudentAnamnesis` já publica em `analysisCase` — o destino protegido para onde a fila de atenção aponta (`DOC-PERSONAL-DESTINATIONS` §8.4) — e nunca uma segunda projeção: mesmo predicado, mesmos campos, mesma `revision` que `If-Match` ecoa nos comandos. **Autorização revalidada a cada leitura**, nesta ordem e sem atalho: credencial e contexto de personal, vínculo `ACTIVE` com este `studentId` e base de acesso em vigor — o aceite real de `SHARE_DATA_WITH_PERSONAL` gravado no vínculo. O que falhar vira a recusa correspondente: `404` para aluno que não é deste personal (inexistente e alheio indistinguíveis, nunca revelando vínculo de outro personal), `403` com `FORBIDDEN`, `RELATIONSHIP_PAUSED`, `RELATIONSHIP_INACTIVE` ou `SHARING_GRANT_REQUIRED`. `analysis` ausente é **ausência confirmada** — não há caso vigente na ficha deste vínculo — e nunca indisponibilidade, recusa nem silêncio sobre um caso que exista. Nada sobre a ficha de outro vínculo viaja aqui: nem o caso dela, nem a contagem, nem a existência (`DEC-PHOME-20`). O `ETag` acompanha `analysis` quando presente e carrega a revisão do caso — o eco que o próximo comando exige.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<PersonalStudentAnamnesisAnalysisView>
+     */
+    open class func getPersonalStudentAnamnesisAnalysisWithRequestBuilder(studentId: String, acceptLanguage: String? = nil) -> RequestBuilder<PersonalStudentAnamnesisAnalysisView> {
+        var localVariablePath = "/personal/students/{studentId}/anamnesis/analysis"
+        let studentIdPreEscape = "\(APIHelper.mapValueToPathItem(studentId))"
+        let studentIdPostEscape = studentIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{studentId}", with: studentIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisAnalysisView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      Ler a exigência opcional e a solicitação de preenchimento da ficha deste vínculo
 
      - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
@@ -420,6 +473,102 @@ open class StudentOnboardingAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisVersionView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Ler o caso de análise vigente do próprio aluno
+
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getStudentAnamnesisAnalysis(acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentAnamnesisAnalysisView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getStudentAnamnesisAnalysisWithRequestBuilder(acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Ler o caso de análise vigente do próprio aluno
+     - GET /student/anamnesis/analysis
+     - Leitura protegida do caso de análise do **próprio** aluno, na moldura do vínculo atual (`DEC-PHOME-19` §5, `pliora-contracts#317`) — o destino protegido que o toque na pendência da Hoje relê antes de qualquer ato. O aluno lê o próprio caso **mesmo com o aceite de compartilhamento revogado**: o termo governa o acesso do personal, nunca o do titular — registro revogado só é lido pelo próprio aluno. A moldura continua sendo o vínculo atual: sem vínculo vigente, ou sem contexto de aluno, a resposta é `403`, nunca um caso solto de relação encerrada; vínculo pausado não esconde do aluno o que é dele. `analysis` ausente é **ausência confirmada** — não há caso vigente — e nunca indisponibilidade, credencial expirada ou recusa disfarçada. O recorte é o de `StudentAnamnesisAnalysisCase`, o mesmo publicado por `getStudentOnboarding`: estado, revisão e as perguntas com as próprias respostas — sem decisão projetada nem razão interna do personal; só em `NOT_RELEASED` o caso carrega `nextStep`, o próximo passo operacional que a pendência `VIEW_NEXT_STEP` manda abrir. O `ETag` acompanha `analysis` quando presente: é a revisão que `If-Match` ecoa ao responder à pergunta pendente.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<StudentAnamnesisAnalysisView>
+     */
+    open class func getStudentAnamnesisAnalysisWithRequestBuilder(acceptLanguage: String? = nil) -> RequestBuilder<StudentAnamnesisAnalysisView> {
+        let localVariablePath = "/student/anamnesis/analysis"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentAnamnesisAnalysisView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Pendência mínima da análise de anamnese para a Hoje do aluno
+
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getStudentAnamnesisAnalysisPending(acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentAnamnesisAnalysisPendingView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getStudentAnamnesisAnalysisPendingWithRequestBuilder(acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Pendência mínima da análise de anamnese para a Hoje do aluno
+     - GET /student/anamnesis/analysis/pending
+     - A pendência mínima da análise para a Hoje (`DOC-STUDENT-HOME` §5.0, `DOC-STUDENT-HOME-TECH` §3.11, `pliora-contracts#317`) — leitura **nova e independente**, irmã das cinco projeções da Home do aluno e nunca parte do agregado reservado `getStudentToday`: nada aqui toca a sua rota, seus esquemas ou o seu grafo de `$ref`, que segue byte a byte idêntico. O servidor autentica o aluno, revalida o vínculo atual e devolve somente o sinal operacional: `asOf`, `state`, `nextAction` e `caseId` — este último só quando há destino autorizado, isto é, `state` diferente de `NO_PENDING`. `NO_PENDING` é **ausência confirmada**: não há caso vigente ou o caso encerrou (`RELEASED_FOR_NEW_PRESCRIPTION` ou `WITHDRAWN` saem da pendência atual e seus atos seguem no histórico protegido). Estado indeterminado é erro: `5xx`, nunca `NO_PENDING` enfeitado — falha de leitura não se apresenta como “sem pendências”. Sem vínculo vigente ou sem contexto de aluno é `403` e a região simplesmente não é exibida. Nenhum conteúdo viaja aqui: sem nome do personal, pergunta, resposta, item de triagem, condição, justificativa, tipo clínico de decisão, razão de bloqueio, contagem de versões nem prazo — esse material só existe no destino protegido. O `state`/`nextAction` anunciado reflete o estado do caso, **não uma concessão**: o toque na pendência ainda passa pela reautorização do próprio comando ou leitura protegida — aceite revogado ou vínculo pausado mantém o sinal legível para o titular e a recusa acontece no ato, nunca nesta projeção.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<StudentAnamnesisAnalysisPendingView>
+     */
+    open class func getStudentAnamnesisAnalysisPendingWithRequestBuilder(acceptLanguage: String? = nil) -> RequestBuilder<StudentAnamnesisAnalysisPendingView> {
+        let localVariablePath = "/student/anamnesis/analysis/pending"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentAnamnesisAnalysisPendingView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
@@ -580,6 +729,123 @@ open class StudentOnboardingAPI {
         let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Histórico protegido dos atos de análise da ficha deste vínculo
+
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter cursor: (query) Cursor opaco devolvido por esta operação — emitido para esta conta e este vínculo, nunca reinterpretado pelo cliente. (optional)
+     - parameter limit: (query) Tamanho máximo da página; padrão 20 e teto de 100 itens. (optional, default to 20)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func listPersonalStudentAnamnesisAnalysisActs(studentId: String, acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalStudentAnamnesisAnalysisHistoryPage?, _ error: Error?) -> Void)) -> RequestTask {
+        return listPersonalStudentAnamnesisAnalysisActsWithRequestBuilder(studentId: studentId, acceptLanguage: acceptLanguage, cursor: cursor, limit: limit).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Histórico protegido dos atos de análise da ficha deste vínculo
+     - GET /personal/students/{studentId}/anamnesis/analysis/history
+     - O histórico do caso protegido para o personal autorizado (`DEC-PHOME-19` §5, `pliora-contracts#317`): **todos** os atos de **todos** os casos que a ficha deste vínculo já teve, do primeiro ao último — nada é reescrito, reordenado ou removido, e os atos marcados por supersunção permanecem. O predicado é o de `getPersonalStudentAnamnesisAnalysis`, revalidado nesta leitura: credencial e contexto de personal, vínculo `ACTIVE` com este `studentId` e base de acesso em vigor. A autorização é aplicada **antes** de selecionar, contar, ordenar e paginar, de modo que ato de outro vínculo não existe aqui por nenhum caminho — nem item, nem posição, nem cursor (`DEC-PHOME-20`). A ordem é total e do servidor: sequência de nascimento do caso na ficha, sequência de commit do ato dentro do caso e `actId` crescente como desempate final; o cliente não reordena nem infere posições. Paginação por cursor opaco com `limit` (padrão 20, máximo 100); `nextCursor` nulo encerra a coleção. O cursor só vale para esta operação, esta conta e este vínculo — cursor de outra audiência, de outro alvo ou adulterado é `422 VALIDATION_FAILED`, nunca uma página forjada. Lista vazia é ausência confirmada de atos na ficha deste vínculo, nunca erro nem indisponibilidade.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter cursor: (query) Cursor opaco devolvido por esta operação — emitido para esta conta e este vínculo, nunca reinterpretado pelo cliente. (optional)
+     - parameter limit: (query) Tamanho máximo da página; padrão 20 e teto de 100 itens. (optional, default to 20)
+     - returns: RequestBuilder<PersonalStudentAnamnesisAnalysisHistoryPage>
+     */
+    open class func listPersonalStudentAnamnesisAnalysisActsWithRequestBuilder(studentId: String, acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil) -> RequestBuilder<PersonalStudentAnamnesisAnalysisHistoryPage> {
+        var localVariablePath = "/personal/students/{studentId}/anamnesis/analysis/history"
+        let studentIdPreEscape = "\(APIHelper.mapValueToPathItem(studentId))"
+        let studentIdPostEscape = studentIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{studentId}", with: studentIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "cursor": (wrappedValue: cursor?.encodeToJSON(), isExplode: true),
+            "limit": (wrappedValue: limit?.encodeToJSON(), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisAnalysisHistoryPage>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Histórico protegido dos atos de análise do próprio aluno
+
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter cursor: (query) Cursor opaco devolvido por esta operação — emitido para esta conta e este vínculo, nunca reinterpretado pelo cliente. (optional)
+     - parameter limit: (query) Tamanho máximo da página; padrão 20 e teto de 100 itens. (optional, default to 20)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func listStudentAnamnesisAnalysisActs(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentAnamnesisAnalysisHistoryPage?, _ error: Error?) -> Void)) -> RequestTask {
+        return listStudentAnamnesisAnalysisActsWithRequestBuilder(acceptLanguage: acceptLanguage, cursor: cursor, limit: limit).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Histórico protegido dos atos de análise do próprio aluno
+     - GET /student/anamnesis/analysis/history
+     - O histórico protegido do próprio aluno (`DEC-PHOME-19` §5, `pliora-contracts#317`): todos os atos de todos os casos que a ficha do vínculo atual já teve, na mesma ordem total e com o mesmo cursor opaco da leitura do personal — sequência de nascimento do caso na ficha, sequência de commit do ato e `actId` como desempate — mas com o predicado do titular: o aluno lê o que é seu **mesmo com o aceite de compartilhamento revogado**, e nenhum ato de outro vínculo aparece ou move posição, contagem ou cursor aqui. Sem vínculo vigente é `403`; cursor de outra audiência, de outro alvo ou adulterado é `422 VALIDATION_FAILED`; página vazia é ausência confirmada, nunca erro disfarçado.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter cursor: (query) Cursor opaco devolvido por esta operação — emitido para esta conta e este vínculo, nunca reinterpretado pelo cliente. (optional)
+     - parameter limit: (query) Tamanho máximo da página; padrão 20 e teto de 100 itens. (optional, default to 20)
+     - returns: RequestBuilder<StudentAnamnesisAnalysisHistoryPage>
+     */
+    open class func listStudentAnamnesisAnalysisActsWithRequestBuilder(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil) -> RequestBuilder<StudentAnamnesisAnalysisHistoryPage> {
+        let localVariablePath = "/student/anamnesis/analysis/history"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "cursor": (wrappedValue: cursor?.encodeToJSON(), isExplode: true),
+            "limit": (wrappedValue: limit?.encodeToJSON(), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentAnamnesisAnalysisHistoryPage>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
 
     /**
