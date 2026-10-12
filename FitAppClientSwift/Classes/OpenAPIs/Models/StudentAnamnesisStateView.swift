@@ -25,8 +25,10 @@ public struct StudentAnamnesisStateView: Codable, JSONEncodable, Hashable {
     public var draft: StudentAnamnesisDraftView
     /** Instante do servidor em que o personal do vínculo **solicitou dentro do app** o preenchimento desta ficha, presente somente enquanto a solicitação está pendente. A conclusão da ficha a satisfaz, e o campo some. É o único lugar em que o aluno a encontra: não há push, badge, mensagem, prazo nem texto do personal. */
     public var completionRequestedAt: Date?
+    /** Caso de análise por exceção **deste vínculo** (`DEC-PHOME-19` §5) na visão do aluno, presente enquanto ele existe e não foi retirado — é por aqui que o aluno encontra a pergunta pendente a responder, com a `revision` que `If-Match` ecoa. A visão do aluno não carrega razão de abertura, decisão nem próximo passo: perguntas, respostas e estado, só. Ausente é **não há caso a mostrar** — nunca caso de outro vínculo nem caso retirado. */
+    public var analysisCase: StudentAnamnesisAnalysisCase?
 
-    public init(relationshipId: String, state: StudentAnamnesisState, completed: Bool, completedVersions: [StudentAnamnesisVersionRef], latestCompletedVersion: StudentAnamnesisVersionView? = nil, draft: StudentAnamnesisDraftView, completionRequestedAt: Date? = nil) {
+    public init(relationshipId: String, state: StudentAnamnesisState, completed: Bool, completedVersions: [StudentAnamnesisVersionRef], latestCompletedVersion: StudentAnamnesisVersionView? = nil, draft: StudentAnamnesisDraftView, completionRequestedAt: Date? = nil, analysisCase: StudentAnamnesisAnalysisCase? = nil) {
         self.relationshipId = relationshipId
         self.state = state
         self.completed = completed
@@ -34,6 +36,7 @@ public struct StudentAnamnesisStateView: Codable, JSONEncodable, Hashable {
         self.latestCompletedVersion = latestCompletedVersion
         self.draft = draft
         self.completionRequestedAt = completionRequestedAt
+        self.analysisCase = analysisCase
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -44,6 +47,7 @@ public struct StudentAnamnesisStateView: Codable, JSONEncodable, Hashable {
         case latestCompletedVersion
         case draft
         case completionRequestedAt
+        case analysisCase
     }
 
     // Encodable protocol methods
@@ -57,6 +61,7 @@ public struct StudentAnamnesisStateView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(latestCompletedVersion, forKey: .latestCompletedVersion)
         try container.encode(draft, forKey: .draft)
         try container.encodeIfPresent(completionRequestedAt, forKey: .completionRequestedAt)
+        try container.encodeIfPresent(analysisCase, forKey: .analysisCase)
     }
 }
 

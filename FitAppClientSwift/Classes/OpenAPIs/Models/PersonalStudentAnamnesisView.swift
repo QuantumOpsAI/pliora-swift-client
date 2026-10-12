@@ -26,8 +26,10 @@ public struct PersonalStudentAnamnesisView: Codable, JSONEncodable, Hashable {
     public var latestCurrentVersion: StudentAnamnesisVersionView?
     public var readiness: StudentReadinessView?
     public var prescriptionEligibility: StudentPrescriptionEligibilityView
+    /** Caso de análise por exceção **deste vínculo** (`DEC-PHOME-19` §5), presente enquanto ele existe e não foi retirado — inclui o caso já decidido que segue vigente. É a mesma projeção dos outcomes dos comandos de análise, nunca uma cópia paralela, e carrega a `revision` que `If-Match` ecoa nos comandos. Ausente é **não há caso a mostrar** — nunca caso de outro vínculo nem caso retirado. Não confunde com `readiness`: o caso é processo de análise, não declaração de aptidão. */
+    public var analysisCase: PersonalStudentAnamnesisAnalysisCase?
 
-    public init(studentId: String, relationshipId: String, anamnesis: PersonalStudentOperationAnamnesisView, authorizedVersions: Set<PersonalAuthorizedAnamnesisVersionRef>, latestCurrentVersion: StudentAnamnesisVersionView? = nil, readiness: StudentReadinessView? = nil, prescriptionEligibility: StudentPrescriptionEligibilityView) {
+    public init(studentId: String, relationshipId: String, anamnesis: PersonalStudentOperationAnamnesisView, authorizedVersions: Set<PersonalAuthorizedAnamnesisVersionRef>, latestCurrentVersion: StudentAnamnesisVersionView? = nil, readiness: StudentReadinessView? = nil, prescriptionEligibility: StudentPrescriptionEligibilityView, analysisCase: PersonalStudentAnamnesisAnalysisCase? = nil) {
         self.studentId = studentId
         self.relationshipId = relationshipId
         self.anamnesis = anamnesis
@@ -35,6 +37,7 @@ public struct PersonalStudentAnamnesisView: Codable, JSONEncodable, Hashable {
         self.latestCurrentVersion = latestCurrentVersion
         self.readiness = readiness
         self.prescriptionEligibility = prescriptionEligibility
+        self.analysisCase = analysisCase
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -45,6 +48,7 @@ public struct PersonalStudentAnamnesisView: Codable, JSONEncodable, Hashable {
         case latestCurrentVersion
         case readiness
         case prescriptionEligibility
+        case analysisCase
     }
 
     // Encodable protocol methods
@@ -58,6 +62,7 @@ public struct PersonalStudentAnamnesisView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(latestCurrentVersion, forKey: .latestCurrentVersion)
         try container.encodeIfPresent(readiness, forKey: .readiness)
         try container.encode(prescriptionEligibility, forKey: .prescriptionEligibility)
+        try container.encodeIfPresent(analysisCase, forKey: .analysisCase)
     }
 }
 

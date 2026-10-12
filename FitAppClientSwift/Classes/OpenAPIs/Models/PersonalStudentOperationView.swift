@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Uma leitura individual não pode ser selada como &#x60;FACT&#x60;, e uma leitura &#x60;PROJECTION&#x60; não pode omitir o corte &#x60;asOf&#x60;. */
+/** &#x60;DEC-PHOME-19&#x60; §3.1: com o aceite do termo revogado esta leitura é a recusa &#x60;403 SHARING_GRANT_REQUIRED&#x60;, e não um &#x60;200&#x60; com a variante de acesso negado da linha — a proibição é do schema, não só da prosa. */
 public struct PersonalStudentOperationView: Codable, JSONEncodable, Hashable {
 
     /** Linha operacional do vínculo, na mesma forma de `PersonalStudentOperationItemView` usada pela aba Alunos. */

@@ -10,5 +10,6 @@ Name | Type | Description | Notes
 **latestCurrentVersion** | [**StudentAnamnesisVersionView**](StudentAnamnesisVersionView.md) |  | [optional]
 **readiness** | [**StudentReadinessView**](StudentReadinessView.md) |  | [optional]
 **prescriptionEligibility** | [**StudentPrescriptionEligibilityView**](StudentPrescriptionEligibilityView.md) |  |
+**analysisCase** | [**PersonalStudentAnamnesisAnalysisCase**](PersonalStudentAnamnesisAnalysisCase.md) | Caso de análise por exceção **deste vínculo** (&#x60;DEC-PHOME-19&#x60; §5), presente enquanto ele existe e não foi retirado — inclui o caso já decidido que segue vigente. É a mesma projeção dos outcomes dos comandos de análise, nunca uma cópia paralela, e carrega a &#x60;revision&#x60; que &#x60;If-Match&#x60; ecoa nos comandos. Ausente é **não há caso a mostrar** — nunca caso de outro vínculo nem caso retirado. Não confunde com &#x60;readiness&#x60;: o caso é processo de análise, não declaração de aptidão. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

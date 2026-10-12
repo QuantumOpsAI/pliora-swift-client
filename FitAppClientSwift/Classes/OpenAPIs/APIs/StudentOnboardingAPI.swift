@@ -13,6 +13,135 @@ import AnyCodable
 open class StudentOnboardingAPI {
 
     /**
+     Confirmar que a nova versão concluída corrige a resposta anterior
+
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter acknowledgePersonalStudentAnamnesisCorrectionRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func acknowledgePersonalStudentAnamnesisCorrection(studentId: String, idempotencyKey: String, ifMatch: String, acknowledgePersonalStudentAnamnesisCorrectionRequest: AcknowledgePersonalStudentAnamnesisCorrectionRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)) -> RequestTask {
+        return acknowledgePersonalStudentAnamnesisCorrectionWithRequestBuilder(studentId: studentId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, acknowledgePersonalStudentAnamnesisCorrectionRequest: acknowledgePersonalStudentAnamnesisCorrectionRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Confirmar que a nova versão concluída corrige a resposta anterior
+     - POST /personal/students/{studentId}/anamnesis/analysis/decisions/correction-acknowledgement
+     - Registra a decisão `ANSWER_CORRECTION_ACKNOWLEDGED` (`DEC-PHOME-19` §5.3): o aluno concluiu **nova versão** da ficha — sem resposta positiva na triagem — e o personal confirma que ela corrige a versão que abriu o caso. `correctedAnamnesisVersionId` tem de nomear versão concluída **posterior** à versão de origem e livre de sinal positivo; versão inexistente, anterior ou ainda positiva é `409 ANAMNESIS_CORRECTION_NOT_RECORDED`. Não é declaração de liberação médica nem dispensa — é ato próprio, que nunca sobe ao passo de validade profissional. O commit anexa `DECISION_RECORDED`, põe a decisão em vigor, o caso vira `RELEASED_FOR_NEW_PRESCRIPTION` e a razão da análise sai da elegibilidade. Uma resposta positiva que vira negativa **nunca** fecha o caso sozinha: é esta confirmação profissional que encerra. Exige o caso `AWAITING_PERSONAL` sem decisão em vigor — `NOT_RELEASED` pede reconsideração antes, e caso reaberto que ainda carrega decisão em vigor é `409 ANAMNESIS_ANALYSIS_NOT_OPEN`; o caminho é a supersunção — e `If-Match` com a revisão corrente, nunca `*`; divergência é `412 PRECONDITION_FAILED` com `currentRevision`. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter acknowledgePersonalStudentAnamnesisCorrectionRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>
+     */
+    open class func acknowledgePersonalStudentAnamnesisCorrectionWithRequestBuilder(studentId: String, idempotencyKey: String, ifMatch: String, acknowledgePersonalStudentAnamnesisCorrectionRequest: AcknowledgePersonalStudentAnamnesisCorrectionRequest, acceptLanguage: String? = nil) -> RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome> {
+        var localVariablePath = "/personal/students/{studentId}/anamnesis/analysis/decisions/correction-acknowledgement"
+        let studentIdPreEscape = "\(APIHelper.mapValueToPathItem(studentId))"
+        let studentIdPostEscape = studentIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{studentId}", with: studentIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: acknowledgePersonalStudentAnamnesisCorrectionRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+            "If-Match": ifMatch.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Responder a pergunta de esclarecimento pendente do caso vigente
+
+     - parameter caseId: (path) Caso de análise vigente do próprio vínculo do aluno autenticado.
+     - parameter clarificationRequestId: (path) Pergunta ainda pendente a responder.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter answerStudentAnamnesisClarificationRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func answerStudentAnamnesisClarification(caseId: String, clarificationRequestId: String, idempotencyKey: String, ifMatch: String, answerStudentAnamnesisClarificationRequest: AnswerStudentAnamnesisClarificationRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)) -> RequestTask {
+        return answerStudentAnamnesisClarificationWithRequestBuilder(caseId: caseId, clarificationRequestId: clarificationRequestId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, answerStudentAnamnesisClarificationRequest: answerStudentAnamnesisClarificationRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Responder a pergunta de esclarecimento pendente do caso vigente
+     - POST /student/anamnesis/analysis/cases/{caseId}/clarification-requests/{clarificationRequestId}/answer
+     - Responde a pergunta **pendente** do caso de análise do próprio vínculo (`DEC-PHOME-19` §5.2): `answer` é texto autorado, preservado verbatim com o teto do contrato, e o servidor grava autor e `answeredAt` do relógio do servidor — nunca do cliente. O commit anexa o ato imutável `CLARIFICATION_ANSWERED`, marca a pergunta como respondida e o caso volta a `AWAITING_PERSONAL`. Responder **não é** decisão nem confirmação de aptidão: não altera prontidão nem elegibilidade por si — quem decide é sempre o personal. Exige a pergunta ainda pendente: já respondida ou retirada é `409 ANAMNESIS_CLARIFICATION_NOT_PENDING`; `caseId` que não é o caso vigente é `409 ANAMNESIS_ANALYSIS_CASE_MISMATCH`; sem caso vigente é `409 ANAMNESIS_ANALYSIS_NOT_OPEN`; pergunta fora do caso é `404`. `If-Match` carrega a revisão corrente do caso — eco da leitura, nunca `*`; divergência é `412 PRECONDITION_FAILED` com `currentRevision`. Corrida com a retirada é decidida pelo compare-and-set: quem chega depois recebe `412` e, relendo, encontra a pergunta já retirada. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter caseId: (path) Caso de análise vigente do próprio vínculo do aluno autenticado.
+     - parameter clarificationRequestId: (path) Pergunta ainda pendente a responder.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter answerStudentAnamnesisClarificationRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<StudentAnamnesisAnalysisOutcome>
+     */
+    open class func answerStudentAnamnesisClarificationWithRequestBuilder(caseId: String, clarificationRequestId: String, idempotencyKey: String, ifMatch: String, answerStudentAnamnesisClarificationRequest: AnswerStudentAnamnesisClarificationRequest, acceptLanguage: String? = nil) -> RequestBuilder<StudentAnamnesisAnalysisOutcome> {
+        var localVariablePath = "/student/anamnesis/analysis/cases/{caseId}/clarification-requests/{clarificationRequestId}/answer"
+        let caseIdPreEscape = "\(APIHelper.mapValueToPathItem(caseId))"
+        let caseIdPostEscape = caseIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{caseId}", with: caseIdPostEscape, options: .literal, range: nil)
+        let clarificationRequestIdPreEscape = "\(APIHelper.mapValueToPathItem(clarificationRequestId))"
+        let clarificationRequestIdPostEscape = clarificationRequestIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{clarificationRequestId}", with: clarificationRequestIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: answerStudentAnamnesisClarificationRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+            "If-Match": ifMatch.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentAnamnesisAnalysisOutcome>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      Concluir a anamnese funcional, fixando uma versão concluída imutável
 
      - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
@@ -37,7 +166,7 @@ open class StudentOnboardingAPI {
     /**
      Concluir a anamnese funcional, fixando uma versão concluída imutável
      - POST /student/onboarding/complete
-     - Transforma o rascunho privado vigente em uma **versão concluída imutável**, com `If-Match` obrigatório, ecoando a mesma e única revisão desta superfície — `anamnesis.draft.revision`, publicada como `ETag` na leitura. Concluir **cria versão**; editar depois e concluir de novo cria **outra** versão e **preserva** a anterior, que continua consultável. Nenhuma versão é reescrita, apagada ou substituída em silêncio. A idempotência é **por versão, não por aluno**: repetir a mesma tentativa sobre a mesma `revision` devolve a mesma versão em vez de criar outra, e portanto produz no máximo uma notificação por versão concluída. A entrega real ao personal **não** é pós-condição desta operação e não é afirmada por ela. **Resposta canônica única, sem ramificação por idade.** Menor e adulto concluem exatamente da mesma forma. Triagem de prontidão pendente e autorização de responsável ausente **não** impedem concluir: elas aparecem apenas como motivos nomeados e acumuláveis em `prescriptionEligibility`. Não existe, aqui, resposta de \"conclusão pendente por responsável\", nem operação de autorização embutida. Concluir afirma que existe versão concluída; **não** afirma elegibilidade para prescrição. **Conclui a ficha do vínculo atual, não uma anamnese global (`DEC-PHOME-19`).** O corpo repete `relationshipId`, o vínculo dono da ficha lida; vínculo trocado depois da leitura é `409 ANAMNESIS_RELATIONSHIP_MISMATCH` e vínculo encerrado, sem outro atual, é `403 RELATIONSHIP_INACTIVE` — a ficha encerrada fica congelada, sem versão nova. Com o vínculo pausado a conclusão é aceita. A versão nasce com o aluno como autor, a ficha e o vínculo de origem, a revisão do rascunho e o instante do servidor; `versionNumber` é local à ficha. A conclusão é **única por ficha e revisão do rascunho**: duas conclusões concorrentes da mesma revisão, mesmo com chaves diferentes, devolvem a mesma versão, sem número duplicado; revisão velha é `412`, nunca last-write-wins. Nada de outra ficha conclui esta, e nenhuma versão de outra ficha a substitui. A conclusão satisfaz, no mesmo commit, a solicitação de preenchimento pendente desta ficha. A repetição reautoriza o vínculo antes de devolver o resultado guardado.
+     - Transforma o rascunho privado vigente em uma **versão concluída imutável**, com `If-Match` obrigatório, ecoando a mesma e única revisão desta superfície — `anamnesis.draft.revision`, publicada como `ETag` na leitura. Concluir **cria versão**; editar depois e concluir de novo cria **outra** versão e **preserva** a anterior, que continua consultável. Nenhuma versão é reescrita, apagada ou substituída em silêncio. A idempotência é **por versão, não por aluno**: repetir a mesma tentativa sobre a mesma `revision` devolve a mesma versão em vez de criar outra, e portanto produz no máximo uma notificação por versão concluída. A entrega real ao personal **não** é pós-condição desta operação e não é afirmada por ela. **Resposta canônica única, sem ramificação por idade.** Menor e adulto concluem exatamente da mesma forma. Triagem de prontidão pendente e autorização de responsável ausente **não** impedem concluir: elas aparecem apenas como motivos nomeados e acumuláveis em `prescriptionEligibility`. Não existe, aqui, resposta de \"conclusão pendente por responsável\", nem operação de autorização embutida. Concluir afirma que existe versão concluída; **não** afirma elegibilidade para prescrição. **Conclui a ficha do vínculo atual, não uma anamnese global (`DEC-PHOME-19`).** O corpo repete `relationshipId`, o vínculo dono da ficha lida; vínculo trocado depois da leitura é `409 ANAMNESIS_RELATIONSHIP_MISMATCH` e vínculo encerrado, sem outro atual, é `403 RELATIONSHIP_INACTIVE` — a ficha encerrada fica congelada, sem versão nova. Com o vínculo pausado a conclusão é aceita. A versão nasce com o aluno como autor, a ficha e o vínculo de origem, a revisão do rascunho e o instante do servidor; `versionNumber` é local à ficha. A conclusão é **única por ficha e revisão do rascunho**: duas conclusões concorrentes da mesma revisão, mesmo com chaves diferentes, devolvem a mesma versão, sem número duplicado; revisão velha é `412`, nunca last-write-wins. Nada de outra ficha conclui esta, e nenhuma versão de outra ficha a substitui. A conclusão satisfaz, no mesmo commit, a solicitação de preenchimento pendente desta ficha. A repetição reautoriza o vínculo antes de devolver o resultado guardado. Quando a ficha tem caso de análise por exceção vigente, a versão nova assume o alvo do caso **no mesmo commit**: o ato `TARGET_VERSION_SUPERSEDED` fica gravado no histórico, perguntas ainda pendentes ganham `supersededAt` e passam a recusar resposta tardia, a `revision` do caso avança — `If-Match` com a revisão anterior é `412` — e um caso pendente volta a `AWAITING_PERSONAL` sem que a razão `ANAMNESIS_ANALYSIS_PENDING` saia da elegibilidade.
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -65,6 +194,68 @@ open class StudentOnboardingAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<StudentOnboardingCompletionView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Declarar que viu a liberação médica do aluno, com prova de step-up
+
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter declarePersonalStudentAnamnesisClearedRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func declarePersonalStudentAnamnesisCleared(studentId: String, idempotencyKey: String, ifMatch: String, declarePersonalStudentAnamnesisClearedRequest: DeclarePersonalStudentAnamnesisClearedRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)) -> RequestTask {
+        return declarePersonalStudentAnamnesisClearedWithRequestBuilder(studentId: studentId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, declarePersonalStudentAnamnesisClearedRequest: declarePersonalStudentAnamnesisClearedRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Declarar que viu a liberação médica do aluno, com prova de step-up
+     - POST /personal/students/{studentId}/anamnesis/analysis/decisions/medical-declaration
+     - Registra a decisão `MEDICAL_CLEARANCE_DECLARED` (`DEC-PHOME-19` §5.3): o personal **declara ter visto** a liberação médica do aluno e descreve a condição a que ela se refere em `conditionSummary`. Nenhum relatório, atestado ou exame é anexado, transcrito ou armazenado — o registro é a declaração, nunca o documento. É ato protegido por **step-up** (`pliora-contracts#315`): `stepUpProof` tem de ser prova válida de `MEDICAL_CLEARANCE_DECLARATION`, de uso único, vinculada a conta, sessão, `caseId`, versão e revisão esperadas e `mutationIntentId` deste pedido; prova ausente, divergente, expirada ou já consumida é `STEP_UP_PROOF_REQUIRED`, `STEP_UP_PROOF_MISMATCH`, `STEP_UP_PROOF_EXPIRED` ou `STEP_UP_PROOF_CONSUMED`, e a prova só é consumida **atomicamente** com o ato — falha na gravação não a consome, e repetição idempotente devolve o resultado guardado sem nova prova. O commit anexa `DECISION_RECORDED`, põe a decisão em vigor, o caso vira `RELEASED_FOR_NEW_PRESCRIPTION`, a prontidão vira `CLEARED` e a razão de bloqueio da análise sai da elegibilidade — liberando **só** a publicação de prescrição nova; prescrição já publicada nunca é tocada. Exige o caso `AWAITING_PERSONAL` **sem decisão em vigor** — `NOT_RELEASED` pede reconsideração, não decisão por cima, e caso reaberto que ainda carrega decisão em vigor é `409 ANAMNESIS_ANALYSIS_NOT_OPEN`: o caminho é a supersunção explícita da decisão, nunca decidir por cima dela — e `If-Match` com a revisão corrente, nunca `*`; divergência é `412 PRECONDITION_FAILED` com `currentRevision`. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato nem novo consumo; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter declarePersonalStudentAnamnesisClearedRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>
+     */
+    open class func declarePersonalStudentAnamnesisClearedWithRequestBuilder(studentId: String, idempotencyKey: String, ifMatch: String, declarePersonalStudentAnamnesisClearedRequest: DeclarePersonalStudentAnamnesisClearedRequest, acceptLanguage: String? = nil) -> RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome> {
+        var localVariablePath = "/personal/students/{studentId}/anamnesis/analysis/decisions/medical-declaration"
+        let studentIdPreEscape = "\(APIHelper.mapValueToPathItem(studentId))"
+        let studentIdPostEscape = studentIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{studentId}", with: studentIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: declarePersonalStudentAnamnesisClearedRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+            "If-Match": ifMatch.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
@@ -330,6 +521,68 @@ open class StudentOnboardingAPI {
     }
 
     /**
+     Assumir a responsabilidade profissional e liberar, com prova de step-up
+
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter grantPersonalStudentAnamnesisExemptionRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func grantPersonalStudentAnamnesisExemption(studentId: String, idempotencyKey: String, ifMatch: String, grantPersonalStudentAnamnesisExemptionRequest: GrantPersonalStudentAnamnesisExemptionRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)) -> RequestTask {
+        return grantPersonalStudentAnamnesisExemptionWithRequestBuilder(studentId: studentId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, grantPersonalStudentAnamnesisExemptionRequest: grantPersonalStudentAnamnesisExemptionRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Assumir a responsabilidade profissional e liberar, com prova de step-up
+     - POST /personal/students/{studentId}/anamnesis/analysis/decisions/professional-exemption
+     - Registra a decisão `PROFESSIONAL_WAIVER_GRANTED` (`DEC-PHOME-19` §5.3): o personal **assume a responsabilidade profissional** e libera o aluno para nova prescrição mesmo sem liberação médica — ato autônomo e distinto: dispensa **nunca** é parecer médico, nunca diz que o aluno está apto e nunca equivale a declaração de liberação médica. Exige `justification` obrigatória, `responsibilityAcknowledged` verdadeiro e a versão e o locale **exatos** do texto de responsabilidade apresentado e aceito (`responsibilityTextVersion`, `responsibilityTextLocale`) — versão ou locale que o servidor não aceita é `409 ANAMNESIS_RESPONSIBILITY_TEXT_NOT_ACCEPTED`, sem ato. É ato protegido por **step-up** (`pliora-contracts#315`): `stepUpProof` tem de ser prova válida de `PROFESSIONAL_WAIVER`, de uso único, vinculada a conta, sessão, `caseId`, versão e revisão esperadas e `mutationIntentId` deste pedido; prova ausente, divergente, expirada ou já consumida é `STEP_UP_PROOF_REQUIRED`, `STEP_UP_PROOF_MISMATCH`, `STEP_UP_PROOF_EXPIRED` ou `STEP_UP_PROOF_CONSUMED`, e a prova só é consumida **atomicamente** com o ato. O commit anexa `DECISION_RECORDED`, põe a decisão em vigor, o caso vira `RELEASED_FOR_NEW_PRESCRIPTION`, a prontidão vira `WAIVER_GRANTED` e a razão da análise sai da elegibilidade — liberando **só** prescrição nova. A dispensa é revogável por supersunção, **preservando** o ato no histórico. Exige o caso `AWAITING_PERSONAL` sem decisão em vigor — `NOT_RELEASED` pede reconsideração, nunca dispensa por cima, e caso reaberto que ainda carrega decisão em vigor é `409 ANAMNESIS_ANALYSIS_NOT_OPEN`; o caminho é a supersunção explícita — e `If-Match` com a revisão corrente, nunca `*`. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato nem novo consumo; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter grantPersonalStudentAnamnesisExemptionRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>
+     */
+    open class func grantPersonalStudentAnamnesisExemptionWithRequestBuilder(studentId: String, idempotencyKey: String, ifMatch: String, grantPersonalStudentAnamnesisExemptionRequest: GrantPersonalStudentAnamnesisExemptionRequest, acceptLanguage: String? = nil) -> RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome> {
+        var localVariablePath = "/personal/students/{studentId}/anamnesis/analysis/decisions/professional-exemption"
+        let studentIdPreEscape = "\(APIHelper.mapValueToPathItem(studentId))"
+        let studentIdPostEscape = studentIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{studentId}", with: studentIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: grantPersonalStudentAnamnesisExemptionRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+            "If-Match": ifMatch.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      Ler o próprio acervo de versões concluídas da anamnese, de todos os vínculos
 
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
@@ -375,6 +628,189 @@ open class StudentOnboardingAPI {
         let localVariableRequestBuilder: RequestBuilder<StudentAnamnesisArchiveView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Abrir o caso de análise da anamnese por exceção deste vínculo
+
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter openPersonalStudentAnamnesisAnalysisRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func openPersonalStudentAnamnesisAnalysis(studentId: String, idempotencyKey: String, openPersonalStudentAnamnesisAnalysisRequest: OpenPersonalStudentAnamnesisAnalysisRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)) -> RequestTask {
+        return openPersonalStudentAnamnesisAnalysisWithRequestBuilder(studentId: studentId, idempotencyKey: idempotencyKey, openPersonalStudentAnamnesisAnalysisRequest: openPersonalStudentAnamnesisAnalysisRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Abrir o caso de análise da anamnese por exceção deste vínculo
+     - POST /personal/students/{studentId}/anamnesis/analysis
+     - Abre o **caso de análise** da ficha deste vínculo (`DEC-PHOME-19` §5): o agregado operacional que amarra aluno, vínculo ativo, versão concluída endereçada, revisão corrente, pergunta ativa e histórico imutável de atos — e que, sozinho, **não decide nada**: abrir ou perguntar nunca é decisão de aptidão, liberação ou dispensa. A origem fica registrada: `SCREENING_SIGNAL` quando a conclusão da ficha abriu o caso por sinal da triagem — resposta positiva na triagem de prontidão já nasce com caso aberto, sem ato do personal — ou `PERSONAL_INITIATIVE` quando o personal abre por iniciativa própria, com `reason` obrigatória. `targetAnamnesisVersionId` tem de nomear a **última versão concluída** do vínculo; outra versão é `409 ANAMNESIS_VERSION_NOT_CURRENT`. Vale **um caso vigente por vínculo**: pedir de novo com caso vigente é `409 ANAMNESIS_ANALYSIS_ALREADY_OPEN`, sem ato novo. O corpo pode já trazer a primeira pergunta em `clarification` — mesmas regras da rodada de esclarecimento (pergunta e razão obrigatórias) — e então o caso já nasce `AWAITING_STUDENT`; sem ela nasce `AWAITING_PERSONAL`. A revisão nasce `1` e volta como `ETag`/`analysis.revision`, guarda de todo comando seguinte — a abertura não declara `If-Match` porque não há revisão anterior para guardar. `relationshipId` diferente do vínculo ativo é `409 ANAMNESIS_RELATIONSHIP_MISMATCH`. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`. Sem rede não há caso aberto.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter openPersonalStudentAnamnesisAnalysisRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>
+     */
+    open class func openPersonalStudentAnamnesisAnalysisWithRequestBuilder(studentId: String, idempotencyKey: String, openPersonalStudentAnamnesisAnalysisRequest: OpenPersonalStudentAnamnesisAnalysisRequest, acceptLanguage: String? = nil) -> RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome> {
+        var localVariablePath = "/personal/students/{studentId}/anamnesis/analysis"
+        let studentIdPreEscape = "\(APIHelper.mapValueToPathItem(studentId))"
+        let studentIdPostEscape = studentIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{studentId}", with: studentIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: openPersonalStudentAnamnesisAnalysisRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Registrar a decisão de não liberar nova prescrição neste vínculo
+
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter refusePersonalStudentAnamnesisPrescriptionRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func refusePersonalStudentAnamnesisPrescription(studentId: String, idempotencyKey: String, ifMatch: String, refusePersonalStudentAnamnesisPrescriptionRequest: RefusePersonalStudentAnamnesisPrescriptionRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)) -> RequestTask {
+        return refusePersonalStudentAnamnesisPrescriptionWithRequestBuilder(studentId: studentId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, refusePersonalStudentAnamnesisPrescriptionRequest: refusePersonalStudentAnamnesisPrescriptionRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Registrar a decisão de não liberar nova prescrição neste vínculo
+     - POST /personal/students/{studentId}/anamnesis/analysis/decisions/refusal
+     - Registra a decisão profissional `NOT_RELEASED` (`DEC-PHOME-19` §5.3): o personal **não libera** o aluno para nova prescrição e informa o próximo passo operacional em `nextStep` — `REVIEW_LATER` ou `EXTERNAL_EVALUATION_REFERRAL` — que a leitura protegida, a fila e a notificação projetam. O commit anexa o ato `DECISION_RECORDED`, põe a decisão em vigor — substituindo uma decisão anterior em vigor, que fica no histórico — e o caso vira `NOT_RELEASED`. É decisão de **escopo**: segura somente a publicação de prescrição nova (`ANAMNESIS_ANALYSIS_PENDING` permanece na elegibilidade), nunca bloqueia o app, a ficha nem o treino já liberado, e **nunca** retira, apaga ou reescreve prescrição já publicada. Não é diagnóstico, não é parecer médico e não carrega prova de step-up — é ato de não liberação. Exige o caso `AWAITING_PERSONAL`: pergunta pendente é `409 ANAMNESIS_CLARIFICATION_AWAITING_ANSWER`, caso encerrado ou com decisão de não liberação em vigor é `409 ANAMNESIS_ANALYSIS_NOT_OPEN` — de `NOT_RELEASED` o caminho é reconsiderar a decisão, nunca decidir de novo por cima — e `caseId` diverso é `409 ANAMNESIS_ANALYSIS_CASE_MISMATCH`. `If-Match` carrega a revisão corrente, nunca `*`; divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter refusePersonalStudentAnamnesisPrescriptionRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>
+     */
+    open class func refusePersonalStudentAnamnesisPrescriptionWithRequestBuilder(studentId: String, idempotencyKey: String, ifMatch: String, refusePersonalStudentAnamnesisPrescriptionRequest: RefusePersonalStudentAnamnesisPrescriptionRequest, acceptLanguage: String? = nil) -> RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome> {
+        var localVariablePath = "/personal/students/{studentId}/anamnesis/analysis/decisions/refusal"
+        let studentIdPreEscape = "\(APIHelper.mapValueToPathItem(studentId))"
+        let studentIdPostEscape = studentIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{studentId}", with: studentIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: refusePersonalStudentAnamnesisPrescriptionRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+            "If-Match": ifMatch.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Perguntar esclarecimento ao aluno dentro do caso de análise vigente
+
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter requestPersonalStudentAnamnesisClarificationRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func requestPersonalStudentAnamnesisClarification(studentId: String, idempotencyKey: String, ifMatch: String, requestPersonalStudentAnamnesisClarificationRequest: RequestPersonalStudentAnamnesisClarificationRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)) -> RequestTask {
+        return requestPersonalStudentAnamnesisClarificationWithRequestBuilder(studentId: studentId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, requestPersonalStudentAnamnesisClarificationRequest: requestPersonalStudentAnamnesisClarificationRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Perguntar esclarecimento ao aluno dentro do caso de análise vigente
+     - POST /personal/students/{studentId}/anamnesis/analysis/clarification-requests
+     - Abre **uma** pergunta de esclarecimento dentro do caso vigente (`DEC-PHOME-19` §5.2): `question` e `reason` são obrigatórias, com teto de tamanho, e ficam preservadas verbatim como conteúdo autorado. Vale **uma pergunta ativa por caso**: perguntar com outra pendente é `409 ANAMNESIS_CLARIFICATION_AWAITING_ANSWER`. O commit anexa o ato imutável `CLARIFICATION_REQUESTED` ao histórico, move o caso para `AWAITING_STUDENT`, avança a `revision` em um e registra **exatamente uma** intenção durável de notificação na mesma transação — confirmar aqui é registro, nunca entrega ou leitura. Exige o caso vigente deste vínculo: sem caso é `409 ANAMNESIS_ANALYSIS_NOT_OPEN`, `caseId` de outro caso é `409 ANAMNESIS_ANALYSIS_CASE_MISMATCH` e `relationshipId` divergente é `409 ANAMNESIS_RELATIONSHIP_MISMATCH`. Perguntar sobre caso `NOT_RELEASED` **reabre** o caso — volta a `AWAITING_STUDENT`, limpa `closedAt` e `nextStep` do caso — e **não** aposenta a decisão em vigor: ela permanece registrada e em vigor até supersunção explícita, e decidir de novo exige `AWAITING_PERSONAL` sem decisão em vigor. Perguntar **não é** decisão de aptidão, não confirma nem nega nada e não altera elegibilidade por si — `ANAMNESIS_ANALYSIS_PENDING` permanece. `If-Match` carrega a revisão corrente do caso — eco de uma leitura ou do comando anterior, nunca `*`: divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato gravado. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem nova pergunta nem nova intenção; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter requestPersonalStudentAnamnesisClarificationRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>
+     */
+    open class func requestPersonalStudentAnamnesisClarificationWithRequestBuilder(studentId: String, idempotencyKey: String, ifMatch: String, requestPersonalStudentAnamnesisClarificationRequest: RequestPersonalStudentAnamnesisClarificationRequest, acceptLanguage: String? = nil) -> RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome> {
+        var localVariablePath = "/personal/students/{studentId}/anamnesis/analysis/clarification-requests"
+        let studentIdPreEscape = "\(APIHelper.mapValueToPathItem(studentId))"
+        let studentIdPostEscape = studentIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{studentId}", with: studentIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: requestPersonalStudentAnamnesisClarificationRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+            "If-Match": ifMatch.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
 
     /**
@@ -558,5 +994,139 @@ open class StudentOnboardingAPI {
         let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisControlsView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Revogar, reconsiderar ou corrigir a decisão em vigor do caso
+
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter decisionId: (path) Decisão em vigor do caso a ser substituída.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter supersedePersonalStudentAnamnesisDecisionRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func supersedePersonalStudentAnamnesisDecision(studentId: String, decisionId: String, idempotencyKey: String, ifMatch: String, supersedePersonalStudentAnamnesisDecisionRequest: SupersedePersonalStudentAnamnesisDecisionRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)) -> RequestTask {
+        return supersedePersonalStudentAnamnesisDecisionWithRequestBuilder(studentId: studentId, decisionId: decisionId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, supersedePersonalStudentAnamnesisDecisionRequest: supersedePersonalStudentAnamnesisDecisionRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Revogar, reconsiderar ou corrigir a decisão em vigor do caso
+     - POST /personal/students/{studentId}/anamnesis/analysis/decisions/{decisionId}/supersession
+     - Substitui a decisão **em vigor** por outro ato — nunca reescreve o que já foi gravado (`DEC-PHOME-19` §5.3): `kind` escolhe o desfecho. `REVOKED` vale **somente** para `PROFESSIONAL_WAIVER_GRANTED`: revoga a dispensa — com `correction.justification` obrigatória — e o caso volta a `AWAITING_PERSONAL`, com a razão `ANAMNESIS_ANALYSIS_PENDING` de volta na elegibilidade e a prontidão de volta a `AWAITING_MEDICAL_CLEARANCE`. `RECONSIDERED` retira a decisão em vigor sem substituta e também devolve o caso a `AWAITING_PERSONAL`. `CORRECTED` registra nova decisão do **mesmo** tipo com conteúdo retificado em `correction` — corrigir uma decisão protegida (`MEDICAL_CLEARANCE_DECLARED`, `PROFESSIONAL_WAIVER_GRANTED`) consome nova prova de step-up da finalidade correspondente; corrigir decisão não protegida não exige prova. `decisionId` tem de nomear a decisão em vigor do caso: decisão já substituída ou de outro caso é `409 ANAMNESIS_DECISION_NOT_IN_FORCE`, e `decisionId` desconhecido é `404`. Pergunta de esclarecimento ainda pendente é `409 ANAMNESIS_CLARIFICATION_AWAITING_ANSWER`: a supersunção espera a resposta do aluno ou a retirada da pergunta — que encerra o caso —, nunca grava uma decisão nova com pergunta órfã em aberto. A decisão substituída permanece no histórico com `supersededAt`, `supersededByDecisionId` e `supersessionKind` — correção de declaração é ato próprio e audível, nunca confundida com revogação nem com decisão nova de mérito. `If-Match` carrega a revisão corrente do caso, nunca `*`; divergência é `412 PRECONDITION_FAILED` com `currentRevision`. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato nem novo consumo de prova; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter decisionId: (path) Decisão em vigor do caso a ser substituída.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter supersedePersonalStudentAnamnesisDecisionRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>
+     */
+    open class func supersedePersonalStudentAnamnesisDecisionWithRequestBuilder(studentId: String, decisionId: String, idempotencyKey: String, ifMatch: String, supersedePersonalStudentAnamnesisDecisionRequest: SupersedePersonalStudentAnamnesisDecisionRequest, acceptLanguage: String? = nil) -> RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome> {
+        var localVariablePath = "/personal/students/{studentId}/anamnesis/analysis/decisions/{decisionId}/supersession"
+        let studentIdPreEscape = "\(APIHelper.mapValueToPathItem(studentId))"
+        let studentIdPostEscape = studentIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{studentId}", with: studentIdPostEscape, options: .literal, range: nil)
+        let decisionIdPreEscape = "\(APIHelper.mapValueToPathItem(decisionId))"
+        let decisionIdPostEscape = decisionIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{decisionId}", with: decisionIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: supersedePersonalStudentAnamnesisDecisionRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+            "If-Match": ifMatch.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Retirar a pergunta pendente e encerrar o caso sem decisão de mérito
+
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter clarificationRequestId: (path) Pergunta ainda pendente do caso vigente.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter withdrawPersonalStudentAnamnesisClarificationRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func withdrawPersonalStudentAnamnesisClarification(studentId: String, clarificationRequestId: String, idempotencyKey: String, ifMatch: String, withdrawPersonalStudentAnamnesisClarificationRequest: WithdrawPersonalStudentAnamnesisClarificationRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)) -> RequestTask {
+        return withdrawPersonalStudentAnamnesisClarificationWithRequestBuilder(studentId: studentId, clarificationRequestId: clarificationRequestId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, withdrawPersonalStudentAnamnesisClarificationRequest: withdrawPersonalStudentAnamnesisClarificationRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Retirar a pergunta pendente e encerrar o caso sem decisão de mérito
+     - POST /personal/students/{studentId}/anamnesis/analysis/clarification-requests/{clarificationRequestId}/withdrawal
+     - Retira a pergunta **ainda pendente** e encerra o caso **sem decisão de mérito** (`DEC-PHOME-19` §5.2): o commit anexa o ato imutável `CLARIFICATION_WITHDRAWN`, marca a pergunta como retirada — nunca como respondida — e o caso vira `WITHDRAWN`. A retirada remove **só** o motivo que ela sustentava: a razão `ANAMNESIS_ANALYSIS_PENDING` sai da elegibilidade neste mesmo commit, enquanto qualquer outra razão continua lá — uma retirada nunca é `approved`, nunca é dispensa e nunca é declaração de parecer médico. Uma pergunta já respondida não pode ser retirada: `409 ANAMNESIS_CLARIFICATION_NOT_PENDING`. Caso encerrado e reaberto depois por supersunção é episódio novo, preservado no histórico. `If-Match` carrega a revisão corrente do caso, nunca `*`; divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato. Corrida com a resposta do aluno é decidida pelo compare-and-set — o perdedor recebe `412` e, relendo, encontra a pergunta já respondida ou retirada. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter studentId: (path) Aluno do vínculo ativo do personal autenticado.
+     - parameter clarificationRequestId: (path) Pergunta ainda pendente do caso vigente.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter withdrawPersonalStudentAnamnesisClarificationRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>
+     */
+    open class func withdrawPersonalStudentAnamnesisClarificationWithRequestBuilder(studentId: String, clarificationRequestId: String, idempotencyKey: String, ifMatch: String, withdrawPersonalStudentAnamnesisClarificationRequest: WithdrawPersonalStudentAnamnesisClarificationRequest, acceptLanguage: String? = nil) -> RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome> {
+        var localVariablePath = "/personal/students/{studentId}/anamnesis/analysis/clarification-requests/{clarificationRequestId}/withdrawal"
+        let studentIdPreEscape = "\(APIHelper.mapValueToPathItem(studentId))"
+        let studentIdPostEscape = studentIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{studentId}", with: studentIdPostEscape, options: .literal, range: nil)
+        let clarificationRequestIdPreEscape = "\(APIHelper.mapValueToPathItem(clarificationRequestId))"
+        let clarificationRequestIdPostEscape = clarificationRequestIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{clarificationRequestId}", with: clarificationRequestIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: withdrawPersonalStudentAnamnesisClarificationRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+            "If-Match": ifMatch.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisAnalysisOutcome>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
 }

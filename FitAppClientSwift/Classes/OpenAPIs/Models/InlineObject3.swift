@@ -11,25 +11,25 @@ import AnyCodable
 #endif
 
 public enum InlineObject3: Codable, JSONEncodable, Hashable {
-    case typePersonalStudentOperationsUnavailableProblemDetails(PersonalStudentOperationsUnavailableProblemDetails)
-    case typeServiceUnavailableProblemDetails(ServiceUnavailableProblemDetails)
+    case typePersonalStepUpProofRejectionProblemDetails(PersonalStepUpProofRejectionProblemDetails)
+    case typePersonalStudentAnamnesisForbiddenProblemDetails(PersonalStudentAnamnesisForbiddenProblemDetails)
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
-        case .typePersonalStudentOperationsUnavailableProblemDetails(let value):
+        case .typePersonalStepUpProofRejectionProblemDetails(let value):
             try container.encode(value)
-        case .typeServiceUnavailableProblemDetails(let value):
+        case .typePersonalStudentAnamnesisForbiddenProblemDetails(let value):
             try container.encode(value)
         }
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        if let value = try? container.decode(PersonalStudentOperationsUnavailableProblemDetails.self), (value as? UnknownCaseCheckable)?.containsUnknownDefaultOpenApiCase != true {
-            self = .typePersonalStudentOperationsUnavailableProblemDetails(value)
-        } else if let value = try? container.decode(ServiceUnavailableProblemDetails.self), (value as? UnknownCaseCheckable)?.containsUnknownDefaultOpenApiCase != true {
-            self = .typeServiceUnavailableProblemDetails(value)
+        if let value = try? container.decode(PersonalStepUpProofRejectionProblemDetails.self), (value as? UnknownCaseCheckable)?.containsUnknownDefaultOpenApiCase != true {
+            self = .typePersonalStepUpProofRejectionProblemDetails(value)
+        } else if let value = try? container.decode(PersonalStudentAnamnesisForbiddenProblemDetails.self), (value as? UnknownCaseCheckable)?.containsUnknownDefaultOpenApiCase != true {
+            self = .typePersonalStudentAnamnesisForbiddenProblemDetails(value)
         } else {
             throw DecodingError.typeMismatch(Self.Type.self, .init(codingPath: decoder.codingPath, debugDescription: "Unable to decode instance of InlineObject3"))
         }
