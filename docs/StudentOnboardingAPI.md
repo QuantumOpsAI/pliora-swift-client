@@ -9,11 +9,16 @@ Method | HTTP request | Description
 [**completeStudentOnboarding**](StudentOnboardingAPI.md#completestudentonboarding) | **POST** /student/onboarding/complete | Concluir a anamnese funcional, fixando uma versão concluída imutável
 [**declarePersonalStudentAnamnesisCleared**](StudentOnboardingAPI.md#declarepersonalstudentanamnesiscleared) | **POST** /personal/students/{studentId}/anamnesis/analysis/decisions/medical-declaration | Declarar que viu a liberação médica do aluno, com prova de step-up
 [**getPersonalStudentAnamnesis**](StudentOnboardingAPI.md#getpersonalstudentanamnesis) | **GET** /personal/students/{studentId}/anamnesis | Ler, como personal do vínculo, a anamnese deste vínculo
+[**getPersonalStudentAnamnesisAnalysis**](StudentOnboardingAPI.md#getpersonalstudentanamnesisanalysis) | **GET** /personal/students/{studentId}/anamnesis/analysis | Ler o caso de análise vigente da ficha deste vínculo
 [**getPersonalStudentAnamnesisControls**](StudentOnboardingAPI.md#getpersonalstudentanamnesiscontrols) | **GET** /personal/students/{studentId}/anamnesis/controls | Ler a exigência opcional e a solicitação de preenchimento da ficha deste vínculo
 [**getPersonalStudentAnamnesisVersion**](StudentOnboardingAPI.md#getpersonalstudentanamnesisversion) | **GET** /personal/students/{studentId}/anamnesis/versions/{anamnesisVersionId} | Ler o conteúdo de uma versão da ficha deste vínculo
+[**getStudentAnamnesisAnalysis**](StudentOnboardingAPI.md#getstudentanamnesisanalysis) | **GET** /student/anamnesis/analysis | Ler o caso de análise vigente do próprio aluno
+[**getStudentAnamnesisAnalysisPending**](StudentOnboardingAPI.md#getstudentanamnesisanalysispending) | **GET** /student/anamnesis/analysis/pending | Pendência mínima da análise de anamnese para a Hoje do aluno
 [**getStudentAnamnesisConsent**](StudentOnboardingAPI.md#getstudentanamnesisconsent) | **GET** /student/anamnesis/consent | Recuperar o termo exato aceito no vínculo atual
 [**getStudentOnboarding**](StudentOnboardingAPI.md#getstudentonboarding) | **GET** /student/onboarding | Ler a entrada do aluno — onboarding, anamnese funcional, prontidão e elegibilidade
 [**grantPersonalStudentAnamnesisExemption**](StudentOnboardingAPI.md#grantpersonalstudentanamnesisexemption) | **POST** /personal/students/{studentId}/anamnesis/analysis/decisions/professional-exemption | Assumir a responsabilidade profissional e liberar, com prova de step-up
+[**listPersonalStudentAnamnesisAnalysisActs**](StudentOnboardingAPI.md#listpersonalstudentanamnesisanalysisacts) | **GET** /personal/students/{studentId}/anamnesis/analysis/history | Histórico protegido dos atos de análise da ficha deste vínculo
+[**listStudentAnamnesisAnalysisActs**](StudentOnboardingAPI.md#liststudentanamnesisanalysisacts) | **GET** /student/anamnesis/analysis/history | Histórico protegido dos atos de análise do próprio aluno
 [**listStudentAnamnesisVersions**](StudentOnboardingAPI.md#liststudentanamnesisversions) | **GET** /student/anamnesis/versions | Ler o próprio acervo de versões concluídas da anamnese, de todos os vínculos
 [**openPersonalStudentAnamnesisAnalysis**](StudentOnboardingAPI.md#openpersonalstudentanamnesisanalysis) | **POST** /personal/students/{studentId}/anamnesis/analysis | Abrir o caso de análise da anamnese por exceção deste vínculo
 [**refusePersonalStudentAnamnesisPrescription**](StudentOnboardingAPI.md#refusepersonalstudentanamnesisprescription) | **POST** /personal/students/{studentId}/anamnesis/analysis/decisions/refusal | Registrar a decisão de não liberar nova prescrição neste vínculo
@@ -309,6 +314,58 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getPersonalStudentAnamnesisAnalysis**
+```swift
+    open class func getPersonalStudentAnamnesisAnalysis(studentId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentAnamnesisAnalysisView?, _ error: Error?) -> Void)
+```
+
+Ler o caso de análise vigente da ficha deste vínculo
+
+Leitura protegida do **caso de análise vigente** da ficha deste vínculo, para o personal autorizado (`DEC-PHOME-19` §5, `pliora-contracts#317`). É a forma dedicada do mesmo recorte que `getPersonalStudentAnamnesis` já publica em `analysisCase` — o destino protegido para onde a fila de atenção aponta (`DOC-PERSONAL-DESTINATIONS` §8.4) — e nunca uma segunda projeção: mesmo predicado, mesmos campos, mesma `revision` que `If-Match` ecoa nos comandos. **Autorização revalidada a cada leitura**, nesta ordem e sem atalho: credencial e contexto de personal, vínculo `ACTIVE` com este `studentId` e base de acesso em vigor — o aceite real de `SHARE_DATA_WITH_PERSONAL` gravado no vínculo. O que falhar vira a recusa correspondente: `404` para aluno que não é deste personal (inexistente e alheio indistinguíveis, nunca revelando vínculo de outro personal), `403` com `FORBIDDEN`, `RELATIONSHIP_PAUSED`, `RELATIONSHIP_INACTIVE` ou `SHARING_GRANT_REQUIRED`. `analysis` ausente é **ausência confirmada** — não há caso vigente na ficha deste vínculo — e nunca indisponibilidade, recusa nem silêncio sobre um caso que exista. Nada sobre a ficha de outro vínculo viaja aqui: nem o caso dela, nem a contagem, nem a existência (`DEC-PHOME-20`). O `ETag` acompanha `analysis` quando presente e carrega a revisão do caso — o eco que o próximo comando exige.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo ativo do personal autenticado.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Ler o caso de análise vigente da ficha deste vínculo
+StudentOnboardingAPI.getPersonalStudentAnamnesisAnalysis(studentId: studentId, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo ativo do personal autenticado. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PersonalStudentAnamnesisAnalysisView**](PersonalStudentAnamnesisAnalysisView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getPersonalStudentAnamnesisControls**
 ```swift
     open class func getPersonalStudentAnamnesisControls(studentId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentAnamnesisControlsView?, _ error: Error?) -> Void)
@@ -403,6 +460,106 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**PersonalStudentAnamnesisVersionView**](PersonalStudentAnamnesisVersionView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStudentAnamnesisAnalysis**
+```swift
+    open class func getStudentAnamnesisAnalysis(acceptLanguage: String? = nil, completion: @escaping (_ data: StudentAnamnesisAnalysisView?, _ error: Error?) -> Void)
+```
+
+Ler o caso de análise vigente do próprio aluno
+
+Leitura protegida do caso de análise do **próprio** aluno, na moldura do vínculo atual (`DEC-PHOME-19` §5, `pliora-contracts#317`) — o destino protegido que o toque na pendência da Hoje relê antes de qualquer ato. O aluno lê o próprio caso **mesmo com o aceite de compartilhamento revogado**: o termo governa o acesso do personal, nunca o do titular — registro revogado só é lido pelo próprio aluno. A moldura continua sendo o vínculo atual: sem vínculo vigente, ou sem contexto de aluno, a resposta é `403`, nunca um caso solto de relação encerrada; vínculo pausado não esconde do aluno o que é dele. `analysis` ausente é **ausência confirmada** — não há caso vigente — e nunca indisponibilidade, credencial expirada ou recusa disfarçada. O recorte é o de `StudentAnamnesisAnalysisCase`, o mesmo publicado por `getStudentOnboarding`: estado, revisão e as perguntas com as próprias respostas — sem decisão projetada nem razão interna do personal; só em `NOT_RELEASED` o caso carrega `nextStep`, o próximo passo operacional que a pendência `VIEW_NEXT_STEP` manda abrir. O `ETag` acompanha `analysis` quando presente: é a revisão que `If-Match` ecoa ao responder à pergunta pendente.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Ler o caso de análise vigente do próprio aluno
+StudentOnboardingAPI.getStudentAnamnesisAnalysis(acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**StudentAnamnesisAnalysisView**](StudentAnamnesisAnalysisView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStudentAnamnesisAnalysisPending**
+```swift
+    open class func getStudentAnamnesisAnalysisPending(acceptLanguage: String? = nil, completion: @escaping (_ data: StudentAnamnesisAnalysisPendingView?, _ error: Error?) -> Void)
+```
+
+Pendência mínima da análise de anamnese para a Hoje do aluno
+
+A pendência mínima da análise para a Hoje (`DOC-STUDENT-HOME` §5.0, `DOC-STUDENT-HOME-TECH` §3.11, `pliora-contracts#317`) — leitura **nova e independente**, irmã das cinco projeções da Home do aluno e nunca parte do agregado reservado `getStudentToday`: nada aqui toca a sua rota, seus esquemas ou o seu grafo de `$ref`, que segue byte a byte idêntico. O servidor autentica o aluno, revalida o vínculo atual e devolve somente o sinal operacional: `asOf`, `state`, `nextAction` e `caseId` — este último só quando há destino autorizado, isto é, `state` diferente de `NO_PENDING`. `NO_PENDING` é **ausência confirmada**: não há caso vigente ou o caso encerrou (`RELEASED_FOR_NEW_PRESCRIPTION` ou `WITHDRAWN` saem da pendência atual e seus atos seguem no histórico protegido). Estado indeterminado é erro: `5xx`, nunca `NO_PENDING` enfeitado — falha de leitura não se apresenta como “sem pendências”. Sem vínculo vigente ou sem contexto de aluno é `403` e a região simplesmente não é exibida. Nenhum conteúdo viaja aqui: sem nome do personal, pergunta, resposta, item de triagem, condição, justificativa, tipo clínico de decisão, razão de bloqueio, contagem de versões nem prazo — esse material só existe no destino protegido. O `state`/`nextAction` anunciado reflete o estado do caso, **não uma concessão**: o toque na pendência ainda passa pela reautorização do próprio comando ou leitura protegida — aceite revogado ou vínculo pausado mantém o sinal legível para o titular e a recusa acontece no ato, nunca nesta projeção.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Pendência mínima da análise de anamnese para a Hoje do aluno
+StudentOnboardingAPI.getStudentAnamnesisAnalysisPending(acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**StudentAnamnesisAnalysisPendingView**](StudentAnamnesisAnalysisPendingView.md)
 
 ### Authorization
 
@@ -569,6 +726,116 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **listPersonalStudentAnamnesisAnalysisActs**
+```swift
+    open class func listPersonalStudentAnamnesisAnalysisActs(studentId: String, acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, completion: @escaping (_ data: PersonalStudentAnamnesisAnalysisHistoryPage?, _ error: Error?) -> Void)
+```
+
+Histórico protegido dos atos de análise da ficha deste vínculo
+
+O histórico do caso protegido para o personal autorizado (`DEC-PHOME-19` §5, `pliora-contracts#317`): **todos** os atos de **todos** os casos que a ficha deste vínculo já teve, do primeiro ao último — nada é reescrito, reordenado ou removido, e os atos marcados por supersunção permanecem. O predicado é o de `getPersonalStudentAnamnesisAnalysis`, revalidado nesta leitura: credencial e contexto de personal, vínculo `ACTIVE` com este `studentId` e base de acesso em vigor. A autorização é aplicada **antes** de selecionar, contar, ordenar e paginar, de modo que ato de outro vínculo não existe aqui por nenhum caminho — nem item, nem posição, nem cursor (`DEC-PHOME-20`). A ordem é total e do servidor: sequência de nascimento do caso na ficha, sequência de commit do ato dentro do caso e `actId` crescente como desempate final; o cliente não reordena nem infere posições. Paginação por cursor opaco com `limit` (padrão 20, máximo 100); `nextCursor` nulo encerra a coleção. O cursor só vale para esta operação, esta conta e este vínculo — cursor de outra audiência, de outro alvo ou adulterado é `422 VALIDATION_FAILED`, nunca uma página forjada. Lista vazia é ausência confirmada de atos na ficha deste vínculo, nunca erro nem indisponibilidade.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo ativo do personal autenticado.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+let cursor = "cursor_example" // String | Cursor opaco devolvido por esta operação — emitido para esta conta e este vínculo, nunca reinterpretado pelo cliente. (optional)
+let limit = 987 // Int | Tamanho máximo da página; padrão 20 e teto de 100 itens. (optional) (default to 20)
+
+// Histórico protegido dos atos de análise da ficha deste vínculo
+StudentOnboardingAPI.listPersonalStudentAnamnesisAnalysisActs(studentId: studentId, acceptLanguage: acceptLanguage, cursor: cursor, limit: limit) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo ativo do personal autenticado. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+ **cursor** | **String** | Cursor opaco devolvido por esta operação — emitido para esta conta e este vínculo, nunca reinterpretado pelo cliente. | [optional]
+ **limit** | **Int** | Tamanho máximo da página; padrão 20 e teto de 100 itens. | [optional] [default to 20]
+
+### Return type
+
+[**PersonalStudentAnamnesisAnalysisHistoryPage**](PersonalStudentAnamnesisAnalysisHistoryPage.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **listStudentAnamnesisAnalysisActs**
+```swift
+    open class func listStudentAnamnesisAnalysisActs(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, completion: @escaping (_ data: StudentAnamnesisAnalysisHistoryPage?, _ error: Error?) -> Void)
+```
+
+Histórico protegido dos atos de análise do próprio aluno
+
+O histórico protegido do próprio aluno (`DEC-PHOME-19` §5, `pliora-contracts#317`): todos os atos de todos os casos que a ficha do vínculo atual já teve, na mesma ordem total e com o mesmo cursor opaco da leitura do personal — sequência de nascimento do caso na ficha, sequência de commit do ato e `actId` como desempate — mas com o predicado do titular: o aluno lê o que é seu **mesmo com o aceite de compartilhamento revogado**, e nenhum ato de outro vínculo aparece ou move posição, contagem ou cursor aqui. Sem vínculo vigente é `403`; cursor de outra audiência, de outro alvo ou adulterado é `422 VALIDATION_FAILED`; página vazia é ausência confirmada, nunca erro disfarçado.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+let cursor = "cursor_example" // String | Cursor opaco devolvido por esta operação — emitido para esta conta e este vínculo, nunca reinterpretado pelo cliente. (optional)
+let limit = 987 // Int | Tamanho máximo da página; padrão 20 e teto de 100 itens. (optional) (default to 20)
+
+// Histórico protegido dos atos de análise do próprio aluno
+StudentOnboardingAPI.listStudentAnamnesisAnalysisActs(acceptLanguage: acceptLanguage, cursor: cursor, limit: limit) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+ **cursor** | **String** | Cursor opaco devolvido por esta operação — emitido para esta conta e este vínculo, nunca reinterpretado pelo cliente. | [optional]
+ **limit** | **Int** | Tamanho máximo da página; padrão 20 e teto de 100 itens. | [optional] [default to 20]
+
+### Return type
+
+[**StudentAnamnesisAnalysisHistoryPage**](StudentAnamnesisAnalysisHistoryPage.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

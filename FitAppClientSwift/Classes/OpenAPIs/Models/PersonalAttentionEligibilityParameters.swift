@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** &#x60;SHARING_GRANT_REQUIRED&#x60; (aceite do termo revogado, &#x60;DEC-PHOME-19&#x60;) é o único motivo quando presente: nenhum motivo derivado da ficha viaja sem a base que autoriza lê-lo. */
+/** A projeção do caso é função da razão: &#x60;analysisCase&#x60; é exigida quando &#x60;ANAMNESIS_ANALYSIS_PENDING&#x60; vigora em &#x60;blockingReasons&#x60; e proibida fora disso — a fila nunca carrega referência a caso inexistente ou não vigente (&#x60;pliora-contracts#317&#x60;). */
 public struct PersonalAttentionEligibilityParameters: Codable, JSONEncodable, Hashable {
 
     public enum ReasonCode: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -23,17 +23,21 @@ public struct PersonalAttentionEligibilityParameters: Codable, JSONEncodable, Ha
     public var blockingReasons: Set<StudentPrescriptionEligibilityBlockingReason>
     /** Instante em que o bloqueio passou a vigorar — a mais antiga das razões vigentes, porque o item é único e persiste enquanto qualquer uma delas vigorar. Com `SHARING_GRANT_REQUIRED` é o instante da revogação do aceite. */
     public var blockedSince: Date
+    /** O caso de análise deste vínculo, presente se e somente se `ANAMNESIS_ANALYSIS_PENDING` vigora em `blockingReasons` — a razão existe **porque** o caso existe. Nenhum sinal do caso viaja sob `SHARING_GRANT_REQUIRED`, que segue razão única quando presente. */
+    public var analysisCase: PersonalAttentionAnalysisCaseProjection?
 
-    public init(reasonCode: ReasonCode, blockingReasons: Set<StudentPrescriptionEligibilityBlockingReason>, blockedSince: Date) {
+    public init(reasonCode: ReasonCode, blockingReasons: Set<StudentPrescriptionEligibilityBlockingReason>, blockedSince: Date, analysisCase: PersonalAttentionAnalysisCaseProjection? = nil) {
         self.reasonCode = reasonCode
         self.blockingReasons = blockingReasons
         self.blockedSince = blockedSince
+        self.analysisCase = analysisCase
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case reasonCode
         case blockingReasons
         case blockedSince
+        case analysisCase
     }
 
     // Encodable protocol methods
@@ -43,6 +47,7 @@ public struct PersonalAttentionEligibilityParameters: Codable, JSONEncodable, Ha
         try container.encode(reasonCode, forKey: .reasonCode)
         try container.encode(blockingReasons, forKey: .blockingReasons)
         try container.encode(blockedSince, forKey: .blockedSince)
+        try container.encodeIfPresent(analysisCase, forKey: .analysisCase)
     }
 }
 

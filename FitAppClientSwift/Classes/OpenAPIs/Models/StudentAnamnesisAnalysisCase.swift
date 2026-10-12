@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** O caso como o aluno o vê: estado, revisão e as perguntas com as próprias respostas — sem razões internas do personal, sem decisões projetadas. */
+/** O caso como o aluno o vê: estado, revisão e as perguntas com as próprias respostas — sem razões internas do personal e sem decisões projetadas. Quando o estado é &#x60;NOT_RELEASED&#x60;, o único fato da decisão que o titular recebe é &#x60;nextStep&#x60;, o motivo operacional e o próximo passo que a pendência da Hoje manda abrir — exigido nesse estado, proibido nos demais. */
 public struct StudentAnamnesisAnalysisCase: Codable, JSONEncodable, Hashable {
 
     public static let caseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -26,15 +26,18 @@ public struct StudentAnamnesisAnalysisCase: Codable, JSONEncodable, Hashable {
     public var openedAt: Date
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var closedAt: Date?
+    /** O único fato da decisão que o titular recebe: o próximo passo operacional gravado pelo personal — `REVIEW_LATER` ou `EXTERNAL_EVALUATION_REFERRAL` — exigido quando `state` é `NOT_RELEASED` e proibido em qualquer outro estado. Nunca é diagnóstico, razão, justificativa nem a decisão projetada. */
+    public var nextStep: AnamnesisAnalysisNextStep?
     public var clarificationRequests: [StudentAnamnesisAnalysisClarificationRequest]
 
-    public init(caseId: String, relationshipId: String, state: AnamnesisAnalysisState, revision: String, openedAt: Date, closedAt: Date? = nil, clarificationRequests: [StudentAnamnesisAnalysisClarificationRequest]) {
+    public init(caseId: String, relationshipId: String, state: AnamnesisAnalysisState, revision: String, openedAt: Date, closedAt: Date? = nil, nextStep: AnamnesisAnalysisNextStep? = nil, clarificationRequests: [StudentAnamnesisAnalysisClarificationRequest]) {
         self.caseId = caseId
         self.relationshipId = relationshipId
         self.state = state
         self.revision = revision
         self.openedAt = openedAt
         self.closedAt = closedAt
+        self.nextStep = nextStep
         self.clarificationRequests = clarificationRequests
     }
 
@@ -45,6 +48,7 @@ public struct StudentAnamnesisAnalysisCase: Codable, JSONEncodable, Hashable {
         case revision
         case openedAt
         case closedAt
+        case nextStep
         case clarificationRequests
     }
 
@@ -58,6 +62,7 @@ public struct StudentAnamnesisAnalysisCase: Codable, JSONEncodable, Hashable {
         try container.encode(revision, forKey: .revision)
         try container.encode(openedAt, forKey: .openedAt)
         try container.encodeIfPresent(closedAt, forKey: .closedAt)
+        try container.encodeIfPresent(nextStep, forKey: .nextStep)
         try container.encode(clarificationRequests, forKey: .clarificationRequests)
     }
 }
@@ -66,6 +71,7 @@ public struct StudentAnamnesisAnalysisCase: Codable, JSONEncodable, Hashable {
 extension StudentAnamnesisAnalysisCase: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if state == .unknownDefaultOpenApi { return true }
+        if nextStep == .unknownDefaultOpenApi { return true }
         return false
     }
 }
