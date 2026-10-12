@@ -4,17 +4,144 @@ All URIs are relative to */api/v1*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**acknowledgePersonalStudentAnamnesisCorrection**](StudentOnboardingAPI.md#acknowledgepersonalstudentanamnesiscorrection) | **POST** /personal/students/{studentId}/anamnesis/analysis/decisions/correction-acknowledgement | Confirmar que a nova versão concluída corrige a resposta anterior
+[**answerStudentAnamnesisClarification**](StudentOnboardingAPI.md#answerstudentanamnesisclarification) | **POST** /student/anamnesis/analysis/cases/{caseId}/clarification-requests/{clarificationRequestId}/answer | Responder a pergunta de esclarecimento pendente do caso vigente
 [**completeStudentOnboarding**](StudentOnboardingAPI.md#completestudentonboarding) | **POST** /student/onboarding/complete | Concluir a anamnese funcional, fixando uma versão concluída imutável
+[**declarePersonalStudentAnamnesisCleared**](StudentOnboardingAPI.md#declarepersonalstudentanamnesiscleared) | **POST** /personal/students/{studentId}/anamnesis/analysis/decisions/medical-declaration | Declarar que viu a liberação médica do aluno, com prova de step-up
 [**getPersonalStudentAnamnesis**](StudentOnboardingAPI.md#getpersonalstudentanamnesis) | **GET** /personal/students/{studentId}/anamnesis | Ler, como personal do vínculo, a anamnese deste vínculo
 [**getPersonalStudentAnamnesisControls**](StudentOnboardingAPI.md#getpersonalstudentanamnesiscontrols) | **GET** /personal/students/{studentId}/anamnesis/controls | Ler a exigência opcional e a solicitação de preenchimento da ficha deste vínculo
 [**getPersonalStudentAnamnesisVersion**](StudentOnboardingAPI.md#getpersonalstudentanamnesisversion) | **GET** /personal/students/{studentId}/anamnesis/versions/{anamnesisVersionId} | Ler o conteúdo de uma versão da ficha deste vínculo
 [**getStudentAnamnesisConsent**](StudentOnboardingAPI.md#getstudentanamnesisconsent) | **GET** /student/anamnesis/consent | Recuperar o termo exato aceito no vínculo atual
 [**getStudentOnboarding**](StudentOnboardingAPI.md#getstudentonboarding) | **GET** /student/onboarding | Ler a entrada do aluno — onboarding, anamnese funcional, prontidão e elegibilidade
+[**grantPersonalStudentAnamnesisExemption**](StudentOnboardingAPI.md#grantpersonalstudentanamnesisexemption) | **POST** /personal/students/{studentId}/anamnesis/analysis/decisions/professional-exemption | Assumir a responsabilidade profissional e liberar, com prova de step-up
 [**listStudentAnamnesisVersions**](StudentOnboardingAPI.md#liststudentanamnesisversions) | **GET** /student/anamnesis/versions | Ler o próprio acervo de versões concluídas da anamnese, de todos os vínculos
+[**openPersonalStudentAnamnesisAnalysis**](StudentOnboardingAPI.md#openpersonalstudentanamnesisanalysis) | **POST** /personal/students/{studentId}/anamnesis/analysis | Abrir o caso de análise da anamnese por exceção deste vínculo
+[**refusePersonalStudentAnamnesisPrescription**](StudentOnboardingAPI.md#refusepersonalstudentanamnesisprescription) | **POST** /personal/students/{studentId}/anamnesis/analysis/decisions/refusal | Registrar a decisão de não liberar nova prescrição neste vínculo
+[**requestPersonalStudentAnamnesisClarification**](StudentOnboardingAPI.md#requestpersonalstudentanamnesisclarification) | **POST** /personal/students/{studentId}/anamnesis/analysis/clarification-requests | Perguntar esclarecimento ao aluno dentro do caso de análise vigente
 [**requestPersonalStudentAnamnesisCompletion**](StudentOnboardingAPI.md#requestpersonalstudentanamnesiscompletion) | **PUT** /personal/students/{studentId}/anamnesis/controls/completion-request | Solicitar, dentro do app, o preenchimento da ficha deste vínculo
 [**saveStudentAnamnesisSection**](StudentOnboardingAPI.md#savestudentanamnesissection) | **PUT** /student/onboarding/anamnesis/{sectionKey} | Salvar uma seção tipada da anamnese no rascunho privado do aluno
 [**setPersonalStudentAnamnesisRequirement**](StudentOnboardingAPI.md#setpersonalstudentanamnesisrequirement) | **PUT** /personal/students/{studentId}/anamnesis/controls/requirement | Exigir, ou deixar de exigir, a conclusão da ficha deste vínculo para novas liberações
+[**supersedePersonalStudentAnamnesisDecision**](StudentOnboardingAPI.md#supersedepersonalstudentanamnesisdecision) | **POST** /personal/students/{studentId}/anamnesis/analysis/decisions/{decisionId}/supersession | Revogar, reconsiderar ou corrigir a decisão em vigor do caso
+[**withdrawPersonalStudentAnamnesisClarification**](StudentOnboardingAPI.md#withdrawpersonalstudentanamnesisclarification) | **POST** /personal/students/{studentId}/anamnesis/analysis/clarification-requests/{clarificationRequestId}/withdrawal | Retirar a pergunta pendente e encerrar o caso sem decisão de mérito
 
+
+# **acknowledgePersonalStudentAnamnesisCorrection**
+```swift
+    open class func acknowledgePersonalStudentAnamnesisCorrection(studentId: String, idempotencyKey: String, ifMatch: String, acknowledgePersonalStudentAnamnesisCorrectionRequest: AcknowledgePersonalStudentAnamnesisCorrectionRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)
+```
+
+Confirmar que a nova versão concluída corrige a resposta anterior
+
+Registra a decisão `ANSWER_CORRECTION_ACKNOWLEDGED` (`DEC-PHOME-19` §5.3): o aluno concluiu **nova versão** da ficha — sem resposta positiva na triagem — e o personal confirma que ela corrige a versão que abriu o caso. `correctedAnamnesisVersionId` tem de nomear versão concluída **posterior** à versão de origem e livre de sinal positivo; versão inexistente, anterior ou ainda positiva é `409 ANAMNESIS_CORRECTION_NOT_RECORDED`. Não é declaração de liberação médica nem dispensa — é ato próprio, que nunca sobe ao passo de validade profissional. O commit anexa `DECISION_RECORDED`, põe a decisão em vigor, o caso vira `RELEASED_FOR_NEW_PRESCRIPTION` e a razão da análise sai da elegibilidade. Uma resposta positiva que vira negativa **nunca** fecha o caso sozinha: é esta confirmação profissional que encerra. Exige o caso `AWAITING_PERSONAL` sem decisão em vigor — `NOT_RELEASED` pede reconsideração antes, e caso reaberto que ainda carrega decisão em vigor é `409 ANAMNESIS_ANALYSIS_NOT_OPEN`; o caminho é a supersunção — e `If-Match` com a revisão corrente, nunca `*`; divergência é `412 PRECONDITION_FAILED` com `currentRevision`. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo ativo do personal autenticado.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let ifMatch = "ifMatch_example" // String | `ETag` do caso de análise — eco de `analysis.revision` da última leitura ou resposta de comando; nunca `*`. Divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato gravado.
+let acknowledgePersonalStudentAnamnesisCorrectionRequest = AcknowledgePersonalStudentAnamnesisCorrectionRequest(relationshipId: "relationshipId_example", caseId: "caseId_example", correctedAnamnesisVersionId: "correctedAnamnesisVersionId_example") // AcknowledgePersonalStudentAnamnesisCorrectionRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Confirmar que a nova versão concluída corrige a resposta anterior
+StudentOnboardingAPI.acknowledgePersonalStudentAnamnesisCorrection(studentId: studentId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, acknowledgePersonalStudentAnamnesisCorrectionRequest: acknowledgePersonalStudentAnamnesisCorrectionRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo ativo do personal autenticado. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **ifMatch** | **String** | &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado. |
+ **acknowledgePersonalStudentAnamnesisCorrectionRequest** | [**AcknowledgePersonalStudentAnamnesisCorrectionRequest**](AcknowledgePersonalStudentAnamnesisCorrectionRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PersonalStudentAnamnesisAnalysisOutcome**](PersonalStudentAnamnesisAnalysisOutcome.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **answerStudentAnamnesisClarification**
+```swift
+    open class func answerStudentAnamnesisClarification(caseId: String, clarificationRequestId: String, idempotencyKey: String, ifMatch: String, answerStudentAnamnesisClarificationRequest: AnswerStudentAnamnesisClarificationRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: StudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)
+```
+
+Responder a pergunta de esclarecimento pendente do caso vigente
+
+Responde a pergunta **pendente** do caso de análise do próprio vínculo (`DEC-PHOME-19` §5.2): `answer` é texto autorado, preservado verbatim com o teto do contrato, e o servidor grava autor e `answeredAt` do relógio do servidor — nunca do cliente. O commit anexa o ato imutável `CLARIFICATION_ANSWERED`, marca a pergunta como respondida e o caso volta a `AWAITING_PERSONAL`. Responder **não é** decisão nem confirmação de aptidão: não altera prontidão nem elegibilidade por si — quem decide é sempre o personal. Exige a pergunta ainda pendente: já respondida ou retirada é `409 ANAMNESIS_CLARIFICATION_NOT_PENDING`; `caseId` que não é o caso vigente é `409 ANAMNESIS_ANALYSIS_CASE_MISMATCH`; sem caso vigente é `409 ANAMNESIS_ANALYSIS_NOT_OPEN`; pergunta fora do caso é `404`. `If-Match` carrega a revisão corrente do caso — eco da leitura, nunca `*`; divergência é `412 PRECONDITION_FAILED` com `currentRevision`. Corrida com a retirada é decidida pelo compare-and-set: quem chega depois recebe `412` e, relendo, encontra a pergunta já retirada. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let caseId = "caseId_example" // String | Caso de análise vigente do próprio vínculo do aluno autenticado.
+let clarificationRequestId = "clarificationRequestId_example" // String | Pergunta ainda pendente a responder.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let ifMatch = "ifMatch_example" // String | `ETag` do caso de análise — eco de `analysis.revision` da última leitura ou resposta de comando; nunca `*`. Divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato gravado.
+let answerStudentAnamnesisClarificationRequest = AnswerStudentAnamnesisClarificationRequest(relationshipId: "relationshipId_example", caseId: "caseId_example", answer: "answer_example") // AnswerStudentAnamnesisClarificationRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Responder a pergunta de esclarecimento pendente do caso vigente
+StudentOnboardingAPI.answerStudentAnamnesisClarification(caseId: caseId, clarificationRequestId: clarificationRequestId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, answerStudentAnamnesisClarificationRequest: answerStudentAnamnesisClarificationRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **caseId** | **String** | Caso de análise vigente do próprio vínculo do aluno autenticado. |
+ **clarificationRequestId** | **String** | Pergunta ainda pendente a responder. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **ifMatch** | **String** | &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado. |
+ **answerStudentAnamnesisClarificationRequest** | [**AnswerStudentAnamnesisClarificationRequest**](AnswerStudentAnamnesisClarificationRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**StudentAnamnesisAnalysisOutcome**](StudentAnamnesisAnalysisOutcome.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **completeStudentOnboarding**
 ```swift
@@ -23,7 +150,7 @@ Method | HTTP request | Description
 
 Concluir a anamnese funcional, fixando uma versão concluída imutável
 
-Transforma o rascunho privado vigente em uma **versão concluída imutável**, com `If-Match` obrigatório, ecoando a mesma e única revisão desta superfície — `anamnesis.draft.revision`, publicada como `ETag` na leitura. Concluir **cria versão**; editar depois e concluir de novo cria **outra** versão e **preserva** a anterior, que continua consultável. Nenhuma versão é reescrita, apagada ou substituída em silêncio. A idempotência é **por versão, não por aluno**: repetir a mesma tentativa sobre a mesma `revision` devolve a mesma versão em vez de criar outra, e portanto produz no máximo uma notificação por versão concluída. A entrega real ao personal **não** é pós-condição desta operação e não é afirmada por ela. **Resposta canônica única, sem ramificação por idade.** Menor e adulto concluem exatamente da mesma forma. Triagem de prontidão pendente e autorização de responsável ausente **não** impedem concluir: elas aparecem apenas como motivos nomeados e acumuláveis em `prescriptionEligibility`. Não existe, aqui, resposta de \"conclusão pendente por responsável\", nem operação de autorização embutida. Concluir afirma que existe versão concluída; **não** afirma elegibilidade para prescrição. **Conclui a ficha do vínculo atual, não uma anamnese global (`DEC-PHOME-19`).** O corpo repete `relationshipId`, o vínculo dono da ficha lida; vínculo trocado depois da leitura é `409 ANAMNESIS_RELATIONSHIP_MISMATCH` e vínculo encerrado, sem outro atual, é `403 RELATIONSHIP_INACTIVE` — a ficha encerrada fica congelada, sem versão nova. Com o vínculo pausado a conclusão é aceita. A versão nasce com o aluno como autor, a ficha e o vínculo de origem, a revisão do rascunho e o instante do servidor; `versionNumber` é local à ficha. A conclusão é **única por ficha e revisão do rascunho**: duas conclusões concorrentes da mesma revisão, mesmo com chaves diferentes, devolvem a mesma versão, sem número duplicado; revisão velha é `412`, nunca last-write-wins. Nada de outra ficha conclui esta, e nenhuma versão de outra ficha a substitui. A conclusão satisfaz, no mesmo commit, a solicitação de preenchimento pendente desta ficha. A repetição reautoriza o vínculo antes de devolver o resultado guardado.
+Transforma o rascunho privado vigente em uma **versão concluída imutável**, com `If-Match` obrigatório, ecoando a mesma e única revisão desta superfície — `anamnesis.draft.revision`, publicada como `ETag` na leitura. Concluir **cria versão**; editar depois e concluir de novo cria **outra** versão e **preserva** a anterior, que continua consultável. Nenhuma versão é reescrita, apagada ou substituída em silêncio. A idempotência é **por versão, não por aluno**: repetir a mesma tentativa sobre a mesma `revision` devolve a mesma versão em vez de criar outra, e portanto produz no máximo uma notificação por versão concluída. A entrega real ao personal **não** é pós-condição desta operação e não é afirmada por ela. **Resposta canônica única, sem ramificação por idade.** Menor e adulto concluem exatamente da mesma forma. Triagem de prontidão pendente e autorização de responsável ausente **não** impedem concluir: elas aparecem apenas como motivos nomeados e acumuláveis em `prescriptionEligibility`. Não existe, aqui, resposta de \"conclusão pendente por responsável\", nem operação de autorização embutida. Concluir afirma que existe versão concluída; **não** afirma elegibilidade para prescrição. **Conclui a ficha do vínculo atual, não uma anamnese global (`DEC-PHOME-19`).** O corpo repete `relationshipId`, o vínculo dono da ficha lida; vínculo trocado depois da leitura é `409 ANAMNESIS_RELATIONSHIP_MISMATCH` e vínculo encerrado, sem outro atual, é `403 RELATIONSHIP_INACTIVE` — a ficha encerrada fica congelada, sem versão nova. Com o vínculo pausado a conclusão é aceita. A versão nasce com o aluno como autor, a ficha e o vínculo de origem, a revisão do rascunho e o instante do servidor; `versionNumber` é local à ficha. A conclusão é **única por ficha e revisão do rascunho**: duas conclusões concorrentes da mesma revisão, mesmo com chaves diferentes, devolvem a mesma versão, sem número duplicado; revisão velha é `412`, nunca last-write-wins. Nada de outra ficha conclui esta, e nenhuma versão de outra ficha a substitui. A conclusão satisfaz, no mesmo commit, a solicitação de preenchimento pendente desta ficha. A repetição reautoriza o vínculo antes de devolver o resultado guardado. Quando a ficha tem caso de análise por exceção vigente, a versão nova assume o alvo do caso **no mesmo commit**: o ato `TARGET_VERSION_SUPERSEDED` fica gravado no histórico, perguntas ainda pendentes ganham `supersededAt` e passam a recusar resposta tardia, a `revision` do caso avança — `If-Match` com a revisão anterior é `412` — e um caso pendente volta a `AWAITING_PERSONAL` sem que a razão `ANAMNESIS_ANALYSIS_PENDING` saia da elegibilidade.
 
 ### Example
 ```swift
@@ -60,6 +187,64 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**StudentOnboardingCompletionView**](StudentOnboardingCompletionView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **declarePersonalStudentAnamnesisCleared**
+```swift
+    open class func declarePersonalStudentAnamnesisCleared(studentId: String, idempotencyKey: String, ifMatch: String, declarePersonalStudentAnamnesisClearedRequest: DeclarePersonalStudentAnamnesisClearedRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)
+```
+
+Declarar que viu a liberação médica do aluno, com prova de step-up
+
+Registra a decisão `MEDICAL_CLEARANCE_DECLARED` (`DEC-PHOME-19` §5.3): o personal **declara ter visto** a liberação médica do aluno e descreve a condição a que ela se refere em `conditionSummary`. Nenhum relatório, atestado ou exame é anexado, transcrito ou armazenado — o registro é a declaração, nunca o documento. É ato protegido por **step-up** (`pliora-contracts#315`): `stepUpProof` tem de ser prova válida de `MEDICAL_CLEARANCE_DECLARATION`, de uso único, vinculada a conta, sessão, `caseId`, versão e revisão esperadas e `mutationIntentId` deste pedido; prova ausente, divergente, expirada ou já consumida é `STEP_UP_PROOF_REQUIRED`, `STEP_UP_PROOF_MISMATCH`, `STEP_UP_PROOF_EXPIRED` ou `STEP_UP_PROOF_CONSUMED`, e a prova só é consumida **atomicamente** com o ato — falha na gravação não a consome, e repetição idempotente devolve o resultado guardado sem nova prova. O commit anexa `DECISION_RECORDED`, põe a decisão em vigor, o caso vira `RELEASED_FOR_NEW_PRESCRIPTION`, a prontidão vira `CLEARED` e a razão de bloqueio da análise sai da elegibilidade — liberando **só** a publicação de prescrição nova; prescrição já publicada nunca é tocada. Exige o caso `AWAITING_PERSONAL` **sem decisão em vigor** — `NOT_RELEASED` pede reconsideração, não decisão por cima, e caso reaberto que ainda carrega decisão em vigor é `409 ANAMNESIS_ANALYSIS_NOT_OPEN`: o caminho é a supersunção explícita da decisão, nunca decidir por cima dela — e `If-Match` com a revisão corrente, nunca `*`; divergência é `412 PRECONDITION_FAILED` com `currentRevision`. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato nem novo consumo; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo ativo do personal autenticado.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let ifMatch = "ifMatch_example" // String | `ETag` do caso de análise — eco de `analysis.revision` da última leitura ou resposta de comando; nunca `*`. Divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato gravado.
+let declarePersonalStudentAnamnesisClearedRequest = DeclarePersonalStudentAnamnesisClearedRequest(relationshipId: "relationshipId_example", caseId: "caseId_example", conditionSummary: "conditionSummary_example", mutationIntentId: "mutationIntentId_example", stepUpProof: "stepUpProof_example") // DeclarePersonalStudentAnamnesisClearedRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Declarar que viu a liberação médica do aluno, com prova de step-up
+StudentOnboardingAPI.declarePersonalStudentAnamnesisCleared(studentId: studentId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, declarePersonalStudentAnamnesisClearedRequest: declarePersonalStudentAnamnesisClearedRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo ativo do personal autenticado. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **ifMatch** | **String** | &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado. |
+ **declarePersonalStudentAnamnesisClearedRequest** | [**DeclarePersonalStudentAnamnesisClearedRequest**](DeclarePersonalStudentAnamnesisClearedRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PersonalStudentAnamnesisAnalysisOutcome**](PersonalStudentAnamnesisAnalysisOutcome.md)
 
 ### Authorization
 
@@ -330,6 +515,64 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **grantPersonalStudentAnamnesisExemption**
+```swift
+    open class func grantPersonalStudentAnamnesisExemption(studentId: String, idempotencyKey: String, ifMatch: String, grantPersonalStudentAnamnesisExemptionRequest: GrantPersonalStudentAnamnesisExemptionRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)
+```
+
+Assumir a responsabilidade profissional e liberar, com prova de step-up
+
+Registra a decisão `PROFESSIONAL_WAIVER_GRANTED` (`DEC-PHOME-19` §5.3): o personal **assume a responsabilidade profissional** e libera o aluno para nova prescrição mesmo sem liberação médica — ato autônomo e distinto: dispensa **nunca** é parecer médico, nunca diz que o aluno está apto e nunca equivale a declaração de liberação médica. Exige `justification` obrigatória, `responsibilityAcknowledged` verdadeiro e a versão e o locale **exatos** do texto de responsabilidade apresentado e aceito (`responsibilityTextVersion`, `responsibilityTextLocale`) — versão ou locale que o servidor não aceita é `409 ANAMNESIS_RESPONSIBILITY_TEXT_NOT_ACCEPTED`, sem ato. É ato protegido por **step-up** (`pliora-contracts#315`): `stepUpProof` tem de ser prova válida de `PROFESSIONAL_WAIVER`, de uso único, vinculada a conta, sessão, `caseId`, versão e revisão esperadas e `mutationIntentId` deste pedido; prova ausente, divergente, expirada ou já consumida é `STEP_UP_PROOF_REQUIRED`, `STEP_UP_PROOF_MISMATCH`, `STEP_UP_PROOF_EXPIRED` ou `STEP_UP_PROOF_CONSUMED`, e a prova só é consumida **atomicamente** com o ato. O commit anexa `DECISION_RECORDED`, põe a decisão em vigor, o caso vira `RELEASED_FOR_NEW_PRESCRIPTION`, a prontidão vira `WAIVER_GRANTED` e a razão da análise sai da elegibilidade — liberando **só** prescrição nova. A dispensa é revogável por supersunção, **preservando** o ato no histórico. Exige o caso `AWAITING_PERSONAL` sem decisão em vigor — `NOT_RELEASED` pede reconsideração, nunca dispensa por cima, e caso reaberto que ainda carrega decisão em vigor é `409 ANAMNESIS_ANALYSIS_NOT_OPEN`; o caminho é a supersunção explícita — e `If-Match` com a revisão corrente, nunca `*`. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato nem novo consumo; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo ativo do personal autenticado.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let ifMatch = "ifMatch_example" // String | `ETag` do caso de análise — eco de `analysis.revision` da última leitura ou resposta de comando; nunca `*`. Divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato gravado.
+let grantPersonalStudentAnamnesisExemptionRequest = GrantPersonalStudentAnamnesisExemptionRequest(relationshipId: "relationshipId_example", caseId: "caseId_example", justification: "justification_example", responsibilityAcknowledged: false, responsibilityTextVersion: "responsibilityTextVersion_example", responsibilityTextLocale: Locale(), mutationIntentId: "mutationIntentId_example", stepUpProof: "stepUpProof_example") // GrantPersonalStudentAnamnesisExemptionRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Assumir a responsabilidade profissional e liberar, com prova de step-up
+StudentOnboardingAPI.grantPersonalStudentAnamnesisExemption(studentId: studentId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, grantPersonalStudentAnamnesisExemptionRequest: grantPersonalStudentAnamnesisExemptionRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo ativo do personal autenticado. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **ifMatch** | **String** | &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado. |
+ **grantPersonalStudentAnamnesisExemptionRequest** | [**GrantPersonalStudentAnamnesisExemptionRequest**](GrantPersonalStudentAnamnesisExemptionRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PersonalStudentAnamnesisAnalysisOutcome**](PersonalStudentAnamnesisAnalysisOutcome.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **listStudentAnamnesisVersions**
 ```swift
     open class func listStudentAnamnesisVersions(acceptLanguage: String? = nil, completion: @escaping (_ data: StudentAnamnesisArchiveView?, _ error: Error?) -> Void)
@@ -376,6 +619,178 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **openPersonalStudentAnamnesisAnalysis**
+```swift
+    open class func openPersonalStudentAnamnesisAnalysis(studentId: String, idempotencyKey: String, openPersonalStudentAnamnesisAnalysisRequest: OpenPersonalStudentAnamnesisAnalysisRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)
+```
+
+Abrir o caso de análise da anamnese por exceção deste vínculo
+
+Abre o **caso de análise** da ficha deste vínculo (`DEC-PHOME-19` §5): o agregado operacional que amarra aluno, vínculo ativo, versão concluída endereçada, revisão corrente, pergunta ativa e histórico imutável de atos — e que, sozinho, **não decide nada**: abrir ou perguntar nunca é decisão de aptidão, liberação ou dispensa. A origem fica registrada: `SCREENING_SIGNAL` quando a conclusão da ficha abriu o caso por sinal da triagem — resposta positiva na triagem de prontidão já nasce com caso aberto, sem ato do personal — ou `PERSONAL_INITIATIVE` quando o personal abre por iniciativa própria, com `reason` obrigatória. `targetAnamnesisVersionId` tem de nomear a **última versão concluída** do vínculo; outra versão é `409 ANAMNESIS_VERSION_NOT_CURRENT`. Vale **um caso vigente por vínculo**: pedir de novo com caso vigente é `409 ANAMNESIS_ANALYSIS_ALREADY_OPEN`, sem ato novo. O corpo pode já trazer a primeira pergunta em `clarification` — mesmas regras da rodada de esclarecimento (pergunta e razão obrigatórias) — e então o caso já nasce `AWAITING_STUDENT`; sem ela nasce `AWAITING_PERSONAL`. A revisão nasce `1` e volta como `ETag`/`analysis.revision`, guarda de todo comando seguinte — a abertura não declara `If-Match` porque não há revisão anterior para guardar. `relationshipId` diferente do vínculo ativo é `409 ANAMNESIS_RELATIONSHIP_MISMATCH`. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`. Sem rede não há caso aberto.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo ativo do personal autenticado.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let openPersonalStudentAnamnesisAnalysisRequest = OpenPersonalStudentAnamnesisAnalysisRequest(relationshipId: "relationshipId_example", targetAnamnesisVersionId: "targetAnamnesisVersionId_example", reason: "reason_example", clarification: AnamnesisAnalysisClarificationInput(question: "question_example", reason: "reason_example")) // OpenPersonalStudentAnamnesisAnalysisRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Abrir o caso de análise da anamnese por exceção deste vínculo
+StudentOnboardingAPI.openPersonalStudentAnamnesisAnalysis(studentId: studentId, idempotencyKey: idempotencyKey, openPersonalStudentAnamnesisAnalysisRequest: openPersonalStudentAnamnesisAnalysisRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo ativo do personal autenticado. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **openPersonalStudentAnamnesisAnalysisRequest** | [**OpenPersonalStudentAnamnesisAnalysisRequest**](OpenPersonalStudentAnamnesisAnalysisRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PersonalStudentAnamnesisAnalysisOutcome**](PersonalStudentAnamnesisAnalysisOutcome.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **refusePersonalStudentAnamnesisPrescription**
+```swift
+    open class func refusePersonalStudentAnamnesisPrescription(studentId: String, idempotencyKey: String, ifMatch: String, refusePersonalStudentAnamnesisPrescriptionRequest: RefusePersonalStudentAnamnesisPrescriptionRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)
+```
+
+Registrar a decisão de não liberar nova prescrição neste vínculo
+
+Registra a decisão profissional `NOT_RELEASED` (`DEC-PHOME-19` §5.3): o personal **não libera** o aluno para nova prescrição e informa o próximo passo operacional em `nextStep` — `REVIEW_LATER` ou `EXTERNAL_EVALUATION_REFERRAL` — que a leitura protegida, a fila e a notificação projetam. O commit anexa o ato `DECISION_RECORDED`, põe a decisão em vigor — substituindo uma decisão anterior em vigor, que fica no histórico — e o caso vira `NOT_RELEASED`. É decisão de **escopo**: segura somente a publicação de prescrição nova (`ANAMNESIS_ANALYSIS_PENDING` permanece na elegibilidade), nunca bloqueia o app, a ficha nem o treino já liberado, e **nunca** retira, apaga ou reescreve prescrição já publicada. Não é diagnóstico, não é parecer médico e não carrega prova de step-up — é ato de não liberação. Exige o caso `AWAITING_PERSONAL`: pergunta pendente é `409 ANAMNESIS_CLARIFICATION_AWAITING_ANSWER`, caso encerrado ou com decisão de não liberação em vigor é `409 ANAMNESIS_ANALYSIS_NOT_OPEN` — de `NOT_RELEASED` o caminho é reconsiderar a decisão, nunca decidir de novo por cima — e `caseId` diverso é `409 ANAMNESIS_ANALYSIS_CASE_MISMATCH`. `If-Match` carrega a revisão corrente, nunca `*`; divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo ativo do personal autenticado.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let ifMatch = "ifMatch_example" // String | `ETag` do caso de análise — eco de `analysis.revision` da última leitura ou resposta de comando; nunca `*`. Divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato gravado.
+let refusePersonalStudentAnamnesisPrescriptionRequest = RefusePersonalStudentAnamnesisPrescriptionRequest(relationshipId: "relationshipId_example", caseId: "caseId_example", nextStep: AnamnesisAnalysisNextStep()) // RefusePersonalStudentAnamnesisPrescriptionRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Registrar a decisão de não liberar nova prescrição neste vínculo
+StudentOnboardingAPI.refusePersonalStudentAnamnesisPrescription(studentId: studentId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, refusePersonalStudentAnamnesisPrescriptionRequest: refusePersonalStudentAnamnesisPrescriptionRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo ativo do personal autenticado. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **ifMatch** | **String** | &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado. |
+ **refusePersonalStudentAnamnesisPrescriptionRequest** | [**RefusePersonalStudentAnamnesisPrescriptionRequest**](RefusePersonalStudentAnamnesisPrescriptionRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PersonalStudentAnamnesisAnalysisOutcome**](PersonalStudentAnamnesisAnalysisOutcome.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **requestPersonalStudentAnamnesisClarification**
+```swift
+    open class func requestPersonalStudentAnamnesisClarification(studentId: String, idempotencyKey: String, ifMatch: String, requestPersonalStudentAnamnesisClarificationRequest: RequestPersonalStudentAnamnesisClarificationRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)
+```
+
+Perguntar esclarecimento ao aluno dentro do caso de análise vigente
+
+Abre **uma** pergunta de esclarecimento dentro do caso vigente (`DEC-PHOME-19` §5.2): `question` e `reason` são obrigatórias, com teto de tamanho, e ficam preservadas verbatim como conteúdo autorado. Vale **uma pergunta ativa por caso**: perguntar com outra pendente é `409 ANAMNESIS_CLARIFICATION_AWAITING_ANSWER`. O commit anexa o ato imutável `CLARIFICATION_REQUESTED` ao histórico, move o caso para `AWAITING_STUDENT`, avança a `revision` em um e registra **exatamente uma** intenção durável de notificação na mesma transação — confirmar aqui é registro, nunca entrega ou leitura. Exige o caso vigente deste vínculo: sem caso é `409 ANAMNESIS_ANALYSIS_NOT_OPEN`, `caseId` de outro caso é `409 ANAMNESIS_ANALYSIS_CASE_MISMATCH` e `relationshipId` divergente é `409 ANAMNESIS_RELATIONSHIP_MISMATCH`. Perguntar sobre caso `NOT_RELEASED` **reabre** o caso — volta a `AWAITING_STUDENT`, limpa `closedAt` e `nextStep` do caso — e **não** aposenta a decisão em vigor: ela permanece registrada e em vigor até supersunção explícita, e decidir de novo exige `AWAITING_PERSONAL` sem decisão em vigor. Perguntar **não é** decisão de aptidão, não confirma nem nega nada e não altera elegibilidade por si — `ANAMNESIS_ANALYSIS_PENDING` permanece. `If-Match` carrega a revisão corrente do caso — eco de uma leitura ou do comando anterior, nunca `*`: divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato gravado. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem nova pergunta nem nova intenção; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo ativo do personal autenticado.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let ifMatch = "ifMatch_example" // String | `ETag` do caso de análise — eco de `analysis.revision` da última leitura ou resposta de comando; nunca `*`. Divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato gravado.
+let requestPersonalStudentAnamnesisClarificationRequest = RequestPersonalStudentAnamnesisClarificationRequest(relationshipId: "relationshipId_example", caseId: "caseId_example", question: "question_example", reason: "reason_example") // RequestPersonalStudentAnamnesisClarificationRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Perguntar esclarecimento ao aluno dentro do caso de análise vigente
+StudentOnboardingAPI.requestPersonalStudentAnamnesisClarification(studentId: studentId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, requestPersonalStudentAnamnesisClarificationRequest: requestPersonalStudentAnamnesisClarificationRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo ativo do personal autenticado. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **ifMatch** | **String** | &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado. |
+ **requestPersonalStudentAnamnesisClarificationRequest** | [**RequestPersonalStudentAnamnesisClarificationRequest**](RequestPersonalStudentAnamnesisClarificationRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PersonalStudentAnamnesisAnalysisOutcome**](PersonalStudentAnamnesisAnalysisOutcome.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -540,6 +955,126 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**PersonalStudentAnamnesisControlsView**](PersonalStudentAnamnesisControlsView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **supersedePersonalStudentAnamnesisDecision**
+```swift
+    open class func supersedePersonalStudentAnamnesisDecision(studentId: String, decisionId: String, idempotencyKey: String, ifMatch: String, supersedePersonalStudentAnamnesisDecisionRequest: SupersedePersonalStudentAnamnesisDecisionRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)
+```
+
+Revogar, reconsiderar ou corrigir a decisão em vigor do caso
+
+Substitui a decisão **em vigor** por outro ato — nunca reescreve o que já foi gravado (`DEC-PHOME-19` §5.3): `kind` escolhe o desfecho. `REVOKED` vale **somente** para `PROFESSIONAL_WAIVER_GRANTED`: revoga a dispensa — com `correction.justification` obrigatória — e o caso volta a `AWAITING_PERSONAL`, com a razão `ANAMNESIS_ANALYSIS_PENDING` de volta na elegibilidade e a prontidão de volta a `AWAITING_MEDICAL_CLEARANCE`. `RECONSIDERED` retira a decisão em vigor sem substituta e também devolve o caso a `AWAITING_PERSONAL`. `CORRECTED` registra nova decisão do **mesmo** tipo com conteúdo retificado em `correction` — corrigir uma decisão protegida (`MEDICAL_CLEARANCE_DECLARED`, `PROFESSIONAL_WAIVER_GRANTED`) consome nova prova de step-up da finalidade correspondente; corrigir decisão não protegida não exige prova. `decisionId` tem de nomear a decisão em vigor do caso: decisão já substituída ou de outro caso é `409 ANAMNESIS_DECISION_NOT_IN_FORCE`, e `decisionId` desconhecido é `404`. Pergunta de esclarecimento ainda pendente é `409 ANAMNESIS_CLARIFICATION_AWAITING_ANSWER`: a supersunção espera a resposta do aluno ou a retirada da pergunta — que encerra o caso —, nunca grava uma decisão nova com pergunta órfã em aberto. A decisão substituída permanece no histórico com `supersededAt`, `supersededByDecisionId` e `supersessionKind` — correção de declaração é ato próprio e audível, nunca confundida com revogação nem com decisão nova de mérito. `If-Match` carrega a revisão corrente do caso, nunca `*`; divergência é `412 PRECONDITION_FAILED` com `currentRevision`. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato nem novo consumo de prova; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo ativo do personal autenticado.
+let decisionId = "decisionId_example" // String | Decisão em vigor do caso a ser substituída.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let ifMatch = "ifMatch_example" // String | `ETag` do caso de análise — eco de `analysis.revision` da última leitura ou resposta de comando; nunca `*`. Divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato gravado.
+let supersedePersonalStudentAnamnesisDecisionRequest = SupersedePersonalStudentAnamnesisDecisionRequest(relationshipId: "relationshipId_example", caseId: "caseId_example", kind: AnamnesisAnalysisSupersessionKind(), correction: AnamnesisAnalysisDecisionCorrection(nextStep: AnamnesisAnalysisNextStep(), conditionSummary: "conditionSummary_example", justification: "justification_example", responsibilityAcknowledged: false, responsibilityTextVersion: "responsibilityTextVersion_example", responsibilityTextLocale: Locale(), correctedAnamnesisVersionId: "correctedAnamnesisVersionId_example"), mutationIntentId: "mutationIntentId_example", stepUpProof: "stepUpProof_example") // SupersedePersonalStudentAnamnesisDecisionRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Revogar, reconsiderar ou corrigir a decisão em vigor do caso
+StudentOnboardingAPI.supersedePersonalStudentAnamnesisDecision(studentId: studentId, decisionId: decisionId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, supersedePersonalStudentAnamnesisDecisionRequest: supersedePersonalStudentAnamnesisDecisionRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo ativo do personal autenticado. |
+ **decisionId** | **String** | Decisão em vigor do caso a ser substituída. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **ifMatch** | **String** | &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado. |
+ **supersedePersonalStudentAnamnesisDecisionRequest** | [**SupersedePersonalStudentAnamnesisDecisionRequest**](SupersedePersonalStudentAnamnesisDecisionRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PersonalStudentAnamnesisAnalysisOutcome**](PersonalStudentAnamnesisAnalysisOutcome.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **withdrawPersonalStudentAnamnesisClarification**
+```swift
+    open class func withdrawPersonalStudentAnamnesisClarification(studentId: String, clarificationRequestId: String, idempotencyKey: String, ifMatch: String, withdrawPersonalStudentAnamnesisClarificationRequest: WithdrawPersonalStudentAnamnesisClarificationRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentAnamnesisAnalysisOutcome?, _ error: Error?) -> Void)
+```
+
+Retirar a pergunta pendente e encerrar o caso sem decisão de mérito
+
+Retira a pergunta **ainda pendente** e encerra o caso **sem decisão de mérito** (`DEC-PHOME-19` §5.2): o commit anexa o ato imutável `CLARIFICATION_WITHDRAWN`, marca a pergunta como retirada — nunca como respondida — e o caso vira `WITHDRAWN`. A retirada remove **só** o motivo que ela sustentava: a razão `ANAMNESIS_ANALYSIS_PENDING` sai da elegibilidade neste mesmo commit, enquanto qualquer outra razão continua lá — uma retirada nunca é `approved`, nunca é dispensa e nunca é declaração de parecer médico. Uma pergunta já respondida não pode ser retirada: `409 ANAMNESIS_CLARIFICATION_NOT_PENDING`. Caso encerrado e reaberto depois por supersunção é episódio novo, preservado no histórico. `If-Match` carrega a revisão corrente do caso, nunca `*`; divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato. Corrida com a resposta do aluno é decidida pelo compare-and-set — o perdedor recebe `412` e, relendo, encontra a pergunta já respondida ou retirada. **Repetição:** a mesma `Idempotency-Key` com o mesmo corpo devolve o resultado guardado depois de reautorizar o vínculo, sem novo ato; outro corpo com a mesma chave é `409 IDEMPOTENCY_CONFLICT`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo ativo do personal autenticado.
+let clarificationRequestId = "clarificationRequestId_example" // String | Pergunta ainda pendente do caso vigente.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let ifMatch = "ifMatch_example" // String | `ETag` do caso de análise — eco de `analysis.revision` da última leitura ou resposta de comando; nunca `*`. Divergência é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato gravado.
+let withdrawPersonalStudentAnamnesisClarificationRequest = WithdrawPersonalStudentAnamnesisClarificationRequest(relationshipId: "relationshipId_example", caseId: "caseId_example") // WithdrawPersonalStudentAnamnesisClarificationRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Retirar a pergunta pendente e encerrar o caso sem decisão de mérito
+StudentOnboardingAPI.withdrawPersonalStudentAnamnesisClarification(studentId: studentId, clarificationRequestId: clarificationRequestId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, withdrawPersonalStudentAnamnesisClarificationRequest: withdrawPersonalStudentAnamnesisClarificationRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo ativo do personal autenticado. |
+ **clarificationRequestId** | **String** | Pergunta ainda pendente do caso vigente. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **ifMatch** | **String** | &#x60;ETag&#x60; do caso de análise — eco de &#x60;analysis.revision&#x60; da última leitura ou resposta de comando; nunca &#x60;*&#x60;. Divergência é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado. |
+ **withdrawPersonalStudentAnamnesisClarificationRequest** | [**WithdrawPersonalStudentAnamnesisClarificationRequest**](WithdrawPersonalStudentAnamnesisClarificationRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PersonalStudentAnamnesisAnalysisOutcome**](PersonalStudentAnamnesisAnalysisOutcome.md)
 
 ### Authorization
 

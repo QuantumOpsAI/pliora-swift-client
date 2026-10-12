@@ -54,3 +54,11 @@ public struct CreatePersonalExerciseVideoUploadIntentRequest: Codable, JSONEncod
         try container.encode(rightsDeclared, forKey: .rightsDeclared)
     }
 }
+
+
+extension CreatePersonalExerciseVideoUploadIntentRequest: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if contentType == .unknownDefaultOpenApi { return true }
+        return false
+    }
+}
