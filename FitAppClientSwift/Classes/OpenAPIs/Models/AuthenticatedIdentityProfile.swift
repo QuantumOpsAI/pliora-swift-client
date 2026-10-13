@@ -57,7 +57,30 @@ public struct AuthenticatedIdentityProfile: Codable, JSONEncodable, Hashable {
 
     // Encodable protocol methods
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let kind = try container.decode(IdentityEmailKind.self, forKey: .emailKind)
+        switch kind {
+        case .hiddenEmail:
+            guard !container.contains(.email) else {
+                throw DecodingError.dataCorruptedError(forKey: .email, in: container, debugDescription: "Invalid account email projection")
+            }
+        case .email:
+            _ = try container.decode(String.self, forKey: .email)
+        case .unknownDefaultOpenApi:
+            throw DecodingError.dataCorruptedError(forKey: .emailKind, in: container, debugDescription: "Unknown account email classification")
+        }
+        self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+        self.email = try container.decodeIfPresent(String.self, forKey: .email)
+        self.emailKind = kind
+        self.provider = try container.decode(Provider.self, forKey: .provider)
+        self.linkedProviders = try container.decode(Set<LinkedProviders>.self, forKey: .linkedProviders)
+    }
+
     public func encode(to encoder: Encoder) throws {
+        guard (emailKind == .hiddenEmail && email == nil) || (emailKind == .email && email != nil) else {
+            throw EncodingError.invalidValue("account email projection", EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Invalid account email projection"))
+        }
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(displayName, forKey: .displayName)
         try container.encodeIfPresent(email, forKey: .email)
