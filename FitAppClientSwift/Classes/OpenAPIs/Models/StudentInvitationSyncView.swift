@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** &#x60;view&#x60; fechada de &#x60;STUDENT_INVITATION&#x60;, visível **somente no escopo do personal emissor**. O token de aceite, qualquer derivação dele e o link compartilhável são estruturalmente impossíveis aqui; o destino aparece sempre mascarado. Lifecycle e estado de entrega permanecem campos separados. */
+/** &#x60;view&#x60; fechada de &#x60;STUDENT_INVITATION&#x60;, visível **somente no escopo do personal emissor**. O token de aceite, qualquer derivação dele e o link compartilhável são estruturalmente impossíveis aqui; o destino aparece sempre mascarado. Lifecycle e estado de entrega permanecem campos separados. Uma linha por invitationId; resend/renew não produzem replacement nem referência pública de supersession. REVOKED já existente é fato terminal preservado sem atribuir cancelamento; referências históricas ficam só na auditoria interna mínima. Leitura de sync não concede ação nem substitui GET detalhes/ETag. */
 public struct StudentInvitationSyncView: Codable, JSONEncodable, Hashable {
 
     public enum ViewType: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -20,7 +20,6 @@ public struct StudentInvitationSyncView: Codable, JSONEncodable, Hashable {
     public static let invitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let destinationMaskedRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let studentDisplayNameRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
-    public static let supersededByInvitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public var viewType: ViewType
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var invitationId: String
@@ -36,10 +35,8 @@ public struct StudentInvitationSyncView: Codable, JSONEncodable, Hashable {
     public var expiresAt: Date
     /** Instante do aceite; nulo enquanto o convite não foi aceito. */
     public var acceptedAt: Date?
-    /** Convite que substituiu este num reenvio. A identidade anterior permanece recuperável e a entrada anterior não é apagada. */
-    public var supersededByInvitationId: String?
 
-    public init(viewType: ViewType, invitationId: String, status: StudentInvitationLifecycleStatus, deliveryStatus: StudentInvitationDeliveryStatus, destinationMasked: String? = nil, studentDisplayName: String? = nil, sentAt: Date, expiresAt: Date, acceptedAt: Date?, supersededByInvitationId: String? = nil) {
+    public init(viewType: ViewType, invitationId: String, status: StudentInvitationLifecycleStatus, deliveryStatus: StudentInvitationDeliveryStatus, destinationMasked: String? = nil, studentDisplayName: String? = nil, sentAt: Date, expiresAt: Date, acceptedAt: Date?) {
         self.viewType = viewType
         self.invitationId = invitationId
         self.status = status
@@ -49,7 +46,6 @@ public struct StudentInvitationSyncView: Codable, JSONEncodable, Hashable {
         self.sentAt = sentAt
         self.expiresAt = expiresAt
         self.acceptedAt = acceptedAt
-        self.supersededByInvitationId = supersededByInvitationId
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -62,7 +58,6 @@ public struct StudentInvitationSyncView: Codable, JSONEncodable, Hashable {
         case sentAt
         case expiresAt
         case acceptedAt
-        case supersededByInvitationId
     }
 
     // Encodable protocol methods
@@ -78,7 +73,6 @@ public struct StudentInvitationSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(sentAt, forKey: .sentAt)
         try container.encode(expiresAt, forKey: .expiresAt)
         try container.encode(acceptedAt, forKey: .acceptedAt)
-        try container.encodeIfPresent(supersededByInvitationId, forKey: .supersededByInvitationId)
     }
 }
 
@@ -90,4 +84,9 @@ extension StudentInvitationSyncView: UnknownCaseCheckable {
         if deliveryStatus == .unknownDefaultOpenApi { return true }
         return false
     }
+}
+
+/// Prevent credentials and identity proofs from leaking through logs.
+extension StudentInvitationSyncView: CustomStringConvertible {
+    public var description: String { "StudentInvitationSyncView([REDACTED])" }
 }

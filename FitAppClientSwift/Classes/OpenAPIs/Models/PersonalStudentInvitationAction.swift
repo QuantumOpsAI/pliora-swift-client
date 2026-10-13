@@ -10,10 +10,11 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Ações que o servidor calcula como disponíveis sobre o convite. &#x60;REMOVE&#x60; é o arquivamento de convite já terminal publicado em &#x60;POST .../removal&#x60;: ele existia como rota desde 0.19.0 e não existia neste vocabulário, de modo que a lista de ações contradizia a superfície publicada. &#x60;REMOVE&#x60; não é cancelamento e não toca o ciclo de vida. */
+/** Servidor oferece COPY_LINK, RESEND, RENEW, REMOVE somente para PENDING/OPENED vigentes AVAILABLE; UNAVAILABLE e EXPIRED somente RENEW/REMOVE; ACCEPTED/DECLINED/REVOKED factual somente REMOVE. Excluído não oferece ação e não restaura. REMOVE é exclusão deliberada: invalida acesso e tira item/histórico operacional atomicamente, preservando relação aceita. Sem CANCEL ou revogação nova por resend/renew. */
 public enum PersonalStudentInvitationAction: String, Codable, CaseIterable, CaseIterableDefaultsLast {
+    case copyLink = "COPY_LINK"
     case resend = "RESEND"
-    case cancel = "CANCEL"
+    case renew = "RENEW"
     case remove = "REMOVE"
     case unknownDefaultOpenApi = "unknown_default_open_api"
 }

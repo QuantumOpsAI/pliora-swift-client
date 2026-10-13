@@ -33,15 +33,15 @@ public struct RelationshipInvitationResendCommand: Codable, JSONEncodable, Hasha
     public var aggregateType: AggregateType
     /** Agregado alvo. Um agregado fora do escopo do ator é `FINAL_FAILURE/FORBIDDEN` no item, sem revelar existência. */
     public var aggregateId: String
-    /** Revisão lida pelo cliente, quando o command exige concorrência otimista (CAS). Defasada, produz `CONFLICT/REVISION_STALE` com a versão canônica; nunca last-write-wins. */
-    public var expectedRevision: String?
+    /** Validador opaco exato do GET detalhes, preservado VERBATIM com aspas literais; obrigatório e nunca null. */
+    public var expectedRevision: String
     /** Command que causou este, quando a ordem é semanticamente necessária. Se for desconhecido pelo servidor e ausente do lote, o item é `RETRYABLE_FAILURE/SYNC_CAUSATION_UNKNOWN` e o cliente reenvia com a causa. */
     public var causationCommandId: String?
     /** Instante declarado pelo device, com offset explícito, armazenado como declarado e devolvido como evidência. **Nunca** é árbitro: não ordena itens, não resolve conflito e não elege vencedor. Desvio grande para o futuro é `FINAL_FAILURE/SYNC_CLOCK_SKEW`; desvio para o passado é legítimo. */
     public var clientOccurredAt: Date
     public var payload: RelationshipInvitationResendPayload
 
-    public init(commandId: String, commandType: CommandType, schema: Int, aggregateType: AggregateType, aggregateId: String, expectedRevision: String? = nil, causationCommandId: String? = nil, clientOccurredAt: Date, payload: RelationshipInvitationResendPayload) {
+    public init(commandId: String, commandType: CommandType, schema: Int, aggregateType: AggregateType, aggregateId: String, expectedRevision: String, causationCommandId: String? = nil, clientOccurredAt: Date, payload: RelationshipInvitationResendPayload) {
         self.commandId = commandId
         self.commandType = commandType
         self.schema = schema
@@ -74,7 +74,7 @@ public struct RelationshipInvitationResendCommand: Codable, JSONEncodable, Hasha
         try container.encode(schema, forKey: .schema)
         try container.encode(aggregateType, forKey: .aggregateType)
         try container.encode(aggregateId, forKey: .aggregateId)
-        try container.encodeIfPresent(expectedRevision, forKey: .expectedRevision)
+        try container.encode(expectedRevision, forKey: .expectedRevision)
         try container.encodeIfPresent(causationCommandId, forKey: .causationCommandId)
         try container.encode(clientOccurredAt, forKey: .clientOccurredAt)
         try container.encode(payload, forKey: .payload)

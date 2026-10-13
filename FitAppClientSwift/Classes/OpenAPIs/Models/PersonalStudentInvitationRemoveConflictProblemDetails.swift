@@ -17,7 +17,6 @@ public struct PersonalStudentInvitationRemoveConflictProblemDetails: Codable, JS
         case unknownDefaultOpenApi = 11184809
     }
     public enum Code: String, Codable, CaseIterable, CaseIterableDefaultsLast {
-        case invitationNotTerminal = "INVITATION_NOT_TERMINAL"
         case idempotencyConflict = "IDEMPOTENCY_CONFLICT"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }

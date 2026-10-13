@@ -18,6 +18,7 @@ public struct PersonalStudentInvitationResendConflictProblemDetails: Codable, JS
     }
     public enum Code: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case invitationNotResendable = "INVITATION_NOT_RESENDABLE"
+        case invitationLinkUnavailable = "INVITATION_LINK_UNAVAILABLE"
         case idempotencyConflict = "IDEMPOTENCY_CONFLICT"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }

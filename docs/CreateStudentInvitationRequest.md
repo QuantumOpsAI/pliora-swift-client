@@ -7,5 +7,6 @@ Name | Type | Description | Notes
 **studentDisplayName** | **String** | Metadado privado opcional do personal, preservado byte a byte; nunca aparece na resolução pública do convite nem é traduzido. | [optional]
 **delivery** | [**StudentInvitationDeliveryInput**](StudentInvitationDeliveryInput.md) |  | [optional]
 **customMessage** | **String** | Mensagem opcional do personal, considerada após trim e limitada a 200 caracteres; preservada byte a byte e nunca traduzida. | [optional]
+**validity** | [**StudentInvitationValidity**](StudentInvitationValidity.md) |  |
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

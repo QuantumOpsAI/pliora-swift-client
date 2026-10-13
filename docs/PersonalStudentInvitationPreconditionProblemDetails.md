@@ -1,4 +1,4 @@
-# PersonalStudentInvitationCancelConflictProblemDetails
+# PersonalStudentInvitationPreconditionProblemDetails
 
 ## Properties
 Name | Type | Description | Notes

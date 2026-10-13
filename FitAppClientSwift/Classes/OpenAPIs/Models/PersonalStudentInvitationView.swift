@@ -10,15 +10,15 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Projeção do convite para o personal emissor em operação que NÃO emite segredo. &#x60;shareableUrl&#x60; é opcional aqui e o cancelamento nunca o devolve: a emissão e o reenvio usam &#x60;PersonalStudentInvitationIssuedView&#x60;, onde ele é obrigatório. */
+/** Projeção owner-only do mesmo convite com identidade, fatos e sentAt original preservados. lastSentAt/lastRenewedAt quando aplicável. Estado/ações vêm do servidor; convite expirado permanece visível e renovável. Código/URL ausentes fora da emissão inicial autorizada e do GET share-link. REVOKED existente permanece fato terminal, sem atribuir cancelamento ao Personal. */
 public struct PersonalStudentInvitationView: Codable, JSONEncodable, Hashable {
 
     public static let invitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let studentDisplayNameRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let destinationMaskedRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
-    public static let shareableUrlRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let relationshipIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let availableActionsRule = ArrayRule(minItems: nil, maxItems: nil, uniqueItems: true)
+    public static let revisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var invitationId: String
     /** Metadado privado do personal; nulo quando não informado e nunca exposto em resolução pública. */
@@ -29,8 +29,6 @@ public struct PersonalStudentInvitationView: Codable, JSONEncodable, Hashable {
     public var destinationMasked: String?
     /** Tentativas de entrega do e-mail transacional, da mais recente para a mais antiga, como o servidor as observou. Estruturalmente ausente enquanto nenhuma tentativa foi registrada — `DO_NOT_SEND` não gera tentativa — e nunca `null`. É histórico de ENTREGA: nenhuma tentativa altera o ciclo de vida do convite, e nenhuma afirma recebimento ou leitura pelo aluno. */
     public var deliveryAttempts: [StudentInvitationDeliveryAttemptView]?
-    /** URL pública canônica `https://join.pliora.quantumopsai.com/i/{linkCode}`. O código é opaco, redigido e não autoriza aceite. É devolvida na emissão e no reenvio, uma única vez, e fica estruturalmente ausente no cancelamento, listagem e replay. O servidor não reapresenta o código: reenviar cria outro e revoga o anterior. */
-    public var shareableUrl: String?
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var sentAt: Date
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
@@ -40,20 +38,30 @@ public struct PersonalStudentInvitationView: Codable, JSONEncodable, Hashable {
     /** Identificador público opaco da relação, que nasce somente no commit atômico único do aceite, depois da revisão de privacidade; nulo até lá. */
     public var relationshipId: String?
     public var availableActions: Set<PersonalStudentInvitationAction>
+    /** Revisão opaca do convite. Não construir If-Match deste campo: guardar ETag exato do GET detalhes por ator/ID e enviá-lo VERBATIM. */
+    public var revision: String
+    public var linkAvailability: StudentInvitationLinkAvailability
+    /** Instante RFC 3339 / ISO 8601 com offset explícito. */
+    public var lastSentAt: Date?
+    /** Instante RFC 3339 / ISO 8601 com offset explícito. */
+    public var lastRenewedAt: Date?
 
-    public init(invitationId: String, studentDisplayName: String?, status: StudentInvitationLifecycleStatus, deliveryStatus: StudentInvitationDeliveryStatus, destinationMasked: String? = nil, deliveryAttempts: [StudentInvitationDeliveryAttemptView]? = nil, shareableUrl: String? = nil, sentAt: Date, expiresAt: Date, acceptedAt: Date?, relationshipId: String?, availableActions: Set<PersonalStudentInvitationAction>) {
+    public init(invitationId: String, studentDisplayName: String?, status: StudentInvitationLifecycleStatus, deliveryStatus: StudentInvitationDeliveryStatus, destinationMasked: String? = nil, deliveryAttempts: [StudentInvitationDeliveryAttemptView]? = nil, sentAt: Date, expiresAt: Date, acceptedAt: Date?, relationshipId: String?, availableActions: Set<PersonalStudentInvitationAction>, revision: String, linkAvailability: StudentInvitationLinkAvailability, lastSentAt: Date? = nil, lastRenewedAt: Date? = nil) {
         self.invitationId = invitationId
         self.studentDisplayName = studentDisplayName
         self.status = status
         self.deliveryStatus = deliveryStatus
         self.destinationMasked = destinationMasked
         self.deliveryAttempts = deliveryAttempts
-        self.shareableUrl = shareableUrl
         self.sentAt = sentAt
         self.expiresAt = expiresAt
         self.acceptedAt = acceptedAt
         self.relationshipId = relationshipId
         self.availableActions = availableActions
+        self.revision = revision
+        self.linkAvailability = linkAvailability
+        self.lastSentAt = lastSentAt
+        self.lastRenewedAt = lastRenewedAt
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -63,12 +71,15 @@ public struct PersonalStudentInvitationView: Codable, JSONEncodable, Hashable {
         case deliveryStatus
         case destinationMasked
         case deliveryAttempts
-        case shareableUrl
         case sentAt
         case expiresAt
         case acceptedAt
         case relationshipId
         case availableActions
+        case revision
+        case linkAvailability
+        case lastSentAt
+        case lastRenewedAt
     }
 
     // Encodable protocol methods
@@ -81,12 +92,15 @@ public struct PersonalStudentInvitationView: Codable, JSONEncodable, Hashable {
         try container.encode(deliveryStatus, forKey: .deliveryStatus)
         try container.encodeIfPresent(destinationMasked, forKey: .destinationMasked)
         try container.encodeIfPresent(deliveryAttempts, forKey: .deliveryAttempts)
-        try container.encodeIfPresent(shareableUrl, forKey: .shareableUrl)
         try container.encode(sentAt, forKey: .sentAt)
         try container.encode(expiresAt, forKey: .expiresAt)
         try container.encode(acceptedAt, forKey: .acceptedAt)
         try container.encode(relationshipId, forKey: .relationshipId)
         try container.encode(availableActions, forKey: .availableActions)
+        try container.encode(revision, forKey: .revision)
+        try container.encode(linkAvailability, forKey: .linkAvailability)
+        try container.encodeIfPresent(lastSentAt, forKey: .lastSentAt)
+        try container.encodeIfPresent(lastRenewedAt, forKey: .lastRenewedAt)
     }
 }
 
@@ -95,6 +109,7 @@ extension PersonalStudentInvitationView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if status == .unknownDefaultOpenApi { return true }
         if deliveryStatus == .unknownDefaultOpenApi { return true }
+        if linkAvailability == .unknownDefaultOpenApi { return true }
         return false
     }
 }
