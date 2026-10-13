@@ -12,5 +12,6 @@ Name | Type | Description | Notes
 **sentAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. |
 **expiresAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. |
 **acceptedAt** | **Date** | Instante do aceite; nulo enquanto o convite não foi aceito. |
+**supersededByInvitationId** | **String** | Convite que substituiu este num reenvio. A identidade anterior permanece recuperável e a entrada anterior não é apagada. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

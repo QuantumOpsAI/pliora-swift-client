@@ -14,9 +14,5 @@ Name | Type | Description | Notes
 **acceptedAt** | **Date** | Instante RFC 3339 da aceitação; nulo enquanto o convite não foi aceito. |
 **relationshipId** | **String** | Identificador público opaco da relação, que nasce somente após autenticação e aceitação válidas; nulo até lá. |
 **availableActions** | Set<PersonalStudentInvitationAction> |  |
-**revision** | **String** | Revisão opaca do convite. Não construir If-Match deste campo: guardar ETag exato do GET detalhes por ator/ID e enviá-lo VERBATIM. |
-**linkAvailability** | [**StudentInvitationLinkAvailability**](StudentInvitationLinkAvailability.md) |  |
-**lastSentAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. | [optional]
-**lastRenewedAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

@@ -23,14 +23,12 @@ public struct CreateStudentInvitationRequest: Codable, JSONEncodable, Hashable {
     public var delivery: StudentInvitationDeliveryInput?
     /** Mensagem opcional do personal, considerada após trim e limitada a 200 caracteres; preservada byte a byte e nunca traduzida. */
     public var customMessage: String?
-    public var validity: StudentInvitationValidity
 
-    public init(inviteeEmail: String, studentDisplayName: String? = nil, delivery: StudentInvitationDeliveryInput? = nil, customMessage: String? = nil, validity: StudentInvitationValidity) {
+    public init(inviteeEmail: String, studentDisplayName: String? = nil, delivery: StudentInvitationDeliveryInput? = nil, customMessage: String? = nil) {
         self.inviteeEmail = inviteeEmail
         self.studentDisplayName = studentDisplayName
         self.delivery = delivery
         self.customMessage = customMessage
-        self.validity = validity
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -38,7 +36,6 @@ public struct CreateStudentInvitationRequest: Codable, JSONEncodable, Hashable {
         case studentDisplayName
         case delivery
         case customMessage
-        case validity
     }
 
     // Encodable protocol methods
@@ -49,12 +46,5 @@ public struct CreateStudentInvitationRequest: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(studentDisplayName, forKey: .studentDisplayName)
         try container.encodeIfPresent(delivery, forKey: .delivery)
         try container.encodeIfPresent(customMessage, forKey: .customMessage)
-        try container.encode(validity, forKey: .validity)
     }
-}
-
-
-/// Prevent credentials and identity proofs from leaking through logs.
-extension CreateStudentInvitationRequest: CustomStringConvertible {
-    public var description: String { "CreateStudentInvitationRequest([REDACTED])" }
 }

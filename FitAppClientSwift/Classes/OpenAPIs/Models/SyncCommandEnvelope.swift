@@ -31,6 +31,7 @@ public enum SyncCommandEnvelope: Codable, JSONEncodable, Hashable {
     case typePrescriptionDraftCreateCommand(PrescriptionDraftCreateCommand)
     case typePrescriptionDraftPublishCommand(PrescriptionDraftPublishCommand)
     case typePrescriptionDraftUpdateCommand(PrescriptionDraftUpdateCommand)
+    case typeRelationshipInvitationCancelCommand(RelationshipInvitationCancelCommand)
     case typeRelationshipInvitationCreateCommand(RelationshipInvitationCreateCommand)
     case typeRelationshipInvitationRemoveCommand(RelationshipInvitationRemoveCommand)
     case typeRelationshipInvitationResendCommand(RelationshipInvitationResendCommand)
@@ -80,6 +81,8 @@ public enum SyncCommandEnvelope: Codable, JSONEncodable, Hashable {
         case .typePrescriptionDraftPublishCommand(let value):
             try container.encode(value)
         case .typePrescriptionDraftUpdateCommand(let value):
+            try container.encode(value)
+        case .typeRelationshipInvitationCancelCommand(let value):
             try container.encode(value)
         case .typeRelationshipInvitationCreateCommand(let value):
             try container.encode(value)
@@ -141,9 +144,11 @@ public enum SyncCommandEnvelope: Codable, JSONEncodable, Hashable {
             self = .typePrescriptionDraftPublishCommand(try PrescriptionDraftPublishCommand(from: decoder))
         case "prescription.draft.update":
             self = .typePrescriptionDraftUpdateCommand(try PrescriptionDraftUpdateCommand(from: decoder))
+        case "relationship.invitation.cancel":
+            self = .typeRelationshipInvitationCancelCommand(try RelationshipInvitationCancelCommand(from: decoder))
         case "relationship.invitation.create":
             self = .typeRelationshipInvitationCreateCommand(try RelationshipInvitationCreateCommand(from: decoder))
-        case "relationship.invitation.removal":
+        case "relationship.invitation.remove":
             self = .typeRelationshipInvitationRemoveCommand(try RelationshipInvitationRemoveCommand(from: decoder))
         case "relationship.invitation.resend":
             self = .typeRelationshipInvitationResendCommand(try RelationshipInvitationResendCommand(from: decoder))

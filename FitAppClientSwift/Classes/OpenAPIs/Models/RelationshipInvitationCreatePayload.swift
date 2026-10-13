@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Catálogo de capacidade preservada e OFF/inacessível no MVP; esta definição não ativa #169, fila ou escrita offline. Mesma semântica da criação HTTP: invitationId/aggregateId estáveis, inviteeEmail obrigatório e validity exclusivo escolhido. Servidor calcula dias desde transação ou data+zona/DST; duplica renovável responde INVITATION_ALREADY_EXISTS com referência só do próprio emissor e sem tocar original. Servidor é autoridade de código/hash cifrado durável, expiresAt/sentAt/lifecycle/entrega/ações; nenhum segredo volta por sync. Delivery é política SEND_NOW padrão/DO_NOT_SEND, não modalidade. Replay do command conhecido antes de CAS preserva efeitos, IDs/eventos/contagens. */
+/** Cria um convite pelo caminho offline, com a mesma semântica de &#x60;POST /personal/student-invitations&#x60;. &#x60;invitationId&#x60; é igual ao &#x60;aggregateId&#x60; e nasce no device, de modo que o replay converge para um único convite. O servidor é autoridade exclusiva do token, da expiração de sete dias, do instante de envio, do lifecycle, do estado de entrega e das ações disponíveis; nenhum desses valores é aceito no payload, e o token **nunca** volta ao cliente por este caminho. Limites de emissão são avaliados na aplicação e o excedente é &#x60;RETRYABLE_FAILURE/INVITATION_RATE_LIMITED&#x60; com &#x60;retryAfterSeconds&#x60;. A mesma semântica inclui &#x60;DEC-CONV-1&#x60;: &#x60;inviteeEmail&#x60; é OBRIGATÓRIO também aqui, e &#x60;delivery&#x60; é política de envio, nunca tipo de convite. Este caminho e &#x60;POST /personal/student-invitations&#x60; não podem divergir sobre o que é um convite — se divergissem, um convite sem destino vinculante nasceria por esta porta. */
 public struct RelationshipInvitationCreatePayload: Codable, JSONEncodable, Hashable {
 
     public static let invitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -26,15 +26,13 @@ public struct RelationshipInvitationCreatePayload: Codable, JSONEncodable, Hasha
     public var studentDisplayName: String?
     /** Mensagem opcional do personal, considerada após trim; preservada byte a byte e nunca traduzida. */
     public var customMessage: String?
-    public var validity: StudentInvitationValidity
 
-    public init(invitationId: String, inviteeEmail: String, delivery: StudentInvitationDeliveryInput? = nil, studentDisplayName: String? = nil, customMessage: String? = nil, validity: StudentInvitationValidity) {
+    public init(invitationId: String, inviteeEmail: String, delivery: StudentInvitationDeliveryInput? = nil, studentDisplayName: String? = nil, customMessage: String? = nil) {
         self.invitationId = invitationId
         self.inviteeEmail = inviteeEmail
         self.delivery = delivery
         self.studentDisplayName = studentDisplayName
         self.customMessage = customMessage
-        self.validity = validity
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -43,7 +41,6 @@ public struct RelationshipInvitationCreatePayload: Codable, JSONEncodable, Hasha
         case delivery
         case studentDisplayName
         case customMessage
-        case validity
     }
 
     // Encodable protocol methods
@@ -55,12 +52,5 @@ public struct RelationshipInvitationCreatePayload: Codable, JSONEncodable, Hasha
         try container.encodeIfPresent(delivery, forKey: .delivery)
         try container.encodeIfPresent(studentDisplayName, forKey: .studentDisplayName)
         try container.encodeIfPresent(customMessage, forKey: .customMessage)
-        try container.encode(validity, forKey: .validity)
     }
-}
-
-
-/// Prevent credentials and identity proofs from leaking through logs.
-extension RelationshipInvitationCreatePayload: CustomStringConvertible {
-    public var description: String { "RelationshipInvitationCreatePayload([REDACTED])" }
 }

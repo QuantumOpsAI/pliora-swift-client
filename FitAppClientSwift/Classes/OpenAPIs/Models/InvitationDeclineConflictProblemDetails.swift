@@ -17,6 +17,7 @@ public struct InvitationDeclineConflictProblemDetails: Codable, JSONEncodable, H
         case unknownDefaultOpenApi = 11184809
     }
     public enum Code: String, Codable, CaseIterable, CaseIterableDefaultsLast {
+        case invitationAlreadyTerminal = "INVITATION_ALREADY_TERMINAL"
         case idempotencyConflict = "IDEMPOTENCY_CONFLICT"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }

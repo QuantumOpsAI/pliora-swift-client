@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Lifecycle separado da entrega: PENDING/OPENED vigentes são elegíveis, EXPIRED bloqueia aceite mas é renovável no mesmo ID; ACCEPTED/DECLINED/REVOKED existente são terminais. Resend/renew nunca geram REVOKED. Exclusão retira projeção sem remapear fatos antigos. */
+/** Ciclo de vida do convite; DECLINED, EXPIRED e REVOKED são terminais. Separado do estado de entrega. */
 public enum StudentInvitationLifecycleStatus: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case pending = "PENDING"
     case opened = "OPENED"

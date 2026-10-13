@@ -1,4 +1,4 @@
-# PersonalStudentInvitationRenewalConflictProblemDetails
+# PersonalStudentInvitationCancelForbiddenProblemDetails
 
 ## Properties
 Name | Type | Description | Notes

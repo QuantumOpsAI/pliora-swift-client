@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Projeção owner-only do mesmo convite com identidade, fatos e sentAt original preservados. lastSentAt/lastRenewedAt quando aplicável. Estado/ações vêm do servidor; convite expirado permanece visível e renovável. Código/URL ausentes fora da emissão inicial autorizada e do GET share-link. REVOKED existente permanece fato terminal, sem atribuir cancelamento ao Personal. */
+/** Projeção de um convite dentro da coleção do personal. Espelha &#x60;PersonalStudentInvitationView&#x60;, porém SEM &#x60;shareableUrl&#x60; e sem qualquer token: o código público do link é devolvido uma única vez na criação e é estruturalmente impossível nesta coleção. &#x60;additionalProperties: false&#x60; impede a reintrodução do segredo por qualquer campo extra. */
 public struct PersonalStudentInvitationListItemView: Codable, JSONEncodable, Hashable {
 
     public static let invitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -18,7 +18,6 @@ public struct PersonalStudentInvitationListItemView: Codable, JSONEncodable, Has
     public static let destinationMaskedRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let relationshipIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let availableActionsRule = ArrayRule(minItems: nil, maxItems: nil, uniqueItems: true)
-    public static let revisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var invitationId: String
     /** Metadado privado do personal; nulo quando não informado e nunca exposto em resolução pública. */
@@ -38,15 +37,8 @@ public struct PersonalStudentInvitationListItemView: Codable, JSONEncodable, Has
     /** Identificador público opaco da relação, que nasce somente após autenticação e aceitação válidas; nulo até lá. */
     public var relationshipId: String?
     public var availableActions: Set<PersonalStudentInvitationAction>
-    /** Revisão opaca do convite. Não construir If-Match deste campo: guardar ETag exato do GET detalhes por ator/ID e enviá-lo VERBATIM. */
-    public var revision: String
-    public var linkAvailability: StudentInvitationLinkAvailability
-    /** Instante RFC 3339 / ISO 8601 com offset explícito. */
-    public var lastSentAt: Date?
-    /** Instante RFC 3339 / ISO 8601 com offset explícito. */
-    public var lastRenewedAt: Date?
 
-    public init(invitationId: String, studentDisplayName: String?, status: StudentInvitationLifecycleStatus, deliveryStatus: StudentInvitationDeliveryStatus, destinationMasked: String? = nil, deliveryAttempts: [StudentInvitationDeliveryAttemptView]? = nil, sentAt: Date, expiresAt: Date, acceptedAt: Date?, relationshipId: String?, availableActions: Set<PersonalStudentInvitationAction>, revision: String, linkAvailability: StudentInvitationLinkAvailability, lastSentAt: Date? = nil, lastRenewedAt: Date? = nil) {
+    public init(invitationId: String, studentDisplayName: String?, status: StudentInvitationLifecycleStatus, deliveryStatus: StudentInvitationDeliveryStatus, destinationMasked: String? = nil, deliveryAttempts: [StudentInvitationDeliveryAttemptView]? = nil, sentAt: Date, expiresAt: Date, acceptedAt: Date?, relationshipId: String?, availableActions: Set<PersonalStudentInvitationAction>) {
         self.invitationId = invitationId
         self.studentDisplayName = studentDisplayName
         self.status = status
@@ -58,10 +50,6 @@ public struct PersonalStudentInvitationListItemView: Codable, JSONEncodable, Has
         self.acceptedAt = acceptedAt
         self.relationshipId = relationshipId
         self.availableActions = availableActions
-        self.revision = revision
-        self.linkAvailability = linkAvailability
-        self.lastSentAt = lastSentAt
-        self.lastRenewedAt = lastRenewedAt
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -76,10 +64,6 @@ public struct PersonalStudentInvitationListItemView: Codable, JSONEncodable, Has
         case acceptedAt
         case relationshipId
         case availableActions
-        case revision
-        case linkAvailability
-        case lastSentAt
-        case lastRenewedAt
     }
 
     // Encodable protocol methods
@@ -97,10 +81,6 @@ public struct PersonalStudentInvitationListItemView: Codable, JSONEncodable, Has
         try container.encode(acceptedAt, forKey: .acceptedAt)
         try container.encode(relationshipId, forKey: .relationshipId)
         try container.encode(availableActions, forKey: .availableActions)
-        try container.encode(revision, forKey: .revision)
-        try container.encode(linkAvailability, forKey: .linkAvailability)
-        try container.encodeIfPresent(lastSentAt, forKey: .lastSentAt)
-        try container.encodeIfPresent(lastRenewedAt, forKey: .lastRenewedAt)
     }
 }
 
@@ -109,12 +89,6 @@ extension PersonalStudentInvitationListItemView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if status == .unknownDefaultOpenApi { return true }
         if deliveryStatus == .unknownDefaultOpenApi { return true }
-        if linkAvailability == .unknownDefaultOpenApi { return true }
         return false
     }
-}
-
-/// Prevent credentials and identity proofs from leaking through logs.
-extension PersonalStudentInvitationListItemView: CustomStringConvertible {
-    public var description: String { "PersonalStudentInvitationListItemView([REDACTED])" }
 }

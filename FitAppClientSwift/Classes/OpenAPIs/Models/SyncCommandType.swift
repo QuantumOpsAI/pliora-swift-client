@@ -33,7 +33,8 @@ public enum SyncCommandType: String, Codable, CaseIterable, CaseIterableDefaults
     case prescriptionPeriodAssignmentPeriodRetire = "prescription.assignment.retire"
     case relationshipPeriodInvitationPeriodCreate = "relationship.invitation.create"
     case relationshipPeriodInvitationPeriodResend = "relationship.invitation.resend"
-    case relationshipPeriodInvitationPeriodRemoval = "relationship.invitation.removal"
+    case relationshipPeriodInvitationPeriodCancel = "relationship.invitation.cancel"
+    case relationshipPeriodInvitationPeriodRemove = "relationship.invitation.remove"
     case syncPeriodConflictPeriodResolve = "sync.conflict.resolve"
     case unknownDefaultOpenApi = "unknown_default_open_api"
 }

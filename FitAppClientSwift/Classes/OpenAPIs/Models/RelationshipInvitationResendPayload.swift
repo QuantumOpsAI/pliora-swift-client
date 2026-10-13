@@ -10,25 +10,31 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Reenvio de mesmo invitationId/código/URL/expiresAt/sentAt, uma linha principal e uma tentativa; herda destino/mensagem. Sem replacement, revogação ou nova emissão. Expirado exige renovar online antes; UNAVAILABLE retorna INVITATION_LINK_UNAVAILABLE antes de side-effects. Replay preserva IDs/contagens. Catálogo OFF não habilita fila offline nem duplica comando HTTP. */
+/** Reenvia um convite: revoga o anterior e cria um convite novo com identidade, token e expiração novos, herdando destino e mensagem do convite de origem sem aceitar sobrescrita. &#x60;aggregateId&#x60; é o convite de origem e &#x60;newInvitationId&#x60; é a identidade nova, criada no device. Dois reenvios da mesma origem entregues fora de ordem convergem para exatamente um convite não terminal, e um token revogado nunca volta a valer. Convite expirado ou já aceito é recusado com código próprio, sem reativar identidade, token nem expiração. */
 public struct RelationshipInvitationResendPayload: Codable, JSONEncodable, Hashable {
 
-    public static let invitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
-    /** Mesmo convite alvo, igual ao aggregateId do envelope; nunca source/replacement/newInvitationId. */
-    public var invitationId: String
+    public static let sourceInvitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let newInvitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    /** Convite de origem, igual ao `aggregateId` do envelope. */
+    public var sourceInvitationId: String
+    /** Identidade do convite novo, criada no device e estável em todo retry. */
+    public var newInvitationId: String
 
-    public init(invitationId: String) {
-        self.invitationId = invitationId
+    public init(sourceInvitationId: String, newInvitationId: String) {
+        self.sourceInvitationId = sourceInvitationId
+        self.newInvitationId = newInvitationId
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
-        case invitationId
+        case sourceInvitationId
+        case newInvitationId
     }
 
     // Encodable protocol methods
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(invitationId, forKey: .invitationId)
+        try container.encode(sourceInvitationId, forKey: .sourceInvitationId)
+        try container.encode(newInvitationId, forKey: .newInvitationId)
     }
 }

@@ -18,13 +18,11 @@ public struct PersonalStudentInvitationConflictProblemDetails: Codable, JSONEnco
     }
     public enum Code: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case studentAlreadyLinked = "STUDENT_ALREADY_LINKED"
-        case invitationAlreadyExists = "INVITATION_ALREADY_EXISTS"
         case idempotencyConflict = "IDEMPOTENCY_CONFLICT"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let correlationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
-    public static let existingInvitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** URI estável que identifica a classe do problema. */
     public var type: String
     /** Resumo legível e estável para a classe do problema. server_localized; `code` é a autoridade estável para lógica de cliente, `title` nunca deve ser usado como chave de decisão. */
@@ -39,10 +37,8 @@ public struct PersonalStudentInvitationConflictProblemDetails: Codable, JSONEnco
     public var correlationId: String
     /** Violações por campo quando a validação do comando falhar. */
     public var fieldErrors: [FieldError]?
-    /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
-    public var existingInvitationId: String?
 
-    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil, existingInvitationId: String? = nil) {
+    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil) {
         self.type = type
         self.title = title
         self.status = status
@@ -51,7 +47,6 @@ public struct PersonalStudentInvitationConflictProblemDetails: Codable, JSONEnco
         self.instance = instance
         self.correlationId = correlationId
         self.fieldErrors = fieldErrors
-        self.existingInvitationId = existingInvitationId
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -63,7 +58,6 @@ public struct PersonalStudentInvitationConflictProblemDetails: Codable, JSONEnco
         case instance
         case correlationId
         case fieldErrors
-        case existingInvitationId
     }
 
     // Encodable protocol methods
@@ -78,7 +72,6 @@ public struct PersonalStudentInvitationConflictProblemDetails: Codable, JSONEnco
         try container.encodeIfPresent(instance, forKey: .instance)
         try container.encode(correlationId, forKey: .correlationId)
         try container.encodeIfPresent(fieldErrors, forKey: .fieldErrors)
-        try container.encodeIfPresent(existingInvitationId, forKey: .existingInvitationId)
     }
 }
 

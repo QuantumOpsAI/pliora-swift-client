@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Página owner-only com um item por invitationId, relógio asOf servidor e cursor opaco. Não inclui itens excluídos, URL, código, token ou destino em claro. */
+/** Página de convites do personal paginada exclusivamente por cursor opaco. A coleção nunca expõe token nem destino em claro. */
 public struct StudentInvitationPage: Codable, JSONEncodable, Hashable {
 
     public static let nextCursorRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -18,19 +18,15 @@ public struct StudentInvitationPage: Codable, JSONEncodable, Hashable {
     public var items: [PersonalStudentInvitationListItemView]
     /** Token opaco de continuação. Não é offset, ID interno ou dado a ser interpretado pelo cliente. */
     public var nextCursor: String?
-    /** Instante RFC 3339 / ISO 8601 com offset explícito. */
-    public var asOf: Date
 
-    public init(items: [PersonalStudentInvitationListItemView], nextCursor: String? = nil, asOf: Date) {
+    public init(items: [PersonalStudentInvitationListItemView], nextCursor: String? = nil) {
         self.items = items
         self.nextCursor = nextCursor
-        self.asOf = asOf
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case items
         case nextCursor
-        case asOf
     }
 
     // Encodable protocol methods
@@ -39,6 +35,5 @@ public struct StudentInvitationPage: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(items, forKey: .items)
         try container.encodeIfPresent(nextCursor, forKey: .nextCursor)
-        try container.encode(asOf, forKey: .asOf)
     }
 }
