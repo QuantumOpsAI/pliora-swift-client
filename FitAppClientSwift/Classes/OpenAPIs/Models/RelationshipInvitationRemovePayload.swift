@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Arquiva o convite da lista do personal. **Não** é cancelamento: não altera o estágio de lifecycle e não invalida token. Só é aceito sobre convite já terminal; caso contrário é &#x60;FINAL_FAILURE/INVITATION_NOT_TERMINAL&#x60;. */
+/** Exclusão deliberada lógica do mesmo invitationId. PENDING/OPENED/EXPIRED: invalida acesso e tira item/histórico operacional atomicamente. ACCEPTED/DECLINED/REVOKED factual: remove item sem romper relação/aceite ou remapear fatos. Não exige terminalidade, não restaura; DELETE apenas auditoria interna mínima. Replay antes de revisão própria sem novo efeito. Capacidade OFF preservada, sem ativação #169. */
 public struct RelationshipInvitationRemovePayload: Codable, JSONEncodable, Hashable {
 
     public static let invitationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)

@@ -5,13 +5,16 @@ All URIs are relative to */api/v1*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**acceptStudentInvitation**](StudentInvitationsAPI.md#acceptstudentinvitation) | **POST** /student-invitations/accept | Confirmar o aceite do convite — a única transação que cria ou troca o vínculo
-[**cancelPersonalStudentInvitation**](StudentInvitationsAPI.md#cancelpersonalstudentinvitation) | **POST** /personal/student-invitations/{invitationId}/cancel | Cancelar um convite de aluno pelo personal
 [**createPersonalStudentInvitation**](StudentInvitationsAPI.md#createpersonalstudentinvitation) | **POST** /personal/student-invitations | Criar um convite de aluno pelo personal
 [**declineStudentInvitation**](StudentInvitationsAPI.md#declinestudentinvitation) | **POST** /student-invitations/decline | Recusar um convite de aluno
+[**getPersonalStudentInvitationDetails**](StudentInvitationsAPI.md#getpersonalstudentinvitationdetails) | **GET** /personal/student-invitations/{invitationId} | Ler detalhes do convite do próprio personal
+[**getPersonalStudentInvitationShareLink**](StudentInvitationsAPI.md#getpersonalstudentinvitationsharelink) | **GET** /personal/student-invitations/{invitationId}/share-link | Copiar o mesmo link do convite
 [**getStudentInvitationAcceptanceContext**](StudentInvitationsAPI.md#getstudentinvitationacceptancecontext) | **POST** /student-invitations/acceptance-context | Ler o contexto autenticado que precede o aceite do convite
+[**listPersonalStudentInvitationActivity**](StudentInvitationsAPI.md#listpersonalstudentinvitationactivity) | **GET** /personal/student-invitations/{invitationId}/activity | Ler histórico operacional do convite do próprio personal
 [**listPersonalStudentInvitations**](StudentInvitationsAPI.md#listpersonalstudentinvitations) | **GET** /personal/student-invitations | Listar convites de aluno emitidos pelo personal
-[**removePersonalStudentInvitation**](StudentInvitationsAPI.md#removepersonalstudentinvitation) | **POST** /personal/student-invitations/{invitationId}/removal | Arquivar um convite terminal da lista do personal
-[**resendPersonalStudentInvitation**](StudentInvitationsAPI.md#resendpersonalstudentinvitation) | **POST** /personal/student-invitations/{invitationId}/resend | Reenviar um convite de aluno pelo personal
+[**removePersonalStudentInvitation**](StudentInvitationsAPI.md#removepersonalstudentinvitation) | **POST** /personal/student-invitations/{invitationId}/removal | Excluir convite deliberadamente
+[**renewPersonalStudentInvitation**](StudentInvitationsAPI.md#renewpersonalstudentinvitation) | **POST** /personal/student-invitations/{invitationId}/renewal | Renovar ou alterar validade do mesmo convite
+[**resendPersonalStudentInvitation**](StudentInvitationsAPI.md#resendpersonalstudentinvitation) | **POST** /personal/student-invitations/{invitationId}/resend | Reenviar o mesmo convite
 [**resolveStudentInvitation**](StudentInvitationsAPI.md#resolvestudentinvitation) | **POST** /student-invitations/resolve | Resolver um convite de aluno por credencial curta de jornada
 [**startInvitationEmailOwnershipChallenge**](StudentInvitationsAPI.md#startinvitationemailownershipchallenge) | **POST** /student-invitations/email-ownership-challenges | Emitir o código de posse do endereço convidado, no escopo daquele convite
 [**verifyInvitationEmailOwnershipChallenge**](StudentInvitationsAPI.md#verifyinvitationemailownershipchallenge) | **POST** /student-invitations/email-ownership-challenges/{challengeId}/verification | Verificar o código de posse do endereço convidado
@@ -24,7 +27,7 @@ Method | HTTP request | Description
 
 Confirmar o aceite do convite — a única transação que cria ou troca o vínculo
 
-**É a única confirmação final da sequência de entrada, e uma única transação.** De forma indivisível ela valida a prova de posse do endereço convidado quando houve divergência, valida a elegibilidade de idade 18+, grava as decisões de privacidade com a versão do servidor, grava os grants de compartilhamento item a item, encerra o vínculo anterior quando existe, congela os treinos futuros do personal anterior, cria a relação e consome o convite. **Qualquer falha desfaz tudo:** nenhuma decisão fica gravada, o vínculo anterior **permanece ativo** e o convite permanece **não consumido**. Não existe resultado parcial nem ordem de execução em que a pessoa fique sem vínculo. **A relação não nasce antes daqui.** Resolver o convite, autenticar, ler o contexto pré-aceite, provar a posse do e-mail e declarar intenção de aceitar não criam relação, consentimento nem capacidade de aluno. **`If-Match` é obrigatório e ecoa `revision` do contexto pré-aceite.** É o que vincula a confirmação ao catálogo apresentado: quem não chamou `getStudentInvitationAcceptanceContext` não tem o valor. Revisão defasada — porque o catálogo mudou, porque a exigência de idade mudou ou porque o contexto se moveu — é `412 PRIVACY_CONTEXT_STALE`, e a releitura é obrigatória. **Consentimento é decisão explícita por item, nunca uma lista de aceites.** O cliente envia `GRANTED` ou `DECLINED` para **cada** item do catálogo que o contexto serviu, com a `documentVersion` que lhe foi apresentada; cobrir o catálogo parcialmente é `422 PRIVACY_DECISIONS_INCOMPLETE`. A **versão aceita é a efetivamente apresentada pelo servidor**, ecoada pelo cliente — que não propõe versão, texto nem catálogo —: versão diferente da apresentada, ou que deixou de poder ser aceita, é `412 PRIVACY_CONTEXT_STALE`, e a pessoa recebe nova apresentação e faz novo ato; nunca se consente em silêncio outra versão. Tipo fora do catálogo recusa o pedido inteiro com `422 VALIDATION_ERROR`, sem efeito nenhum. **Aceite real obrigatório (`DEC-PHOME-19` §3.1).** `SHARE_DATA_WITH_PERSONAL` (`acceptanceRequired: true`) exige `GRANTED`; recusá-lo é `403 CONSENT_REQUIRED`, sem vínculo, sem consumo do convite e sem encerramento do vínculo anterior. O aceite é gravado **no mesmo commit** do vínculo, com o aluno como autor, o vínculo e o personal destinatários, o tipo, a versão, o texto localizado exato apresentado e o SHA-256 dele, o locale e o instante do servidor — recuperáveis em `getStudentAnamnesisConsent` — e é ele que autoriza o personal deste vínculo a ler as versões concluídas da ficha deste vínculo. Não há quarto termo, controle pré-marcado nem alternância posterior desse acesso, e ter aceito em outro vínculo não substitui o ato deste. **O vínculo nasce com a sua ficha de anamnese vazia e obrigatória**, inclusive com o mesmo personal de um vínculo anterior: nada é copiado, importado ou pré-preenchido, e o aceite nunca conclui a ficha. Falha de rede não é recusa nem aceite. **Os grants de compartilhamento são opt-in e nascem desmarcados.** Eles só existem quando há troca, pertencem ao catálogo **fechado** de quatro categorias e são grant de **leitura**: autorizar não copia o fato, não reatribui autoria, não muda procedência e não cria segunda cópia. A configuração de coleta do personal anterior **nunca** é herdada. **A anamnese não é categoria de compartilhamento** (`DEC-PHOME-19`): a antiga `HEALTH_FORM` foi removida do catálogo; e desde `DEC-PHOME-20` versões de vínculos anteriores **não chegam ao personal novo por nenhum caminho** — não existe autorização de anteriores, no aceite nem depois. **Troca é explícita.** Havendo vínculo ativo, `replacement.confirmed` é obrigatório e `replacement.relationshipId` tem de ser o vínculo que o contexto publicou; sem a confirmação a resposta é `403 ACTIVE_RELATIONSHIP_CONFIRMATION_REQUIRED`, e se o vínculo ativo deixou de ser aquele a resposta é `409 ACTIVE_RELATIONSHIP_CHANGED`. **O nome do aluno é pré-condição do vínculo** (`DEC-PHOME-6`). Enquanto o perfil do aluno não tem nome — o que o passo `STUDENT_PROFILE_NAME` do onboarding resolve com `saveStudentProfile` antes do aceite —, o commit é recusado com `409 INVALID_ONBOARDING_TRANSITION` e `blockingStepKey: STUDENT_PROFILE_NAME`, no molde da recusa do perfil do personal: nada é gravado, nenhum vínculo nasce nem é trocado e o convite permanece **não consumido**; a pessoa informa o nome e refaz o aceite. A recusa nomeia o passo que falta e nunca carrega o nome. **Precedência:** todas as recusas já publicadas nesta operação (`401`, `403`, `404`, `409` dos demais códigos, `410`, `412` e `422`) são avaliadas **antes**; a falta de nome é a **última** verificação antes do commit, de modo que ela só aparece quando o resto do aceite estaria válido. É escolha técnica deste contrato, registrada porque os documentos são silentes sobre a ordem. **Idade é decidida pelo servidor.** Nenhum cliente compara datas, embute idade-limite ou conclui elegibilidade. Quando o contexto pediu prova adicional, a data de nascimento declarada viaja em `ageAssurance` como **evidência**, nunca como veredito. Sinal faltante, inconclusivo ou divergente é `403 AGE_ASSURANCE_REQUIRED`, falha recuperável; menor de 18 no release inicial é `403 AGE_NOT_ELIGIBLE`, terminal para aquele aceite. Nenhum dos dois consome o convite nem altera vínculo algum, e o personal nunca vê o motivo. **O token portador é obrigatório** e é o que prova a posse do convite. `invitationId` é **conferência cruzada opcional**: quando enviado precisa ser o convite daquele token, e divergir responde `404 INVITATION_NOT_FOUND`, exatamente como um token desconhecido — a resposta nunca confirma a existência do convite alheio. **Um convite por chamada.** A operação aceita exatamente o convite do token recebido: não varre convites pendentes e não aceita nenhum outro em cascata. **Convite inexistente, expirado, revogado, recusado ou já consumido não cria contexto de aluno**: `404`, `409` e `410` não criam relação, consentimento nem capacidade, e nenhum deles é um aceite parcial. Uma **falha de dependência** responde `500 INTERNAL_ERROR` e **nunca** `404 INVITATION_NOT_FOUND`: indisponibilidade não é ausência de convite. **Nenhuma recusa desta operação nomeia a categoria ou o termo que faltou.** Dizer que a decisão está incompleta é o que o cliente precisa para agir; dizer qual item faltou revelaria uma escolha do aluno sobre um item específico. Por isso as recusas novas não carregam `fieldErrors`, não carregam categoria e a prosa delas não permite inferir qual item foi negado. **Nenhum destes termos autoriza dado corporal** declarado, auto-coleta recorrente, medição do personal ou meta numérica: o quarto consentimento (V4) continua bloqueado e não tem superfície nesta operação.
+**É a única confirmação final da sequência de entrada, e uma única transação.** De forma indivisível ela valida a prova de posse do endereço convidado quando houve divergência, valida a elegibilidade de idade 18+, grava as decisões de privacidade com a versão do servidor, grava os grants de compartilhamento item a item, encerra o vínculo anterior quando existe, congela os treinos futuros do personal anterior, cria a relação e consome o convite. **Qualquer falha desfaz tudo:** nenhuma decisão fica gravada, o vínculo anterior **permanece ativo** e o convite permanece **não consumido**. Não existe resultado parcial nem ordem de execução em que a pessoa fique sem vínculo. **A relação não nasce antes daqui.** Resolver o convite, autenticar, ler o contexto pré-aceite, provar a posse do e-mail e declarar intenção de aceitar não criam relação, consentimento nem capacidade de aluno. **`If-Match` é obrigatório e ecoa `revision` do contexto pré-aceite.** É o que vincula a confirmação ao catálogo apresentado: quem não chamou `getStudentInvitationAcceptanceContext` não tem o valor. Revisão defasada — porque o catálogo mudou, porque a exigência de idade mudou ou porque o contexto se moveu — é `412 PRIVACY_CONTEXT_STALE`, e a releitura é obrigatória. **Consentimento é decisão explícita por item, nunca uma lista de aceites.** O cliente envia `GRANTED` ou `DECLINED` para **cada** item do catálogo que o contexto serviu, com a `documentVersion` que lhe foi apresentada; cobrir o catálogo parcialmente é `422 PRIVACY_DECISIONS_INCOMPLETE`. A **versão aceita é a efetivamente apresentada pelo servidor**, ecoada pelo cliente — que não propõe versão, texto nem catálogo —: versão diferente da apresentada, ou que deixou de poder ser aceita, é `412 PRIVACY_CONTEXT_STALE`, e a pessoa recebe nova apresentação e faz novo ato; nunca se consente em silêncio outra versão. Tipo fora do catálogo recusa o pedido inteiro com `422 VALIDATION_ERROR`, sem efeito nenhum. **Aceite real obrigatório (`DEC-PHOME-19` §3.1).** `SHARE_DATA_WITH_PERSONAL` (`acceptanceRequired: true`) exige `GRANTED`; recusá-lo é `403 CONSENT_REQUIRED`, sem vínculo, sem consumo do convite e sem encerramento do vínculo anterior. O aceite é gravado **no mesmo commit** do vínculo, com o aluno como autor, o vínculo e o personal destinatários, o tipo, a versão, o texto localizado exato apresentado e o SHA-256 dele, o locale e o instante do servidor — recuperáveis em `getStudentAnamnesisConsent` — e é ele que autoriza o personal deste vínculo a ler as versões concluídas da ficha deste vínculo. Não há quarto termo, controle pré-marcado nem alternância posterior desse acesso, e ter aceito em outro vínculo não substitui o ato deste. **O vínculo nasce com a sua ficha de anamnese vazia e obrigatória**, inclusive com o mesmo personal de um vínculo anterior: nada é copiado, importado ou pré-preenchido, e o aceite nunca conclui a ficha. Falha de rede não é recusa nem aceite. **Os grants de compartilhamento são opt-in e nascem desmarcados.** Eles só existem quando há troca, pertencem ao catálogo **fechado** de quatro categorias e são grant de **leitura**: autorizar não copia o fato, não reatribui autoria, não muda procedência e não cria segunda cópia. A configuração de coleta do personal anterior **nunca** é herdada. **A anamnese não é categoria de compartilhamento** (`DEC-PHOME-19`): a antiga `HEALTH_FORM` foi removida do catálogo; e desde `DEC-PHOME-20` versões de vínculos anteriores **não chegam ao personal novo por nenhum caminho** — não existe autorização de anteriores, no aceite nem depois. **Troca é explícita.** Havendo vínculo ativo, `replacement.confirmed` é obrigatório e `replacement.relationshipId` tem de ser o vínculo que o contexto publicou; sem a confirmação a resposta é `403 ACTIVE_RELATIONSHIP_CONFIRMATION_REQUIRED`, e se o vínculo ativo deixou de ser aquele a resposta é `409 ACTIVE_RELATIONSHIP_CHANGED`. **O nome do aluno é pré-condição do vínculo** (`DEC-PHOME-6`). Enquanto o perfil do aluno não tem nome — o que o passo `STUDENT_PROFILE_NAME` do onboarding resolve com `saveStudentProfile` antes do aceite —, o commit é recusado com `409 INVALID_ONBOARDING_TRANSITION` e `blockingStepKey: STUDENT_PROFILE_NAME`, no molde da recusa do perfil do personal: nada é gravado, nenhum vínculo nasce nem é trocado e o convite permanece **não consumido**; a pessoa informa o nome e refaz o aceite. A recusa nomeia o passo que falta e nunca carrega o nome. **Precedência:** todas as recusas já publicadas nesta operação (`401`, `403`, `404`, `409` dos demais códigos, `410`, `412` e `422`) são avaliadas **antes**; a falta de nome é a **última** verificação antes do commit, de modo que ela só aparece quando o resto do aceite estaria válido. É escolha técnica deste contrato, registrada porque os documentos são silentes sobre a ordem. **Idade é decidida pelo servidor.** Nenhum cliente compara datas, embute idade-limite ou conclui elegibilidade. Quando o contexto pediu prova adicional, a data de nascimento declarada viaja em `ageAssurance` como **evidência**, nunca como veredito. Sinal faltante, inconclusivo ou divergente é `403 AGE_ASSURANCE_REQUIRED`, falha recuperável; menor de 18 no release inicial é `403 AGE_NOT_ELIGIBLE`, terminal para aquele aceite. Nenhum dos dois consome o convite nem altera vínculo algum, e o personal nunca vê o motivo. **O token portador é obrigatório** e é o que prova a posse do convite. `invitationId` é **conferência cruzada opcional**: quando enviado precisa ser o convite daquele token, e divergir responde `404 INVITATION_NOT_FOUND`, exatamente como um token desconhecido — a resposta nunca confirma a existência do convite alheio. **Um convite por chamada.** A operação aceita exatamente o convite do token recebido: não varre convites pendentes e não aceita nenhum outro em cascata. **Convite inexistente, expirado, revogado, recusado ou já consumido não cria contexto de aluno**: `404`, `409` e `410` não criam relação, consentimento nem capacidade, e nenhum deles é um aceite parcial. Uma **falha de dependência** responde `500 INTERNAL_ERROR` e **nunca** `404 INVITATION_NOT_FOUND`: indisponibilidade não é ausência de convite. **Nenhuma recusa desta operação nomeia a categoria ou o termo que faltou.** Dizer que a decisão está incompleta é o que o cliente precisa para agir; dizer qual item faltou revelaria uma escolha do aluno sobre um item específico. Por isso as recusas novas não carregam `fieldErrors`, não carregam categoria e a prosa delas não permite inferir qual item foi negado. **Nenhum destes termos autoriza dado corporal** declarado, auto-coleta recorrente, medição do personal ou meta numérica: o quarto consentimento (V4) continua bloqueado e não tem superfície nesta operação. O servidor revalida expiresAt ATUAL do convite (now >= expiresAt bloqueia), inclusive após reduzir validade com jornada aberta e corridas expirador×renew/accept×delete. Renovar preserva ID/código/URL e permite NOVA journey elegível pelo mesmo link, nunca revive journey/prova/OTP vencidos ou convite consumido, nem prorroga sessão Cognito/OAuth. GET/landing/scanner não aceitam. Link estável não é credencial de aceite.
 
 ### Example
 ```swift
@@ -73,60 +76,6 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **cancelPersonalStudentInvitation**
-```swift
-    open class func cancelPersonalStudentInvitation(idempotencyKey: String, invitationId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentInvitationView?, _ error: Error?) -> Void)
-```
-
-Cancelar um convite de aluno pelo personal
-
-Cancela um convite de aluno do personal autenticado. Cancelar é a AÇÃO do usuário; `REVOKED` é o estado terminal resultante e público do MESMO convite — não nasce outro recurso e o `invitationId` não muda. Não há corpo de requisição: cancelar não aceita campos e não sobrescreve nada. Os timestamps (`sentAt`, `expiresAt`, `acceptedAt`) são preservados; apenas `status` passa a `REVOKED` e `availableActions` fica vazio. O token de aceite associado torna-se inválido imediatamente. Repetir a mesma revogação é idempotente: devolve a representação `REVOKED` sem novo efeito e sem tocar em qualquer relação — relações só existem após autenticação e aceitação válidas, que o cancelamento nunca desfaz. Não há período de carência; a operação está sujeita à proteção transversal contra abuso. A resposta nunca confirma existência de conta ou destino.
-
-### Example
-```swift
-// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
-import FitAppClientSwift
-
-let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
-let invitationId = "invitationId_example" // String | Identificador público opaco do convite que será cancelado; o personal autenticado precisa ser o dono do convite.
-let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
-
-// Cancelar um convite de aluno pelo personal
-StudentInvitationsAPI.cancelPersonalStudentInvitation(idempotencyKey: idempotencyKey, invitationId: invitationId, acceptLanguage: acceptLanguage) { (response, error) in
-    guard error == nil else {
-        print(error)
-        return
-    }
-
-    if (response) {
-        dump(response)
-    }
-}
-```
-
-### Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
- **invitationId** | **String** | Identificador público opaco do convite que será cancelado; o personal autenticado precisa ser o dono do convite. |
- **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
-
-### Return type
-
-[**PersonalStudentInvitationView**](PersonalStudentInvitationView.md)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json, application/problem+json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
 # **createPersonalStudentInvitation**
 ```swift
     open class func createPersonalStudentInvitation(idempotencyKey: String, createStudentInvitationRequest: CreateStudentInvitationRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentInvitationIssuedView?, _ error: Error?) -> Void)
@@ -134,7 +83,7 @@ Name | Type | Description  | Notes
 
 Criar um convite de aluno pelo personal
 
-Emite UM convite de aluno para o personal autenticado. **Existe um único convite: não há modalidade a escolher** (`DEC-CONV-1`). O `inviteeEmail` é obrigatório em toda emissão e é o destino vinculante (`email-bound`, `DEC-CONV-2`); o e-mail transacional sai automaticamente, e `delivery.mode: DO_NOT_SEND` apenas não dispara esse envio — não cria outro tipo de convite. Uma emissão nova devolve SEMPRE `shareableUrl`, que é o MESMO segredo deste convite e não um convite paralelo (`INV-CONVITE-UNICO`): é o valor da ação \"copiar link\" da tela de convite. O replay da mesma `Idempotency-Key` devolve o recurso persistido sem reapresentar esse bearer secret. O servidor é a autoridade exclusiva da elegibilidade (canInvite), dos limites de emissão e do ciclo de vida. Um duplicado lógico para o mesmo destino cria um NOVO convite e revoga o anterior; o replay da mesma Idempotency-Key devolve o recurso original sem duplicar. A resposta nunca confirma existência de conta ou destino, com uma única exceção: se o `inviteeEmail` é o e-mail verificado de uma conta que já tem vínculo ACTIVE como aluno **com este mesmo personal**, a emissão é recusada com `409 STUDENT_ALREADY_LINKED` — o convite não nasce, nenhum e-mail sai e nenhum convite anterior é revogado. A recusa vem depois da elegibilidade (`403`) e da validação do pedido (`422`) e antes dos limites de emissão, que ela não consome. Isso só diz ao personal que o endereço é de um aluno que já está na carteira dele, fato que ele já conhece; o endereço de aluno de outro personal, de conta sem vínculo ou de vínculo encerrado continua recebendo `201`. O token de aceite é opaco, de uso único e expira em sete dias; `shareableUrl` é um bearer secret devolvido uma única vez e o convite persiste somente o hash do token (`INV-CONVITE-SEGREDO`). Estado de entrega é separado do ciclo de vida e nunca invalida o convite. A relação só nasce no commit atômico único do aceite, depois da revisão de privacidade (`DEC-CONV-3`).
+Emite um único convite email-bound com validity obrigatório escolhido pelo Personal. Servidor calcula prazo, DST e limite exclusivo. invitationId/código/URL/emissor/destinatário são imutáveis; código cifrado recuperável durável e hash de lookup. GET share-link recopia o mesmo endereço, sem efeito. Emissão nova inclui shareableUrl, replay omite código. Duplicado renovável do mesmo emissor/destino retorna 409 INVITATION_ALREADY_EXISTS com referência opaca só do próprio emissor, sem revogar/tocar original. STUDENT_ALREADY_LINKED é aluno ativo com este mesmo personal; vínculo de outra conta não é revelado. canInvite, quotas de emissão e envio são server-owned e separadas. Emissão+outbox atômicas. Login, prova de destinatário, 18+, privacidade e aceite único permanecem independentes do link estável.
 
 ### Example
 ```swift
@@ -142,7 +91,7 @@ Emite UM convite de aluno para o personal autenticado. **Existe um único convit
 import FitAppClientSwift
 
 let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
-let createStudentInvitationRequest = CreateStudentInvitationRequest(inviteeEmail: "inviteeEmail_example", studentDisplayName: "studentDisplayName_example", delivery: StudentInvitationDeliveryInput(mode: StudentInvitationDeliveryMode()), customMessage: "customMessage_example") // CreateStudentInvitationRequest |
+let createStudentInvitationRequest = CreateStudentInvitationRequest(inviteeEmail: "inviteeEmail_example", studentDisplayName: "studentDisplayName_example", delivery: StudentInvitationDeliveryInput(mode: StudentInvitationDeliveryMode()), customMessage: "customMessage_example", validity: StudentInvitationValidity(days: 123, date: Date(), timeZone: "timeZone_example")) // CreateStudentInvitationRequest |
 let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
 
 // Criar um convite de aluno pelo personal
@@ -188,7 +137,7 @@ Name | Type | Description  | Notes
 
 Recusar um convite de aluno
 
-Encerra um convite válido em DECLINED sem criar conta, sessão ou relação. A operação não aceita motivo nem qualquer payload de consentimento.
+Encerra um convite válido em DECLINED sem criar conta, sessão ou relação. A operação não aceita motivo nem qualquer payload de consentimento. A recusa anônima preserva request/token, jornada curta, idempotência e efeitos. Ausente, inválido, excluído, expirado, consumido, recusado ou revogado retornam 404 INVITATION_NOT_FOUND uniforme, sem conta/lifecycle/motivo. 409 somente IDEMPOTENCY_CONFLICT (mesma chave com outro pedido). Expirado/consumido específico somente em contexto autenticado e autorizado; landing/scanner/GET não aceitam. Revalida prazo ATUAL no commit: now >= expiresAt bloqueia, renovação não revive journey/prova expirada.
 
 ### Example
 ```swift
@@ -235,6 +184,110 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getPersonalStudentInvitationDetails**
+```swift
+    open class func getPersonalStudentInvitationDetails(invitationId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentInvitationView?, _ error: Error?) -> Void)
+```
+
+Ler detalhes do convite do próprio personal
+
+GET owner-only sem efeito: ETag do item por ator/ID para If-Match VERBATIM; collection/revision não é validator. Não devolve URL/código. Ausente/excluído/ator errado: 404 uniforme. Pendente/aberto/expirado e fatos terminais existentes continuam visíveis até excluir.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let invitationId = "invitationId_example" // String | Identidade opaca do convite do próprio emissor; ausente/excluído/ator errado usam 404 uniforme.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Ler detalhes do convite do próprio personal
+StudentInvitationsAPI.getPersonalStudentInvitationDetails(invitationId: invitationId, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **invitationId** | **String** | Identidade opaca do convite do próprio emissor; ausente/excluído/ator errado usam 404 uniforme. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PersonalStudentInvitationView**](PersonalStudentInvitationView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getPersonalStudentInvitationShareLink**
+```swift
+    open class func getPersonalStudentInvitationShareLink(invitationId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentInvitationShareLinkView?, _ error: Error?) -> Void)
+```
+
+Copiar o mesmo link do convite
+
+GET owner-only private/no-store sem efeito em validade/revision/envio/abertura; sem Idempotency-Key/comando. Somente estado com COPY_LINK. UNAVAILABLE forçado: 409 INVITATION_LINK_UNAVAILABLE; chave/serviço temporariamente indisponível: 503 recuperável sem marcar perda permanente. EXPIRED requer renovar antes; terminais não copiam. URL só transitória autorizada, nunca lista/prefs/log. Ausente/excluído/ator errado: 404 uniforme.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let invitationId = "invitationId_example" // String | Identidade opaca do convite do próprio emissor; ausente/excluído/ator errado usam 404 uniforme.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Copiar o mesmo link do convite
+StudentInvitationsAPI.getPersonalStudentInvitationShareLink(invitationId: invitationId, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **invitationId** | **String** | Identidade opaca do convite do próprio emissor; ausente/excluído/ator errado usam 404 uniforme. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PersonalStudentInvitationShareLinkView**](PersonalStudentInvitationShareLinkView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getStudentInvitationAcceptanceContext**
 ```swift
     open class func getStudentInvitationAcceptanceContext(studentInvitationAcceptanceContextRequest: StudentInvitationAcceptanceContextRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: StudentInvitationAcceptanceContextView?, _ error: Error?) -> Void)
@@ -242,7 +295,7 @@ No authorization required
 
 Ler o contexto autenticado que precede o aceite do convite
 
-Leitura autenticada de tudo o que a pessoa precisa decidir **antes** de existir qualquer vínculo: prova de posse do endereço convidado, elegibilidade de idade, catálogo de privacidade vigente e, quando já há vínculo ativo, a troca e as categorias de compartilhamento que ela pode autorizar. **É leitura, e nunca consome o convite.** Apresentar o segredo aqui pode levar o convite a `OPENED`, que registra apresentação e não consumo: o único consumo é o commit atômico de `acceptStudentInvitation`. Esta operação não cria relação, não grava decisão, não encerra vínculo anterior e não emite prova de e-mail. **É `POST` porque o segredo do convite viaja no corpo.** O token é bearer secret e não pode aparecer em path, query, log ou analytics; a operação não tem efeito colateral e por isso não exige `Idempotency-Key`. **A resposta carrega uma revisão opaca** — publicada em `revision` e repetida no `ETag` — que é exatamente o valor que `If-Match` do aceite exige. É a precondição que vincula o aceite a este contexto apresentado: um cliente que não passou por aqui não tem o valor, e um cliente que passou antes de o catálogo mudar é recusado com `412 PRIVACY_CONTEXT_STALE` e precisa reler. `If-None-Match` e `304` não são oferecidos: a revisão é precondição de escrita, não validador de cache. **Esta operação não amplia a resolução pública.** Tudo o que ela publica além de `resolveStudentInvitation` depende da identidade autenticada, e por isso ela exige `BearerAuth` e varia por `Authorization`. **O termo é apresentado por inteiro (`DEC-PHOME-19` §3.1).** Cada item traz a versão imutável, o texto exato localizado (`documentText`) e o SHA-256 dele (`documentSha256`); `SHARE_DATA_WITH_PERSONAL` vem com `acceptanceRequired: true` — sem o aceite explícito dele não há vínculo — e a apresentação diz que o personal **deste** vínculo lerá a anamnese concluída neste vínculo. A anamnese não é categoria de compartilhamento da troca: versões anteriores só por autorização explícita por versão, depois do aceite. A revisão vincula conta, convite, catálogo e locale apresentados: não prova que a pessoa leu, mas impede confirmar outro contexto. **O próprio emissor é recusado aqui, antes de qualquer prova.** Quando a conta autenticada é o personal que emitiu o convite, a resposta é `409 RELATIONSHIP_PARTIES_IDENTICAL`: nenhum contexto é calculado, nenhuma prova de e-mail é pedida e o convite não muda de estado.
+Leitura autenticada de tudo o que a pessoa precisa decidir **antes** de existir qualquer vínculo: prova de posse do endereço convidado, elegibilidade de idade, catálogo de privacidade vigente e, quando já há vínculo ativo, a troca e as categorias de compartilhamento que ela pode autorizar. **É leitura, e nunca consome o convite.** Apresentar o segredo aqui pode levar o convite a `OPENED`, que registra apresentação e não consumo: o único consumo é o commit atômico de `acceptStudentInvitation`. Esta operação não cria relação, não grava decisão, não encerra vínculo anterior e não emite prova de e-mail. **É `POST` porque o segredo do convite viaja no corpo.** O token é bearer secret e não pode aparecer em path, query, log ou analytics; a operação não tem efeito colateral e por isso não exige `Idempotency-Key`. **A resposta carrega uma revisão opaca** — publicada em `revision` e repetida no `ETag` — que é exatamente o valor que `If-Match` do aceite exige. É a precondição que vincula o aceite a este contexto apresentado: um cliente que não passou por aqui não tem o valor, e um cliente que passou antes de o catálogo mudar é recusado com `412 PRIVACY_CONTEXT_STALE` e precisa reler. `If-None-Match` e `304` não são oferecidos: a revisão é precondição de escrita, não validador de cache. **Esta operação não amplia a resolução pública.** Tudo o que ela publica além de `resolveStudentInvitation` depende da identidade autenticada, e por isso ela exige `BearerAuth` e varia por `Authorization`. **O termo é apresentado por inteiro (`DEC-PHOME-19` §3.1).** Cada item traz a versão imutável, o texto exato localizado (`documentText`) e o SHA-256 dele (`documentSha256`); `SHARE_DATA_WITH_PERSONAL` vem com `acceptanceRequired: true` — sem o aceite explícito dele não há vínculo — e a apresentação diz que o personal **deste** vínculo lerá a anamnese concluída neste vínculo. A anamnese não é categoria de compartilhamento da troca: versões anteriores só por autorização explícita por versão, depois do aceite. A revisão vincula conta, convite, catálogo e locale apresentados: não prova que a pessoa leu, mas impede confirmar outro contexto. **O próprio emissor é recusado aqui, antes de qualquer prova.** Quando a conta autenticada é o personal que emitiu o convite, a resposta é `409 RELATIONSHIP_PARTIES_IDENTICAL`: nenhum contexto é calculado, nenhuma prova de e-mail é pedida e o convite não muda de estado. O servidor revalida expiresAt ATUAL do convite (now >= expiresAt bloqueia), inclusive após reduzir validade com jornada aberta e corridas expirador×renew/accept×delete. Renovar preserva ID/código/URL e permite NOVA journey elegível pelo mesmo link, nunca revive journey/prova/OTP vencidos ou convite consumido, nem prorroga sessão Cognito/OAuth. GET/landing/scanner não aceitam. Link estável não é credencial de aceite.
 
 ### Example
 ```swift
@@ -287,6 +340,62 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **listPersonalStudentInvitationActivity**
+```swift
+    open class func listPersonalStudentInvitationActivity(invitationId: String, acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, completion: @escaping (_ data: PersonalStudentInvitationActivityPage?, _ error: Error?) -> Void)
+```
+
+Ler histórico operacional do convite do próprio personal
+
+GET owner-only keyset (occurredAt,activityId), cursor opaco vinculado a ator+convite. Página items/nextCursor/asOf server-owned. SEND/RESEND=tentativa QUEUED|SENT|FAILED, nunca recebimento. RENEW sem envio: um evento; com envio: RENEW+SEND vinculados por operationId opaco com um envio atômico. Replay preserva IDs/contagens. Sem URL/código/token/destino cru. DELETE só auditoria mínima interna, histórico/detalhes inacessíveis após exclusão. Ausente/excluído/ator errado: 404 uniforme.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let invitationId = "invitationId_example" // String | Identidade opaca do convite do próprio emissor; ausente/excluído/ator errado usam 404 uniforme.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+let cursor = "cursor_example" // String | Cursor opaco de continuação devolvido por uma página anterior; nunca é offset, ID interno ou dado a ser interpretado pelo cliente. (optional)
+let limit = 987 // Int | Tamanho de página solicitado pelo cliente; o padrão é 20 e o servidor impõe o máximo de 100, podendo devolver menos itens. (optional) (default to 20)
+
+// Ler histórico operacional do convite do próprio personal
+StudentInvitationsAPI.listPersonalStudentInvitationActivity(invitationId: invitationId, acceptLanguage: acceptLanguage, cursor: cursor, limit: limit) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **invitationId** | **String** | Identidade opaca do convite do próprio emissor; ausente/excluído/ator errado usam 404 uniforme. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+ **cursor** | **String** | Cursor opaco de continuação devolvido por uma página anterior; nunca é offset, ID interno ou dado a ser interpretado pelo cliente. | [optional]
+ **limit** | **Int** | Tamanho de página solicitado pelo cliente; o padrão é 20 e o servidor impõe o máximo de 100, podendo devolver menos itens. | [optional] [default to 20]
+
+### Return type
+
+[**PersonalStudentInvitationActivityPage**](PersonalStudentInvitationActivityPage.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **listPersonalStudentInvitations**
 ```swift
     open class func listPersonalStudentInvitations(acceptLanguage: String? = nil, status: StudentInvitationLifecycleStatus? = nil, cursor: String? = nil, limit: Int? = nil, completion: @escaping (_ data: StudentInvitationPage?, _ error: Error?) -> Void)
@@ -294,7 +403,7 @@ Name | Type | Description  | Notes
 
 Listar convites de aluno emitidos pelo personal
 
-Lista os convites de aluno do personal autenticado. A paginação é exclusivamente por cursor opaco: o cliente não interpreta o cursor, não há offset e o servidor é a autoridade exclusiva da ordenação, do limite efetivo e da continuação. A coleção nunca reapresenta `shareableUrl` nem qualquer token de aceite — o bearer secret é devolvido uma única vez na criação e no reenvio, e é estruturalmente ausente desta projeção. O e-mail convidado aparece sempre irreversivelmente mascarado, e presente em todo convite da v2; a coleção nunca devolve o destino em claro. O ciclo de vida (`status`) e o estado de entrega (`deliveryStatus`) permanecem enums separados, o histórico de tentativas de entrega viaja em `deliveryAttempts` sem nunca afirmar recebimento ou leitura, e `availableActions` é calculado pelo servidor.
+Página owner-only com um item por invitationId, asOf do servidor, cursor opaco e status/cursor/limit. Excluído não aparece. Sem URL/código/token/destino cru; detalhes/histórico e GET share-link autorizados são superfícies separadas. Expirado permanece visível renovável; availableActions/linkAvailability são do servidor, não relógio/cache local. REVOKED existente é fato terminal com só REMOVE e copy neutra Convite encerrado.
 
 ### Example
 ```swift
@@ -345,24 +454,25 @@ Name | Type | Description  | Notes
 
 # **removePersonalStudentInvitation**
 ```swift
-    open class func removePersonalStudentInvitation(idempotencyKey: String, invitationId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: Void?, _ error: Error?) -> Void)
+    open class func removePersonalStudentInvitation(invitationId: String, idempotencyKey: String, ifMatch: String, acceptLanguage: String? = nil, completion: @escaping (_ data: Void?, _ error: Error?) -> Void)
 ```
 
-Arquivar um convite terminal da lista do personal
+Excluir convite deliberadamente
 
-Caminho HTTP autoritativo do fato `relationship.invitation.remove`, a única mutação de convite que ainda não possuía rota online. **Remover não é cancelar.** Cancelar é uma transição de lifecycle que leva o convite a `REVOKED` e invalida o token; remover apenas **arquiva** o convite da lista do personal: não altera o estágio de lifecycle, não invalida token, não toca em relação e não apaga o fato. Por isso a rota é um sub-recurso nominal, e não mais um verbo de lifecycle ao lado de `resend` e `cancel`. Só é aceito sobre convite **já terminal**; sobre convite ainda vivo é `409 INVITATION_NOT_TERMINAL`, para que arquivar nunca vire um cancelamento implícito. Não há corpo de requisição: o payload publicado do command carrega apenas a identidade do convite, que este path já expressa. A resposta é `204`: depois de arquivado o convite deixa a coleção do personal, e projetá-lo de volta contradiria o próprio arquivamento. Repetir a remoção é idempotente e responde `204` de novo, sem novo efeito.
+Exclusão lógica com confirmação explícita no app, sem body e sem restauração. PENDING/OPENED/EXPIRED: invalida acesso e retira item/histórico operacional numa transação, inclusive corridas accept×delete. ACCEPTED/DECLINED/REVOKED factual: retira item/histórico sem romper relação ou alterar fatos. DELETE só auditoria interna mínima, sem promessa de purge imediato. Não revoga login. Ausente/excluído/ator errado: 404 uniforme. Replay conhecido autorizado antes da revisão que alterou, sem segunda exclusão.
 
 ### Example
 ```swift
 // The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
 import FitAppClientSwift
 
+let invitationId = "invitationId_example" // String | Identidade opaca do convite do próprio emissor; ausente/excluído/ator errado usam 404 uniforme.
 let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
-let invitationId = "invitationId_example" // String | Identificador público opaco do convite que será arquivado; o personal autenticado precisa ser o dono do convite.
+let ifMatch = "ifMatch_example" // String | ETag exato do GET detalhes deste convite, guardado por ator/ID e enviado VERBATIM; não ETag da coleção nem derivação de revision. Replay conhecido autorizado é avaliado antes da revisão alterada por si próprio. Ausente/inválido 422; stale 412 exige releitura com draft preservado, sem sobrescrever/enviar automaticamente.
 let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
 
-// Arquivar um convite terminal da lista do personal
-StudentInvitationsAPI.removePersonalStudentInvitation(idempotencyKey: idempotencyKey, invitationId: invitationId, acceptLanguage: acceptLanguage) { (response, error) in
+// Excluir convite deliberadamente
+StudentInvitationsAPI.removePersonalStudentInvitation(invitationId: invitationId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, acceptLanguage: acceptLanguage) { (response, error) in
     guard error == nil else {
         print(error)
         return
@@ -378,8 +488,9 @@ StudentInvitationsAPI.removePersonalStudentInvitation(idempotencyKey: idempotenc
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
+ **invitationId** | **String** | Identidade opaca do convite do próprio emissor; ausente/excluído/ator errado usam 404 uniforme. |
  **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
- **invitationId** | **String** | Identificador público opaco do convite que será arquivado; o personal autenticado precisa ser o dono do convite. |
+ **ifMatch** | **String** | ETag exato do GET detalhes deste convite, guardado por ator/ID e enviado VERBATIM; não ETag da coleção nem derivação de revision. Replay conhecido autorizado é avaliado antes da revisão alterada por si próprio. Ausente/inválido 422; stale 412 exige releitura com draft preservado, sem sobrescrever/enviar automaticamente. |
  **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
 
 ### Return type
@@ -397,26 +508,28 @@ Void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **resendPersonalStudentInvitation**
+# **renewPersonalStudentInvitation**
 ```swift
-    open class func resendPersonalStudentInvitation(idempotencyKey: String, invitationId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentInvitationIssuedView?, _ error: Error?) -> Void)
+    open class func renewPersonalStudentInvitation(invitationId: String, idempotencyKey: String, ifMatch: String, renewPersonalStudentInvitationRequest: RenewPersonalStudentInvitationRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentInvitationView?, _ error: Error?) -> Void)
 ```
 
-Reenviar um convite de aluno pelo personal
+Renovar ou alterar validade do mesmo convite
 
-Reenvia um convite de aluno do personal autenticado preservando destino e mensagem herdados do convite original, que não podem ser sobrescritos: não há corpo de requisição. O reenvio cria SEMPRE um novo recurso, com novo `invitationId`, novo token de aceite e nova expiração de sete dias; o convite anterior passa a `REVOKED` e um token já expirado nunca é reativado. O replay da mesma Idempotency-Key devolve exatamente o mesmo novo convite e nunca reativa nem altera o recurso anterior. O reenvio respeita um intervalo mínimo de 60 segundos e conta nos limites de 20 por personal por dia e 5 por destino por dia. O estado de entrega permanece separado do ciclo de vida e a resposta nunca confirma existência de conta ou destino. **Reenviar é também o único caminho para obter o link copiável de novo** (`DEC-CONV-1`): como o segredo anterior é revogado, não existe recuperar o mesmo link — existe emitir outro (`INV-CONVITE-SEGREDO`). Por isso uma execução nova devolve obrigatoriamente `shareableUrl`, exatamente como na emissão; o replay da mesma Idempotency-Key devolve o recurso persistido sem reapresentar o segredo.
+Muda somente validity/revision/histórico no mesmo invitationId/código/URL, preserva emissor/destino e sentAt original. Pode encurtar validade vigente e renovar EXPIRED. Terminais ACCEPTED/DECLINED/REVOKED existente não renovam. sendEmail=false permite UNAVAILABLE preservando hash/endereço; true exige AVAILABLE antes de todo efeito e grava RENEW+SEND linked por operationId opaco com um envio na mesma transação. Replay conserva IDs/eventos/contagens. Nova intenção/data exige chave nova. Não revive journey/prova/OTP vencidos, convite consumido nem sessão Cognito/OAuth; novo contexto elegível pelo mesmo link e prazo ATUAL revalidado no commit.
 
 ### Example
 ```swift
 // The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
 import FitAppClientSwift
 
+let invitationId = "invitationId_example" // String | Identidade opaca do convite do próprio emissor; ausente/excluído/ator errado usam 404 uniforme.
 let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
-let invitationId = "invitationId_example" // String | Identificador público opaco do convite original que será reenviado; o personal autenticado precisa ser o dono do convite.
+let ifMatch = "ifMatch_example" // String | ETag exato do GET detalhes deste convite, guardado por ator/ID e enviado VERBATIM; não ETag da coleção nem derivação de revision. Replay conhecido autorizado é avaliado antes da revisão alterada por si próprio. Ausente/inválido 422; stale 412 exige releitura com draft preservado, sem sobrescrever/enviar automaticamente.
+let renewPersonalStudentInvitationRequest = RenewPersonalStudentInvitationRequest(validity: StudentInvitationValidity(days: 123, date: Date(), timeZone: "timeZone_example"), sendEmail: false) // RenewPersonalStudentInvitationRequest |
 let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
 
-// Reenviar um convite de aluno pelo personal
-StudentInvitationsAPI.resendPersonalStudentInvitation(idempotencyKey: idempotencyKey, invitationId: invitationId, acceptLanguage: acceptLanguage) { (response, error) in
+// Renovar ou alterar validade do mesmo convite
+StudentInvitationsAPI.renewPersonalStudentInvitation(invitationId: invitationId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, renewPersonalStudentInvitationRequest: renewPersonalStudentInvitationRequest, acceptLanguage: acceptLanguage) { (response, error) in
     guard error == nil else {
         print(error)
         return
@@ -432,13 +545,71 @@ StudentInvitationsAPI.resendPersonalStudentInvitation(idempotencyKey: idempotenc
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
+ **invitationId** | **String** | Identidade opaca do convite do próprio emissor; ausente/excluído/ator errado usam 404 uniforme. |
  **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
- **invitationId** | **String** | Identificador público opaco do convite original que será reenviado; o personal autenticado precisa ser o dono do convite. |
+ **ifMatch** | **String** | ETag exato do GET detalhes deste convite, guardado por ator/ID e enviado VERBATIM; não ETag da coleção nem derivação de revision. Replay conhecido autorizado é avaliado antes da revisão alterada por si próprio. Ausente/inválido 422; stale 412 exige releitura com draft preservado, sem sobrescrever/enviar automaticamente. |
+ **renewPersonalStudentInvitationRequest** | [**RenewPersonalStudentInvitationRequest**](RenewPersonalStudentInvitationRequest.md) |  |
  **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
 
 ### Return type
 
-[**PersonalStudentInvitationIssuedView**](PersonalStudentInvitationIssuedView.md)
+[**PersonalStudentInvitationView**](PersonalStudentInvitationView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **resendPersonalStudentInvitation**
+```swift
+    open class func resendPersonalStudentInvitation(invitationId: String, idempotencyKey: String, ifMatch: String, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalStudentInvitationView?, _ error: Error?) -> Void)
+```
+
+Reenviar o mesmo convite
+
+Enfileira exatamente uma tentativa com MESMO invitationId/código/URL/expiresAt e sentAt original. Nenhuma emissão/replacement/revogação/exclusão; uma linha principal. Sem body, herda destino/mensagem. Expirado precisa renovar primeiro. UNAVAILABLE: 409 INVITATION_LINK_UNAVAILABLE antes de side-effects; falha temporária criptográfica é 503 recuperável. Quotas de envio separadas da emissão. Replay autorizado vem antes da revisão que alterou; conserva resultado/IDs/contagens.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let invitationId = "invitationId_example" // String | Identidade opaca do convite do próprio emissor; ausente/excluído/ator errado usam 404 uniforme.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let ifMatch = "ifMatch_example" // String | ETag exato do GET detalhes deste convite, guardado por ator/ID e enviado VERBATIM; não ETag da coleção nem derivação de revision. Replay conhecido autorizado é avaliado antes da revisão alterada por si próprio. Ausente/inválido 422; stale 412 exige releitura com draft preservado, sem sobrescrever/enviar automaticamente.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Reenviar o mesmo convite
+StudentInvitationsAPI.resendPersonalStudentInvitation(invitationId: invitationId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **invitationId** | **String** | Identidade opaca do convite do próprio emissor; ausente/excluído/ator errado usam 404 uniforme. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **ifMatch** | **String** | ETag exato do GET detalhes deste convite, guardado por ator/ID e enviado VERBATIM; não ETag da coleção nem derivação de revision. Replay conhecido autorizado é avaliado antes da revisão alterada por si próprio. Ausente/inválido 422; stale 412 exige releitura com draft preservado, sem sobrescrever/enviar automaticamente. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PersonalStudentInvitationView**](PersonalStudentInvitationView.md)
 
 ### Authorization
 
@@ -458,7 +629,7 @@ Name | Type | Description  | Notes
 
 Resolver um convite de aluno por credencial curta de jornada
 
-Leitura autenticada que projeta somente os dados seguros necessários para o aluno reconhecer e aceitar um convite. **`INV-CONVITE-GET`: resolver NUNCA consome o convite.** Esta rota aceita somente o `journeyToken` curto emitido por `createInvitationJourney`; o token bruto de convites beta anteriores deixa de resolver no cutover. O único consumo é o commit atômico único do aceite, e por isso `status` aqui só pode ser `PENDING` ou `OPENED` — `OPENED` registra apresentação, não consumo, e nenhum caminho desta operação leva a `ACCEPTED`. A resolução não cria sessão nem relação e nunca devolve nome do aluno ou destino sem máscara. `destinationMasked` vem em todo convite emitido a partir da v2, que é `email-bound` (`DEC-CONV-2`), e continua estruturalmente opcional por causa dos convites de link emitidos antes dela, que não têm destino algum. Ele é irreversivelmente mascarado e o endereço em claro nunca sai por aqui. **É o primeiro ponto autenticado da jornada, e é aqui que o próprio emissor é recusado.** Quando a conta autenticada é o personal que emitiu o convite, a resposta é `409 RELATIONSHIP_PARTIES_IDENTICAL`, sem efeito no convite: ele nunca poderá aceitá-lo, e por isso não segue para o contexto pré-aceite nem para a prova de posse do e-mail.
+Leitura autenticada que projeta somente os dados seguros necessários para o aluno reconhecer e aceitar um convite. **`INV-CONVITE-GET`: resolver NUNCA consome o convite.** Esta rota aceita somente o `journeyToken` curto emitido por `createInvitationJourney`; o token bruto de convites beta anteriores deixa de resolver no cutover. O único consumo é o commit atômico único do aceite, e por isso `status` aqui só pode ser `PENDING` ou `OPENED` — `OPENED` registra apresentação, não consumo, e nenhum caminho desta operação leva a `ACCEPTED`. A resolução não cria sessão nem relação e nunca devolve nome do aluno ou destino sem máscara. `destinationMasked` vem em todo convite emitido a partir da v2, que é `email-bound` (`DEC-CONV-2`), e continua estruturalmente opcional por causa dos convites de link emitidos antes dela, que não têm destino algum. Ele é irreversivelmente mascarado e o endereço em claro nunca sai por aqui. **É o primeiro ponto autenticado da jornada, e é aqui que o próprio emissor é recusado.** Quando a conta autenticada é o personal que emitiu o convite, a resposta é `409 RELATIONSHIP_PARTIES_IDENTICAL`, sem efeito no convite: ele nunca poderá aceitá-lo, e por isso não segue para o contexto pré-aceite nem para a prova de posse do e-mail. O servidor revalida expiresAt ATUAL do convite (now >= expiresAt bloqueia), inclusive após reduzir validade com jornada aberta e corridas expirador×renew/accept×delete. Renovar preserva ID/código/URL e permite NOVA journey elegível pelo mesmo link, nunca revive journey/prova/OTP vencidos ou convite consumido, nem prorroga sessão Cognito/OAuth. GET/landing/scanner não aceitam. Link estável não é credencial de aceite.
 
 ### Example
 ```swift

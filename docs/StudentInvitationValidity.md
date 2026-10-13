@@ -1,8 +1,10 @@
-# RelationshipInvitationCancelPayload
+# StudentInvitationValidity
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**invitationId** | **String** | Convite alvo, igual ao &#x60;aggregateId&#x60; do envelope. |
+**days** | **Int** |  |
+**date** | **Date** |  |
+**timeZone** | **String** | Zona IANA selecionada na escolha da data, validada pelo servidor; não aceita offset fixo nem abreviatura ambígua. |
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

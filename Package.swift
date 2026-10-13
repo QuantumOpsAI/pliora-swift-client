@@ -30,5 +30,6 @@ let package = Package(
             dependencies: ["AnyCodable", "Alamofire", ],
             path: "FitAppClientSwift/Classes"
         ),
+        .testTarget(name: "StableInvitationTests", dependencies: ["FitAppClientSwift"], path: "Tests/StableInvitationTests"),
     ]
 )

@@ -33,6 +33,8 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
     public var city: String?
     /** Elegibilidade para convidar alunos, calculada exclusivamente pelo servidor. Falsa sempre que o registro profissional está ausente. */
     public var canInvite: Bool
+    /** Capacidade de **oferta** da fonte Google na edição da foto de perfil, calculada exclusivamente pelo servidor para a própria conta — publicada aqui e só aqui, porque a decisão de oferecer a fonte é owner-only e nunca alcança o `AvatarView` compartilhado com alunos. Verdadeiro exige, ao mesmo tempo: `sessionProvider` corrente `GOOGLE`, referência de foto Google verificada resolvida do lado do servidor para a identidade desta conta, nenhum avatar `USER_UPLOAD` prevalente — prevalente é `USER_UPLOAD` em `READY` ou `PROCESSING`; um `REJECTED` nunca prevalece — e nenhuma operação de avatar em conflito, isto é, avatar em `PROCESSING` ou intenção de envio aceita e ainda não expirada. `APPLE` e `EMAIL` respondem `false` por política de UX — mesmo com identidade Google vinculada, a disponibilidade é do método da sessão, não do conjunto de provedores da conta. É elegibilidade de tentativa, **não** promessa de sucesso remoto: `POST /personal/profile/avatar/import-google` revalida autorização, referência e precedência no comando, e race e precedência continuam erros tipados de lá; a indisponibilidade do provedor permanece local ao comando. Nenhuma busca a provedor acontece nesta leitura. O campo nunca expõe URL de provedor, identidade externa, bucket, credencial ou dado de vinculação; campo ausente ou falha de decodificação da resposta valem oferta indisponível no cliente, nunca autorização. */
+    public var canImportGooglePhoto: Bool
     /** Declarações de atuação; lista vazia quando o passo foi pulado. Nunca é capability. */
     public var specialties: Set<PersonalSpecialty>
     /** Texto autorado que acompanha `OTHER`; ausente quando `OTHER` não foi declarado. */
@@ -41,7 +43,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
     public var preferences: PersonalPreferencesView
     public var relationshipSummary: PersonalRelationshipSummary
 
-    public init(revision: String, displayName: String? = nil, avatar: AvatarView, email: String, sessionProvider: SessionIdentityProvider, professionalRegistration: ProfessionalRegistrationView? = nil, professionalRegistrationStatus: ProfessionalRegistrationStatus, city: String? = nil, canInvite: Bool, specialties: Set<PersonalSpecialty>, otherSpecialty: String? = nil, workStyle: PersonalWorkStyleView, preferences: PersonalPreferencesView, relationshipSummary: PersonalRelationshipSummary) {
+    public init(revision: String, displayName: String? = nil, avatar: AvatarView, email: String, sessionProvider: SessionIdentityProvider, professionalRegistration: ProfessionalRegistrationView? = nil, professionalRegistrationStatus: ProfessionalRegistrationStatus, city: String? = nil, canInvite: Bool, canImportGooglePhoto: Bool, specialties: Set<PersonalSpecialty>, otherSpecialty: String? = nil, workStyle: PersonalWorkStyleView, preferences: PersonalPreferencesView, relationshipSummary: PersonalRelationshipSummary) {
         self.revision = revision
         self.displayName = displayName
         self.avatar = avatar
@@ -51,6 +53,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
         self.professionalRegistrationStatus = professionalRegistrationStatus
         self.city = city
         self.canInvite = canInvite
+        self.canImportGooglePhoto = canImportGooglePhoto
         self.specialties = specialties
         self.otherSpecialty = otherSpecialty
         self.workStyle = workStyle
@@ -68,6 +71,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
         case professionalRegistrationStatus
         case city
         case canInvite
+        case canImportGooglePhoto
         case specialties
         case otherSpecialty
         case workStyle
@@ -88,6 +92,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
         try container.encode(professionalRegistrationStatus, forKey: .professionalRegistrationStatus)
         try container.encodeIfPresent(city, forKey: .city)
         try container.encode(canInvite, forKey: .canInvite)
+        try container.encode(canImportGooglePhoto, forKey: .canImportGooglePhoto)
         try container.encode(specialties, forKey: .specialties)
         try container.encodeIfPresent(otherSpecialty, forKey: .otherSpecialty)
         try container.encode(workStyle, forKey: .workStyle)
