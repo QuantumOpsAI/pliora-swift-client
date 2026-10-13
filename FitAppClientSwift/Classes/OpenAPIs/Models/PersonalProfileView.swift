@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Perfil do Personal autenticado, projetado **somente para a própria pessoa**. É a única leitura do contrato que publica &#x60;AvatarView&#x60;, e portanto o caminho de poll e de reemissão das variantes temporárias do avatar. Os valores editáveis voltam integralmente, para que o formulário de edição seja preenchido sem adivinhação, e &#x60;revision&#x60; é o validador que o &#x60;If-Match&#x60; dos quatro commands de onboarding exige — commands que permanecem válidos depois de &#x60;COMPLETED&#x60;. Invariantes de servidor, verificadas no backend e deliberadamente **não** expressas como subschema condicional para não criar um segundo ponto de verdade: &#x60;professionalRegistrationStatus&#x60; é &#x60;INFORMED&#x60; exatamente quando &#x60;professionalRegistration&#x60; está presente com número + UF, e &#x60;NOT_INFORMED&#x60; quando ausente; &#x60;canInvite&#x60; é falso sempre que o registro está ausente; &#x60;otherSpecialty&#x60; só acompanha &#x60;OTHER&#x60;. Audiência: &#x60;owner-only&#x60;. O aluno nunca alcança esta projeção — o que ele vê do personal é nome, avatar e CREF informado, e nunca e-mail, cidade, especialidades, modo de trabalho, preferências ou contadores. **Esta projeção é legível com o cadastro ainda em andamento** (D-6 de &#x60;DOC-UX-PERSONAL-ONBOARDING-NAVIGATION&#x60;), e é por isso que &#x60;displayName&#x60; deixou de ser obrigatório nesta versão: enquanto o passo &#x60;PROFILE&#x60; não foi respondido não existe nome autorado, e o servidor **nunca inventa um**. Todo o resto continua obrigatório, porque o servidor sabe produzir cada campo desde o primeiro instante da conta: &#x60;revision&#x60; é a revisão do rascunho, &#x60;avatar&#x60; nasce em &#x60;NONE&#x60;, &#x60;professionalRegistrationStatus&#x60; em &#x60;NOT_INFORMED&#x60;, &#x60;canInvite&#x60; falso, &#x60;specialties&#x60; vazia, &#x60;workStyle&#x60; vazio, &#x60;preferences&#x60; nos padrões e &#x60;relationshipSummary&#x60; em zeros. &#x60;displayName&#x60; ausente significa **exatamente** \&quot;o passo &#x60;PROFILE&#x60; ainda não foi respondido\&quot; — nunca nome vazio, nunca nome apagado. Quem quer o estado do cadastro lê &#x60;GET /personal/onboarding&#x60;, que continua sendo a autoridade dele; esta leitura não o duplica. */
+/** A própria conta nunca publica endereço quando HIDDEN_EMAIL e sempre publica endereço quando EMAIL. Proibições percorridas pelo gate de compatibilidade, sem subschema if/then. O produtor usa o classificador de Identity e o consumidor mantém um caso oculto sem payload; nenhum filtro por sufixo na view. */
 public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
 
     public static let revisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -24,8 +24,10 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
     /** Nome autorado pela própria pessoa, preservado verbatim UTF-8. **Ausente enquanto o passo `PROFILE` não foi respondido** — e só nesse caso. Nunca vem vazio e nunca vem `null`: ausência é ausência, e o servidor não substitui o nome por e-mail, por identificador nem por rótulo derivado. Presente, é sempre de 1 a 120 caracteres. */
     public var displayName: String?
     public var avatar: AvatarView
-    /** E-mail de acesso verificado da conta, **somente leitura**: nenhum request de edição publicado neste contrato transporta e-mail, e este campo nunca sai do escopo da própria pessoa. */
-    public var email: String
+    /** Endereço verificado exibível da própria conta, **somente leitura**. Presente exatamente com `emailKind = EMAIL`; com `HIDDEN_EMAIL` a chave é omitida estruturalmente, nunca `null`, endereço mascarado, nome ou placeholder. O tipo pertence à conta, não ao provider da sessão. Nenhum request de edição de Perfil publicado neste contrato transporta e-mail. */
+    public var email: String?
+    /** Classificação canônica da conta usada também por `GET /identity/me`. Sessão GOOGLE ou EMAIL não torna exibível o endereço de uma conta HIDDEN_EMAIL. */
+    public var emailKind: IdentityEmailKind
     public var sessionProvider: SessionIdentityProvider
     public var professionalRegistration: ProfessionalRegistrationView?
     public var professionalRegistrationStatus: ProfessionalRegistrationStatus
@@ -43,11 +45,12 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
     public var preferences: PersonalPreferencesView
     public var relationshipSummary: PersonalRelationshipSummary
 
-    public init(revision: String, displayName: String? = nil, avatar: AvatarView, email: String, sessionProvider: SessionIdentityProvider, professionalRegistration: ProfessionalRegistrationView? = nil, professionalRegistrationStatus: ProfessionalRegistrationStatus, city: String? = nil, canInvite: Bool, canImportGooglePhoto: Bool, specialties: Set<PersonalSpecialty>, otherSpecialty: String? = nil, workStyle: PersonalWorkStyleView, preferences: PersonalPreferencesView, relationshipSummary: PersonalRelationshipSummary) {
+    public init(revision: String, displayName: String? = nil, avatar: AvatarView, email: String? = nil, emailKind: IdentityEmailKind, sessionProvider: SessionIdentityProvider, professionalRegistration: ProfessionalRegistrationView? = nil, professionalRegistrationStatus: ProfessionalRegistrationStatus, city: String? = nil, canInvite: Bool, canImportGooglePhoto: Bool, specialties: Set<PersonalSpecialty>, otherSpecialty: String? = nil, workStyle: PersonalWorkStyleView, preferences: PersonalPreferencesView, relationshipSummary: PersonalRelationshipSummary) {
         self.revision = revision
         self.displayName = displayName
         self.avatar = avatar
         self.email = email
+        self.emailKind = emailKind
         self.sessionProvider = sessionProvider
         self.professionalRegistration = professionalRegistration
         self.professionalRegistrationStatus = professionalRegistrationStatus
@@ -66,6 +69,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
         case displayName
         case avatar
         case email
+        case emailKind
         case sessionProvider
         case professionalRegistration
         case professionalRegistrationStatus
@@ -81,12 +85,47 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
 
     // Encodable protocol methods
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let kind = try container.decode(IdentityEmailKind.self, forKey: .emailKind)
+        switch kind {
+        case .hiddenEmail:
+            guard !container.contains(.email) else {
+                throw DecodingError.dataCorruptedError(forKey: .email, in: container, debugDescription: "Invalid account email projection")
+            }
+        case .email:
+            _ = try container.decode(String.self, forKey: .email)
+        case .unknownDefaultOpenApi:
+            throw DecodingError.dataCorruptedError(forKey: .emailKind, in: container, debugDescription: "Unknown account email classification")
+        }
+        self.revision = try container.decode(String.self, forKey: .revision)
+        self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+        self.avatar = try container.decode(AvatarView.self, forKey: .avatar)
+        self.email = try container.decodeIfPresent(String.self, forKey: .email)
+        self.emailKind = kind
+        self.sessionProvider = try container.decode(SessionIdentityProvider.self, forKey: .sessionProvider)
+        self.professionalRegistration = try container.decodeIfPresent(ProfessionalRegistrationView.self, forKey: .professionalRegistration)
+        self.professionalRegistrationStatus = try container.decode(ProfessionalRegistrationStatus.self, forKey: .professionalRegistrationStatus)
+        self.city = try container.decodeIfPresent(String.self, forKey: .city)
+        self.canInvite = try container.decode(Bool.self, forKey: .canInvite)
+        self.canImportGooglePhoto = try container.decode(Bool.self, forKey: .canImportGooglePhoto)
+        self.specialties = try container.decode(Set<PersonalSpecialty>.self, forKey: .specialties)
+        self.otherSpecialty = try container.decodeIfPresent(String.self, forKey: .otherSpecialty)
+        self.workStyle = try container.decode(PersonalWorkStyleView.self, forKey: .workStyle)
+        self.preferences = try container.decode(PersonalPreferencesView.self, forKey: .preferences)
+        self.relationshipSummary = try container.decode(PersonalRelationshipSummary.self, forKey: .relationshipSummary)
+    }
+
     public func encode(to encoder: Encoder) throws {
+        guard (emailKind == .hiddenEmail && email == nil) || (emailKind == .email && email != nil) else {
+            throw EncodingError.invalidValue("account email projection", EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Invalid account email projection"))
+        }
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(revision, forKey: .revision)
         try container.encodeIfPresent(displayName, forKey: .displayName)
         try container.encode(avatar, forKey: .avatar)
-        try container.encode(email, forKey: .email)
+        try container.encodeIfPresent(email, forKey: .email)
+        try container.encode(emailKind, forKey: .emailKind)
         try container.encode(sessionProvider, forKey: .sessionProvider)
         try container.encodeIfPresent(professionalRegistration, forKey: .professionalRegistration)
         try container.encode(professionalRegistrationStatus, forKey: .professionalRegistrationStatus)
@@ -104,6 +143,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
 
 extension PersonalProfileView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
+        if emailKind == .unknownDefaultOpenApi { return true }
         if sessionProvider == .unknownDefaultOpenApi { return true }
         if professionalRegistrationStatus == .unknownDefaultOpenApi { return true }
         return false
