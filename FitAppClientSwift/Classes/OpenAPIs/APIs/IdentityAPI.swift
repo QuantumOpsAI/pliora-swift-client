@@ -13,6 +13,297 @@ import AnyCodable
 open class IdentityAPI {
 
     /**
+     Validar prova exclusiva de origem da mesma conta
+
+     - parameter attemptId: (path)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter authorizeAccountEmailConfirmationOriginRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func authorizeAccountEmailConfirmationOrigin(attemptId: String, idempotencyKey: String, authorizeAccountEmailConfirmationOriginRequest: AuthorizeAccountEmailConfirmationOriginRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: AccountEmailOriginAuthorizedView?, _ error: Error?) -> Void)) -> RequestTask {
+        return authorizeAccountEmailConfirmationOriginWithRequestBuilder(attemptId: attemptId, idempotencyKey: idempotencyKey, authorizeAccountEmailConfirmationOriginRequest: authorizeAccountEmailConfirmationOriginRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Validar prova exclusiva de origem da mesma conta
+     - POST /identity/account/email-confirmation/attempts/{attemptId}/origin-proof
+     - Origem aceita sem efeito na conta; autorização exclusiva de uso único. authorizedUntil=min(total, validade prova externa ou desafio ORIGIN original, verificação+5min); nonce consumido não precisa continuar aberto. Código DESTINATION/reenvio não estende autorização. Falta/expiração exige nova tentativa/provas, sem refresh silencioso. Autorização contemporânea cumulativa à sessão. SOCIAL_PROVIDER valida assinatura/issuer/audience/expiração/nonce e identidade já ligada à própria conta; token comum/login/terceiro/outra finalidade não vale. MAIL valida desafio exclusivo ORIGIN. Código de convite/destino não autoriza origem, mesmo com bytes iguais. Consume proof/nonce/challenge uma vez, mantém recusa/contador na transação. Login recém-concluído só serve se servidor comprovar e vincular prova à tentativa; bearer/timestamp local não basta. Credencial EMAIL real ligada conserva-se, não é criada aqui. Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [X-Correlation-Id(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter attemptId: (path)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter authorizeAccountEmailConfirmationOriginRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<AccountEmailOriginAuthorizedView>
+     */
+    open class func authorizeAccountEmailConfirmationOriginWithRequestBuilder(attemptId: String, idempotencyKey: String, authorizeAccountEmailConfirmationOriginRequest: AuthorizeAccountEmailConfirmationOriginRequest, acceptLanguage: String? = nil) -> RequestBuilder<AccountEmailOriginAuthorizedView> {
+        var localVariablePath = "/identity/account/email-confirmation/attempts/{attemptId}/origin-proof"
+        let attemptIdPreEscape = "\(APIHelper.mapValueToPathItem(attemptId))"
+        let attemptIdPostEscape = attemptIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{attemptId}", with: attemptIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: authorizeAccountEmailConfirmationOriginRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<AccountEmailOriginAuthorizedView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Cancelar tentativa pendente sem alegar desfazer commit conhecido
+
+     - parameter attemptId: (path)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter cancelAccountEmailConfirmationAttemptRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func cancelAccountEmailConfirmationAttempt(attemptId: String, idempotencyKey: String, cancelAccountEmailConfirmationAttemptRequest: CancelAccountEmailConfirmationAttemptRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: AccountEmailCancellationView?, _ error: Error?) -> Void)) -> RequestTask {
+        return cancelAccountEmailConfirmationAttemptWithRequestBuilder(attemptId: attemptId, idempotencyKey: idempotencyKey, cancelAccountEmailConfirmationAttemptRequest: cancelAccountEmailConfirmationAttemptRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Cancelar tentativa pendente sem alegar desfazer commit conhecido
+     - POST /identity/account/email-confirmation/attempts/{attemptId}/cancellation
+     - CANCELLED só quando nenhum commit ocorreu, zero alteração da conta. Já confirmado retorna CONFIRMED real e exige releitura, nunca fake undo. Transporte incerto não autoriza afirmar cancelamento. Replay mesma chave/fingerprint devolve resultado após reautorizar conta/sessão; outra conta/finalidade/etapa/corpo/destino nunca reutiliza chave/prova. Nenhuma prova exigida. Cancelamento autenticado da própria tentativa invalida nonce/autorização/desafios/provas pendentes atomicamente antes do commit, impede commit tardio. Skip sem tentativa não chama esta rota. Resposta perdida: GET tentativa antes de repetir/afirmar cancelamento, e reler identidade se commit desconhecido; conta trocada descarta resposta. Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [X-Correlation-Id(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter attemptId: (path)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter cancelAccountEmailConfirmationAttemptRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<AccountEmailCancellationView>
+     */
+    open class func cancelAccountEmailConfirmationAttemptWithRequestBuilder(attemptId: String, idempotencyKey: String, cancelAccountEmailConfirmationAttemptRequest: CancelAccountEmailConfirmationAttemptRequest, acceptLanguage: String? = nil) -> RequestBuilder<AccountEmailCancellationView> {
+        var localVariablePath = "/identity/account/email-confirmation/attempts/{attemptId}/cancellation"
+        let attemptIdPreEscape = "\(APIHelper.mapValueToPathItem(attemptId))"
+        let attemptIdPostEscape = attemptIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{attemptId}", with: attemptIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: cancelAccountEmailConfirmationAttemptRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<AccountEmailCancellationView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Confirmar endereço na mesma conta em commit atômico
+
+     - parameter attemptId: (path)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter confirmAccountEmailRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func confirmAccountEmail(attemptId: String, idempotencyKey: String, confirmAccountEmailRequest: ConfirmAccountEmailRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: AccountEmailConfirmedView?, _ error: Error?) -> Void)) -> RequestTask {
+        return confirmAccountEmailWithRequestBuilder(attemptId: attemptId, idempotencyKey: idempotencyKey, confirmAccountEmailRequest: confirmAccountEmailRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Confirmar endereço na mesma conta em commit atômico
+     - POST /identity/account/email-confirmation/attempts/{attemptId}/verification
+     - Commit conhecido na mesma AccountId, endereço comum verificado e providers reais. Não fabrica subject Cognito/EMAIL, não edita claim históricoApple; C2/C3 Cognito real futuro resolve mesma conta pelo verified email e só então vincula identidade EMAIL. Obrigatório reler GET /identity/me + linkedProviders e Perfil do contexto; nunca escrever snapshots/emailKind/providers localmente. Falha de releitura é atualização pendente/retry, não hidden inventado. expiresAt é histórico da tentativa, não autorização nova. Prova exclusivamente DESTINATION na mesma tentativa; nenhum convite, target/email/proof ORIGIN ou AccountId escolhido. Commit atômico revalida sessão/ator/device, total, originAuthorizedUntil, destino/challenge/purpose/stage/validade, elegibilidade e origem canônica ainda vigente, unicidade/locks/CAS; consome ambas provas e tentativa uma vez. Colisão409 somente após ambas autorizadas, sem id/nome/email de terceiro nem fusão/stub/newaccount/transferência; mantém acessos e dados originais. Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [X-Correlation-Id(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter attemptId: (path)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter confirmAccountEmailRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<AccountEmailConfirmedView>
+     */
+    open class func confirmAccountEmailWithRequestBuilder(attemptId: String, idempotencyKey: String, confirmAccountEmailRequest: ConfirmAccountEmailRequest, acceptLanguage: String? = nil) -> RequestBuilder<AccountEmailConfirmedView> {
+        var localVariablePath = "/identity/account/email-confirmation/attempts/{attemptId}/verification"
+        let attemptIdPreEscape = "\(APIHelper.mapValueToPathItem(attemptId))"
+        let attemptIdPostEscape = attemptIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{attemptId}", with: attemptIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: confirmAccountEmailRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<AccountEmailConfirmedView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Reler tentativa e entrega para retomar ou resolver resposta perdida
+
+     - parameter attemptId: (path)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getAccountEmailConfirmationAttempt(attemptId: String, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: AccountEmailAttemptView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getAccountEmailConfirmationAttemptWithRequestBuilder(attemptId: attemptId, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Reler tentativa e entrega para retomar ou resolver resposta perdida
+     - GET /identity/account/email-confirmation/attempts/{attemptId}
+     - Leitura autenticada mesma conta/sessão/tentativa para lostresponse/retomada. Alien/missing/expired unavailable uniform410; EXPIRED só tombstone já conhecido e ainda legível, sem reativar prova. Estado fechado exige exatamente payload da etapa, nada de origem/hint/endereço privado/proof/código. Pending→ready só após transporte confirmado; instantes não são prorrogados. CONFIRMED/CANCELLED terminais preservam expiresAt histórico, não dão autorização. Conta trocada/resultados tardios descartados. Após knowncommit reler identidade/providers/Perfil; se cancel incerto, esta leitura decide antes de alegar zero efeito.  Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [X-Correlation-Id(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter attemptId: (path)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<AccountEmailAttemptView>
+     */
+    open class func getAccountEmailConfirmationAttemptWithRequestBuilder(attemptId: String, acceptLanguage: String? = nil) -> RequestBuilder<AccountEmailAttemptView> {
+        var localVariablePath = "/identity/account/email-confirmation/attempts/{attemptId}"
+        let attemptIdPreEscape = "\(APIHelper.mapValueToPathItem(attemptId))"
+        let attemptIdPostEscape = attemptIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{attemptId}", with: attemptIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<AccountEmailAttemptView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     * enum for parameter platform
+     */
+    public enum Platform_getAccountEmailConfirmationAvailability: String, CaseIterable {
+        case ios = "IOS"
+        case android = "ANDROID"
+    }
+
+    /**
+     Consultar oferta opcional autenticada
+
+     - parameter platform: (query) Seleciona métodos suportados, nunca autoriza origem. Servidor confere plataforma/device e disponibilidade real.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getAccountEmailConfirmationAvailability(platform: Platform_getAccountEmailConfirmationAvailability, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: AccountEmailConfirmationAvailabilityView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getAccountEmailConfirmationAvailabilityWithRequestBuilder(platform: platform, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Consultar oferta opcional autenticada
+     - GET /identity/account/email-confirmation
+     - Oferta autenticada opcional nos contextos Personal/Aluno/sem espaço/ambos, pela classificação da conta e não pelo provider corrente. AVAILABLE exige origem realmente suportada/ligada e transporte destino habilitado. NOT_ELIGIBLE é conta comum. UNAVAILABLE protege a conta sem abrir desafio impossível. Pular oferta sem tentativa é operação local sem request, Idempotency-Key, prova ou comando dependente: nunca bloqueia C1/nextStep/continuation/convite/onboarding/app/treino. Perfil retoma a mesma família após pular.  Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [X-Correlation-Id(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter platform: (query) Seleciona métodos suportados, nunca autoriza origem. Servidor confere plataforma/device e disponibilidade real.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<AccountEmailConfirmationAvailabilityView>
+     */
+    open class func getAccountEmailConfirmationAvailabilityWithRequestBuilder(platform: Platform_getAccountEmailConfirmationAvailability, acceptLanguage: String? = nil) -> RequestBuilder<AccountEmailConfirmationAvailabilityView> {
+        let localVariablePath = "/identity/account/email-confirmation"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "platform": (wrappedValue: platform.encodeToJSON(), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<AccountEmailConfirmationAvailabilityView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      Obter a identidade de apresentação da sessão autenticada
 
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
@@ -205,6 +496,178 @@ open class IdentityAPI {
         let localVariableRequestBuilder: RequestBuilder<IdentityJourneyResponse>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false)
+    }
+
+    /**
+     Abrir tentativa da própria conta sem alterar endereço
+
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter startAccountEmailConfirmationAttemptRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func startAccountEmailConfirmationAttempt(idempotencyKey: String, startAccountEmailConfirmationAttemptRequest: StartAccountEmailConfirmationAttemptRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: AccountEmailAttemptOpenedView?, _ error: Error?) -> Void)) -> RequestTask {
+        return startAccountEmailConfirmationAttemptWithRequestBuilder(idempotencyKey: idempotencyKey, startAccountEmailConfirmationAttemptRequest: startAccountEmailConfirmationAttemptRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Abrir tentativa da própria conta sem alterar endereço
+     - POST /identity/account/email-confirmation/attempts
+     - Tentativa sem efeito sobre conta:Vincula conta/ator/sessão ativa/device/destino normalizado/finalidade, expiresAt total≤10min fixo. Sem renovar prazos por transição/reenvio; destino diferente exige nova tentativa. Métodos de origem vêm do servidor, nativos já ligados e suportados; fallback caixa original só quando provider original não autentica nesta plataforma e transporte funciona. Não publica origem/destino/hints. Destino digitado normalizado exclusivamente no servidor e elegível como endereço comum. Nunca origem/AccountId/purpose/prova/convite do cliente. Só conta canônica HIDDEN_EMAIL sem endereço comum confirmado é elegível; não alterar conta comum. Não expor existência de conta de terceiro antes das duas provas. Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [X-Correlation-Id(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter startAccountEmailConfirmationAttemptRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<AccountEmailAttemptOpenedView>
+     */
+    open class func startAccountEmailConfirmationAttemptWithRequestBuilder(idempotencyKey: String, startAccountEmailConfirmationAttemptRequest: StartAccountEmailConfirmationAttemptRequest, acceptLanguage: String? = nil) -> RequestBuilder<AccountEmailAttemptOpenedView> {
+        let localVariablePath = "/identity/account/email-confirmation/attempts"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: startAccountEmailConfirmationAttemptRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<AccountEmailAttemptOpenedView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Pedir posse do destino após origem autorizada
+
+     - parameter attemptId: (path)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter startAccountEmailConfirmationDestinationChallengeRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func startAccountEmailConfirmationDestinationChallenge(attemptId: String, idempotencyKey: String, startAccountEmailConfirmationDestinationChallengeRequest: StartAccountEmailConfirmationDestinationChallengeRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: AccountEmailDestinationChallengeView?, _ error: Error?) -> Void)) -> RequestTask {
+        return startAccountEmailConfirmationDestinationChallengeWithRequestBuilder(attemptId: attemptId, idempotencyKey: idempotencyKey, startAccountEmailConfirmationDestinationChallengeRequest: startAccountEmailConfirmationDestinationChallengeRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Pedir posse do destino após origem autorizada
+     - POST /identity/account/email-confirmation/attempts/{attemptId}/destination-challenges
+     - Nenhuma confirmação de conta. Pending não abre código, ready só depois transporte confirmado. Falta de transporte503 desfaz desafio inviável. expiresAt do desafio≤min(total,originAuthorizedUntil,emissão+10min); cooldown60s/5tentativas e orçamento por conta/endereço/device/global. GET da tentativa observa transição pending→ready; nunca202 interpretado como entrega. Destino fixado na tentativa; não aceitar novo email/origem/challenge/proof/purpose no body. Revalidar sessão, total e autorização ORIGIN antes de pedir ao emissor compartilhado stage DESTINATION, sem predicado de convite pendente D4 (exclusivo INVITATION_DISCOVERY). Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [X-Correlation-Id(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter attemptId: (path)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter startAccountEmailConfirmationDestinationChallengeRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<AccountEmailDestinationChallengeView>
+     */
+    open class func startAccountEmailConfirmationDestinationChallengeWithRequestBuilder(attemptId: String, idempotencyKey: String, startAccountEmailConfirmationDestinationChallengeRequest: StartAccountEmailConfirmationDestinationChallengeRequest, acceptLanguage: String? = nil) -> RequestBuilder<AccountEmailDestinationChallengeView> {
+        var localVariablePath = "/identity/account/email-confirmation/attempts/{attemptId}/destination-challenges"
+        let attemptIdPreEscape = "\(APIHelper.mapValueToPathItem(attemptId))"
+        let attemptIdPostEscape = attemptIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{attemptId}", with: attemptIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: startAccountEmailConfirmationDestinationChallengeRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<AccountEmailDestinationChallengeView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Abrir autorização contemporânea da origem
+
+     - parameter attemptId: (path)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter startAccountEmailConfirmationOriginIntentRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func startAccountEmailConfirmationOriginIntent(attemptId: String, idempotencyKey: String, startAccountEmailConfirmationOriginIntentRequest: StartAccountEmailConfirmationOriginIntentRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: AccountEmailOriginIntentView?, _ error: Error?) -> Void)) -> RequestTask {
+        return startAccountEmailConfirmationOriginIntentWithRequestBuilder(attemptId: attemptId, idempotencyKey: idempotencyKey, startAccountEmailConfirmationOriginIntentRequest: startAccountEmailConfirmationOriginIntentRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Abrir autorização contemporânea da origem
+     - POST /identity/account/email-confirmation/attempts/{attemptId}/origin-intents
+     - Intenção exclusivamente ORIGIN. Nonce servido ou entrega original pendente/pronta, sem troca de conta/endereço/provider. Missing transport503 não deixa código ativo inviável. Reenvio após prazo servido usa nova chave lógica, invalida antigo; replay mesma chave/corpo devolve estado original sem emitir de novo. Origem vem da conta no servidor. SOCIAL_PROVIDER usa provider já ligado, sem novo vínculo; Apple somente IOS. ORIGINAL_EMAIL_POSSESSION não recebe endereço de origem nem provider e só é permitido quando autenticação original indisponível na plataforma; servidor envia à caixa canônica original sem revelar relay/hint. Platform declarada seleciona UX, não autoriza: conferir device e matriz server-side. Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [X-Correlation-Id(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter attemptId: (path)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter startAccountEmailConfirmationOriginIntentRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<AccountEmailOriginIntentView>
+     */
+    open class func startAccountEmailConfirmationOriginIntentWithRequestBuilder(attemptId: String, idempotencyKey: String, startAccountEmailConfirmationOriginIntentRequest: StartAccountEmailConfirmationOriginIntentRequest, acceptLanguage: String? = nil) -> RequestBuilder<AccountEmailOriginIntentView> {
+        var localVariablePath = "/identity/account/email-confirmation/attempts/{attemptId}/origin-intents"
+        let attemptIdPreEscape = "\(APIHelper.mapValueToPathItem(attemptId))"
+        let attemptIdPostEscape = attemptIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{attemptId}", with: attemptIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: startAccountEmailConfirmationOriginIntentRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<AccountEmailOriginIntentView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
 
     /**

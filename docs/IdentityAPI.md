@@ -4,10 +4,18 @@ All URIs are relative to */api/v1*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**authorizeAccountEmailConfirmationOrigin**](IdentityAPI.md#authorizeaccountemailconfirmationorigin) | **POST** /identity/account/email-confirmation/attempts/{attemptId}/origin-proof | Validar prova exclusiva de origem da mesma conta
+[**cancelAccountEmailConfirmationAttempt**](IdentityAPI.md#cancelaccountemailconfirmationattempt) | **POST** /identity/account/email-confirmation/attempts/{attemptId}/cancellation | Cancelar tentativa pendente sem alegar desfazer commit conhecido
+[**confirmAccountEmail**](IdentityAPI.md#confirmaccountemail) | **POST** /identity/account/email-confirmation/attempts/{attemptId}/verification | Confirmar endereço na mesma conta em commit atômico
+[**getAccountEmailConfirmationAttempt**](IdentityAPI.md#getaccountemailconfirmationattempt) | **GET** /identity/account/email-confirmation/attempts/{attemptId} | Reler tentativa e entrega para retomar ou resolver resposta perdida
+[**getAccountEmailConfirmationAvailability**](IdentityAPI.md#getaccountemailconfirmationavailability) | **GET** /identity/account/email-confirmation | Consultar oferta opcional autenticada
 [**getAuthenticatedIdentityProfile**](IdentityAPI.md#getauthenticatedidentityprofile) | **GET** /identity/me | Obter a identidade de apresentação da sessão autenticada
 [**getEntryContext**](IdentityAPI.md#getentrycontext) | **GET** /identity/entry-context | Ler os contextos atuais da conta autenticada, fora de /sync
 [**proveSocialIdentity**](IdentityAPI.md#provesocialidentity) | **POST** /identity/social-proof | Trocar prova externa por um contexto de identidade FitApp
 [**proveSocialIdentityJourney**](IdentityAPI.md#provesocialidentityjourney) | **POST** /identity/journeys/social-proof | Trocar prova social pela próxima etapa segura da jornada
+[**startAccountEmailConfirmationAttempt**](IdentityAPI.md#startaccountemailconfirmationattempt) | **POST** /identity/account/email-confirmation/attempts | Abrir tentativa da própria conta sem alterar endereço
+[**startAccountEmailConfirmationDestinationChallenge**](IdentityAPI.md#startaccountemailconfirmationdestinationchallenge) | **POST** /identity/account/email-confirmation/attempts/{attemptId}/destination-challenges | Pedir posse do destino após origem autorizada
+[**startAccountEmailConfirmationOriginIntent**](IdentityAPI.md#startaccountemailconfirmationoriginintent) | **POST** /identity/account/email-confirmation/attempts/{attemptId}/origin-intents | Abrir autorização contemporânea da origem
 [**startAccountLinkingChallenge**](IdentityAPI.md#startaccountlinkingchallenge) | **POST** /identity/account/linking/challenges | Abrir a intenção de vincular um segundo provedor e receber o nonce que ele terá de assinar
 [**startOtpChallenge**](IdentityAPI.md#startotpchallenge) | **POST** /identity/otp/challenges | Iniciar desafio OTP com resposta não enumerável
 [**startOtpJourneyChallenge**](IdentityAPI.md#startotpjourneychallenge) | **POST** /identity/journeys/otp/challenges | Iniciar desafio OTP preservando a jornada opaca
@@ -16,6 +24,278 @@ Method | HTTP request | Description
 [**verifyOtpChallenge**](IdentityAPI.md#verifyotpchallenge) | **POST** /identity/otp/challenges/{challengeId}/verification | Verificar OTP e emitir sessão FitApp
 [**verifyOtpJourneyChallenge**](IdentityAPI.md#verifyotpjourneychallenge) | **POST** /identity/journeys/otp/challenges/{challengeId}/verification | Verificar OTP e retornar a próxima etapa segura da jornada
 
+
+# **authorizeAccountEmailConfirmationOrigin**
+```swift
+    open class func authorizeAccountEmailConfirmationOrigin(attemptId: String, idempotencyKey: String, authorizeAccountEmailConfirmationOriginRequest: AuthorizeAccountEmailConfirmationOriginRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: AccountEmailOriginAuthorizedView?, _ error: Error?) -> Void)
+```
+
+Validar prova exclusiva de origem da mesma conta
+
+Origem aceita sem efeito na conta; autorização exclusiva de uso único. authorizedUntil=min(total, validade prova externa ou desafio ORIGIN original, verificação+5min); nonce consumido não precisa continuar aberto. Código DESTINATION/reenvio não estende autorização. Falta/expiração exige nova tentativa/provas, sem refresh silencioso. Autorização contemporânea cumulativa à sessão. SOCIAL_PROVIDER valida assinatura/issuer/audience/expiração/nonce e identidade já ligada à própria conta; token comum/login/terceiro/outra finalidade não vale. MAIL valida desafio exclusivo ORIGIN. Código de convite/destino não autoriza origem, mesmo com bytes iguais. Consume proof/nonce/challenge uma vez, mantém recusa/contador na transação. Login recém-concluído só serve se servidor comprovar e vincular prova à tentativa; bearer/timestamp local não basta. Credencial EMAIL real ligada conserva-se, não é criada aqui. Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let attemptId = "attemptId_example" // String |
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let authorizeAccountEmailConfirmationOriginRequest = AuthorizeAccountEmailConfirmationOriginRequest(method: "method_example", originIntentId: "originIntentId_example", proof: "proof_example", originChallengeId: "originChallengeId_example", code: "code_example", device: DeviceContext(deviceId: "deviceId_example", platform: "platform_example", appVersion: "appVersion_example")) // AuthorizeAccountEmailConfirmationOriginRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Validar prova exclusiva de origem da mesma conta
+IdentityAPI.authorizeAccountEmailConfirmationOrigin(attemptId: attemptId, idempotencyKey: idempotencyKey, authorizeAccountEmailConfirmationOriginRequest: authorizeAccountEmailConfirmationOriginRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **attemptId** | **String** |  |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **authorizeAccountEmailConfirmationOriginRequest** | [**AuthorizeAccountEmailConfirmationOriginRequest**](AuthorizeAccountEmailConfirmationOriginRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**AccountEmailOriginAuthorizedView**](AccountEmailOriginAuthorizedView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **cancelAccountEmailConfirmationAttempt**
+```swift
+    open class func cancelAccountEmailConfirmationAttempt(attemptId: String, idempotencyKey: String, cancelAccountEmailConfirmationAttemptRequest: CancelAccountEmailConfirmationAttemptRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: AccountEmailCancellationView?, _ error: Error?) -> Void)
+```
+
+Cancelar tentativa pendente sem alegar desfazer commit conhecido
+
+CANCELLED só quando nenhum commit ocorreu, zero alteração da conta. Já confirmado retorna CONFIRMED real e exige releitura, nunca fake undo. Transporte incerto não autoriza afirmar cancelamento. Replay mesma chave/fingerprint devolve resultado após reautorizar conta/sessão; outra conta/finalidade/etapa/corpo/destino nunca reutiliza chave/prova. Nenhuma prova exigida. Cancelamento autenticado da própria tentativa invalida nonce/autorização/desafios/provas pendentes atomicamente antes do commit, impede commit tardio. Skip sem tentativa não chama esta rota. Resposta perdida: GET tentativa antes de repetir/afirmar cancelamento, e reler identidade se commit desconhecido; conta trocada descarta resposta. Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let attemptId = "attemptId_example" // String |
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let cancelAccountEmailConfirmationAttemptRequest = CancelAccountEmailConfirmationAttemptRequest(device: DeviceContext(deviceId: "deviceId_example", platform: "platform_example", appVersion: "appVersion_example")) // CancelAccountEmailConfirmationAttemptRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Cancelar tentativa pendente sem alegar desfazer commit conhecido
+IdentityAPI.cancelAccountEmailConfirmationAttempt(attemptId: attemptId, idempotencyKey: idempotencyKey, cancelAccountEmailConfirmationAttemptRequest: cancelAccountEmailConfirmationAttemptRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **attemptId** | **String** |  |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **cancelAccountEmailConfirmationAttemptRequest** | [**CancelAccountEmailConfirmationAttemptRequest**](CancelAccountEmailConfirmationAttemptRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**AccountEmailCancellationView**](AccountEmailCancellationView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **confirmAccountEmail**
+```swift
+    open class func confirmAccountEmail(attemptId: String, idempotencyKey: String, confirmAccountEmailRequest: ConfirmAccountEmailRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: AccountEmailConfirmedView?, _ error: Error?) -> Void)
+```
+
+Confirmar endereço na mesma conta em commit atômico
+
+Commit conhecido na mesma AccountId, endereço comum verificado e providers reais. Não fabrica subject Cognito/EMAIL, não edita claim históricoApple; C2/C3 Cognito real futuro resolve mesma conta pelo verified email e só então vincula identidade EMAIL. Obrigatório reler GET /identity/me + linkedProviders e Perfil do contexto; nunca escrever snapshots/emailKind/providers localmente. Falha de releitura é atualização pendente/retry, não hidden inventado. expiresAt é histórico da tentativa, não autorização nova. Prova exclusivamente DESTINATION na mesma tentativa; nenhum convite, target/email/proof ORIGIN ou AccountId escolhido. Commit atômico revalida sessão/ator/device, total, originAuthorizedUntil, destino/challenge/purpose/stage/validade, elegibilidade e origem canônica ainda vigente, unicidade/locks/CAS; consome ambas provas e tentativa uma vez. Colisão409 somente após ambas autorizadas, sem id/nome/email de terceiro nem fusão/stub/newaccount/transferência; mantém acessos e dados originais. Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let attemptId = "attemptId_example" // String |
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let confirmAccountEmailRequest = ConfirmAccountEmailRequest(destinationChallengeId: "destinationChallengeId_example", code: "code_example", device: DeviceContext(deviceId: "deviceId_example", platform: "platform_example", appVersion: "appVersion_example")) // ConfirmAccountEmailRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Confirmar endereço na mesma conta em commit atômico
+IdentityAPI.confirmAccountEmail(attemptId: attemptId, idempotencyKey: idempotencyKey, confirmAccountEmailRequest: confirmAccountEmailRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **attemptId** | **String** |  |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **confirmAccountEmailRequest** | [**ConfirmAccountEmailRequest**](ConfirmAccountEmailRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**AccountEmailConfirmedView**](AccountEmailConfirmedView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getAccountEmailConfirmationAttempt**
+```swift
+    open class func getAccountEmailConfirmationAttempt(attemptId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: AccountEmailAttemptView?, _ error: Error?) -> Void)
+```
+
+Reler tentativa e entrega para retomar ou resolver resposta perdida
+
+Leitura autenticada mesma conta/sessão/tentativa para lostresponse/retomada. Alien/missing/expired unavailable uniform410; EXPIRED só tombstone já conhecido e ainda legível, sem reativar prova. Estado fechado exige exatamente payload da etapa, nada de origem/hint/endereço privado/proof/código. Pending→ready só após transporte confirmado; instantes não são prorrogados. CONFIRMED/CANCELLED terminais preservam expiresAt histórico, não dão autorização. Conta trocada/resultados tardios descartados. Após knowncommit reler identidade/providers/Perfil; se cancel incerto, esta leitura decide antes de alegar zero efeito.  Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let attemptId = "attemptId_example" // String |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Reler tentativa e entrega para retomar ou resolver resposta perdida
+IdentityAPI.getAccountEmailConfirmationAttempt(attemptId: attemptId, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **attemptId** | **String** |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**AccountEmailAttemptView**](AccountEmailAttemptView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getAccountEmailConfirmationAvailability**
+```swift
+    open class func getAccountEmailConfirmationAvailability(platform: Platform_getAccountEmailConfirmationAvailability, acceptLanguage: String? = nil, completion: @escaping (_ data: AccountEmailConfirmationAvailabilityView?, _ error: Error?) -> Void)
+```
+
+Consultar oferta opcional autenticada
+
+Oferta autenticada opcional nos contextos Personal/Aluno/sem espaço/ambos, pela classificação da conta e não pelo provider corrente. AVAILABLE exige origem realmente suportada/ligada e transporte destino habilitado. NOT_ELIGIBLE é conta comum. UNAVAILABLE protege a conta sem abrir desafio impossível. Pular oferta sem tentativa é operação local sem request, Idempotency-Key, prova ou comando dependente: nunca bloqueia C1/nextStep/continuation/convite/onboarding/app/treino. Perfil retoma a mesma família após pular.  Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let platform = "platform_example" // String | Seleciona métodos suportados, nunca autoriza origem. Servidor confere plataforma/device e disponibilidade real.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Consultar oferta opcional autenticada
+IdentityAPI.getAccountEmailConfirmationAvailability(platform: platform, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **platform** | **String** | Seleciona métodos suportados, nunca autoriza origem. Servidor confere plataforma/device e disponibilidade real. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**AccountEmailConfirmationAvailabilityView**](AccountEmailConfirmationAvailabilityView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getAuthenticatedIdentityProfile**
 ```swift
@@ -215,6 +495,172 @@ Name | Type | Description  | Notes
 ### Authorization
 
 No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **startAccountEmailConfirmationAttempt**
+```swift
+    open class func startAccountEmailConfirmationAttempt(idempotencyKey: String, startAccountEmailConfirmationAttemptRequest: StartAccountEmailConfirmationAttemptRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: AccountEmailAttemptOpenedView?, _ error: Error?) -> Void)
+```
+
+Abrir tentativa da própria conta sem alterar endereço
+
+Tentativa sem efeito sobre conta:Vincula conta/ator/sessão ativa/device/destino normalizado/finalidade, expiresAt total≤10min fixo. Sem renovar prazos por transição/reenvio; destino diferente exige nova tentativa. Métodos de origem vêm do servidor, nativos já ligados e suportados; fallback caixa original só quando provider original não autentica nesta plataforma e transporte funciona. Não publica origem/destino/hints. Destino digitado normalizado exclusivamente no servidor e elegível como endereço comum. Nunca origem/AccountId/purpose/prova/convite do cliente. Só conta canônica HIDDEN_EMAIL sem endereço comum confirmado é elegível; não alterar conta comum. Não expor existência de conta de terceiro antes das duas provas. Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let startAccountEmailConfirmationAttemptRequest = StartAccountEmailConfirmationAttemptRequest(destinationEmail: "destinationEmail_example", device: DeviceContext(deviceId: "deviceId_example", platform: "platform_example", appVersion: "appVersion_example")) // StartAccountEmailConfirmationAttemptRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Abrir tentativa da própria conta sem alterar endereço
+IdentityAPI.startAccountEmailConfirmationAttempt(idempotencyKey: idempotencyKey, startAccountEmailConfirmationAttemptRequest: startAccountEmailConfirmationAttemptRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **startAccountEmailConfirmationAttemptRequest** | [**StartAccountEmailConfirmationAttemptRequest**](StartAccountEmailConfirmationAttemptRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**AccountEmailAttemptOpenedView**](AccountEmailAttemptOpenedView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **startAccountEmailConfirmationDestinationChallenge**
+```swift
+    open class func startAccountEmailConfirmationDestinationChallenge(attemptId: String, idempotencyKey: String, startAccountEmailConfirmationDestinationChallengeRequest: StartAccountEmailConfirmationDestinationChallengeRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: AccountEmailDestinationChallengeView?, _ error: Error?) -> Void)
+```
+
+Pedir posse do destino após origem autorizada
+
+Nenhuma confirmação de conta. Pending não abre código, ready só depois transporte confirmado. Falta de transporte503 desfaz desafio inviável. expiresAt do desafio≤min(total,originAuthorizedUntil,emissão+10min); cooldown60s/5tentativas e orçamento por conta/endereço/device/global. GET da tentativa observa transição pending→ready; nunca202 interpretado como entrega. Destino fixado na tentativa; não aceitar novo email/origem/challenge/proof/purpose no body. Revalidar sessão, total e autorização ORIGIN antes de pedir ao emissor compartilhado stage DESTINATION, sem predicado de convite pendente D4 (exclusivo INVITATION_DISCOVERY). Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let attemptId = "attemptId_example" // String |
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let startAccountEmailConfirmationDestinationChallengeRequest = StartAccountEmailConfirmationDestinationChallengeRequest(device: DeviceContext(deviceId: "deviceId_example", platform: "platform_example", appVersion: "appVersion_example")) // StartAccountEmailConfirmationDestinationChallengeRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Pedir posse do destino após origem autorizada
+IdentityAPI.startAccountEmailConfirmationDestinationChallenge(attemptId: attemptId, idempotencyKey: idempotencyKey, startAccountEmailConfirmationDestinationChallengeRequest: startAccountEmailConfirmationDestinationChallengeRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **attemptId** | **String** |  |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **startAccountEmailConfirmationDestinationChallengeRequest** | [**StartAccountEmailConfirmationDestinationChallengeRequest**](StartAccountEmailConfirmationDestinationChallengeRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**AccountEmailDestinationChallengeView**](AccountEmailDestinationChallengeView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **startAccountEmailConfirmationOriginIntent**
+```swift
+    open class func startAccountEmailConfirmationOriginIntent(attemptId: String, idempotencyKey: String, startAccountEmailConfirmationOriginIntentRequest: StartAccountEmailConfirmationOriginIntentRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: AccountEmailOriginIntentView?, _ error: Error?) -> Void)
+```
+
+Abrir autorização contemporânea da origem
+
+Intenção exclusivamente ORIGIN. Nonce servido ou entrega original pendente/pronta, sem troca de conta/endereço/provider. Missing transport503 não deixa código ativo inviável. Reenvio após prazo servido usa nova chave lógica, invalida antigo; replay mesma chave/corpo devolve estado original sem emitir de novo. Origem vem da conta no servidor. SOCIAL_PROVIDER usa provider já ligado, sem novo vínculo; Apple somente IOS. ORIGINAL_EMAIL_POSSESSION não recebe endereço de origem nem provider e só é permitido quando autenticação original indisponível na plataforma; servidor envia à caixa canônica original sem revelar relay/hint. Platform declarada seleciona UX, não autoriza: conferir device e matriz server-side. Autoridade: DOC-ACCOUNT-UNIFICATION-AND-ANTI-ATO-LINKING §4.1/4.1.1/4.2/4.3 em pliora-docs42cd0bff, contracts#214. Todas as operações reautorizam conta/ator/sessão/device e tentativa; nunca dependem de espaço/papel/provider corrente. C7/C8 e IdentityJourneyResponse.nextStep/continuation/invitation permanecem intactos. Código/proof/nonce/destino não vão a log/telemetria/erro. Mesmo fingerprint/chave/corpo reproduz resultado técnico guardado sem enviar/consumir duas vezes; outra conta/finalidade/etapa/destino/corpo é recusa. Transação recusada preserva contadores antiabuso sem alterar conta; transporte indisponível503 não deixa desafio impossível ativo. Nenhum202 declara entrega.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let attemptId = "attemptId_example" // String |
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let startAccountEmailConfirmationOriginIntentRequest = StartAccountEmailConfirmationOriginIntentRequest(method: "method_example", provider: "provider_example", device: DeviceContext(deviceId: "deviceId_example", platform: "platform_example", appVersion: "appVersion_example")) // StartAccountEmailConfirmationOriginIntentRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Abrir autorização contemporânea da origem
+IdentityAPI.startAccountEmailConfirmationOriginIntent(attemptId: attemptId, idempotencyKey: idempotencyKey, startAccountEmailConfirmationOriginIntentRequest: startAccountEmailConfirmationOriginIntentRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **attemptId** | **String** |  |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **startAccountEmailConfirmationOriginIntentRequest** | [**StartAccountEmailConfirmationOriginIntentRequest**](StartAccountEmailConfirmationOriginIntentRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**AccountEmailOriginIntentView**](AccountEmailOriginIntentView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
 
 ### HTTP request headers
 
