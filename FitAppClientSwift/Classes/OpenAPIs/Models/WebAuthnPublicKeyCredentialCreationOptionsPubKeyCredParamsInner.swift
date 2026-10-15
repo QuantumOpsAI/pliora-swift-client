@@ -16,16 +16,11 @@ public struct WebAuthnPublicKeyCredentialCreationOptionsPubKeyCredParamsInner: C
         case publicKey = "public-key"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
-    public enum Alg: Int, Codable, CaseIterable, CaseIterableDefaultsLast {
-        case number7 = -7
-        case number257 = -257
-        case unknownDefaultOpenApi = 11184809
-    }
     public var type: ModelType
-    /** Algoritmos COSE aceitos: ES256 (`-7`) e RS256 (`-257`), a interseção exigida pelas plataformas do MVP. */
-    public var alg: Alg
+    /** Algoritmo COSE do parâmetro de credencial. Os únicos valores publicados pelo servidor no MVP são ES256 (`-7`) e RS256 (`-257`), a interseção exigida pelas plataformas; a lista não é enum porque consumidores WebAuthn devem preservar inteiros COSE desconhecidos em vez de falhar o documento. */
+    public var alg: Int
 
-    public init(type: ModelType, alg: Alg) {
+    public init(type: ModelType, alg: Int) {
         self.type = type
         self.alg = alg
     }
@@ -48,7 +43,6 @@ public struct WebAuthnPublicKeyCredentialCreationOptionsPubKeyCredParamsInner: C
 extension WebAuthnPublicKeyCredentialCreationOptionsPubKeyCredParamsInner: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if type == .unknownDefaultOpenApi { return true }
-        if alg == .unknownDefaultOpenApi { return true }
         return false
     }
 }
