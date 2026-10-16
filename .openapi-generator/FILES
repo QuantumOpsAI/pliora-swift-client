@@ -478,6 +478,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/ReferenceLoadBasis.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ReferenceLoadConfirmationSource.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ReferenceLoadConfirmed.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ReferenceLoadEstimate.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/RefreshConflictProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RefreshSessionRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RefusePersonalStudentAnamnesisPrescriptionRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RelationshipInvitationCreateCommand.swift
@@ -489,7 +490,6 @@ FitAppClientSwift/Classes/OpenAPIs/Models/RelationshipInvitationResendPayload.sw
 FitAppClientSwift/Classes/OpenAPIs/Models/RelationshipStatus.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RelationshipSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RenewPersonalStudentInvitationRequest.swift
-FitAppClientSwift/Classes/OpenAPIs/Models/ReplayProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ReportExerciseVideoRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RequestPersonalStudentAnamnesisClarificationRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RequestPersonalStudentAnamnesisCompletionRequest.swift
@@ -507,6 +507,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/SavedStudentProfileView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ServiceUnavailableProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SessionIdentityProvider.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SessionResponse.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/SessionRevocationConflictProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SetAmendmentSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SetExecutionSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SetPersonalStudentAnamnesisRequirementRequest.swift
@@ -1266,6 +1267,7 @@ docs/ReferenceLoadBasis.md
 docs/ReferenceLoadConfirmationSource.md
 docs/ReferenceLoadConfirmed.md
 docs/ReferenceLoadEstimate.md
+docs/RefreshConflictProblemDetails.md
 docs/RefreshSessionRequest.md
 docs/RefusePersonalStudentAnamnesisPrescriptionRequest.md
 docs/RelationshipInvitationCreateCommand.md
@@ -1277,7 +1279,6 @@ docs/RelationshipInvitationResendPayload.md
 docs/RelationshipStatus.md
 docs/RelationshipSyncView.md
 docs/RenewPersonalStudentInvitationRequest.md
-docs/ReplayProblemDetails.md
 docs/ReportExerciseVideoRequest.md
 docs/RequestPersonalStudentAnamnesisClarificationRequest.md
 docs/RequestPersonalStudentAnamnesisCompletionRequest.md
@@ -1295,6 +1296,7 @@ docs/SavedStudentProfileView.md
 docs/ServiceUnavailableProblemDetails.md
 docs/SessionIdentityProvider.md
 docs/SessionResponse.md
+docs/SessionRevocationConflictProblemDetails.md
 docs/SessionsAPI.md
 docs/SetAmendmentSyncView.md
 docs/SetExecutionSyncView.md
