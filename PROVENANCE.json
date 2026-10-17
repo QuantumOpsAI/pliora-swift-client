@@ -1,16 +1,16 @@
 {
-  "bundleSha256": "a0b3e2c1252a3f40993d8775a7234bc8c949186bc1c80ef59089c95a400567ed",
-  "contractVersion": "0.91.0",
+  "bundleSha256": "4294dcc9148520e696ae69f0d306b2893a926fc29fa3ef8b7d77f1be77c67b51",
+  "contractVersion": "0.92.0",
   "generator": {
-    "kotlin": "library=jvm-okhttp4,artifactId=fitapp-client-kotlin,groupId=com.fitapp.client,packageName=com.fitapp.client,artifactVersion=0.91.0.1,enumUnknownDefaultCase=true",
-    "swift": "projectName=FitAppClientSwift,library=alamofire,podVersion=0.91.0,useSPM=true,enumUnknownDefaultCase=true",
+    "kotlin": "library=jvm-okhttp4,artifactId=fitapp-client-kotlin,groupId=com.fitapp.client,packageName=com.fitapp.client,artifactVersion=0.92.0.1,enumUnknownDefaultCase=true",
+    "swift": "projectName=FitAppClientSwift,library=alamofire,podVersion=0.92.0,useSPM=true,enumUnknownDefaultCase=true",
     "tool": "openapi-generator-cli",
     "version": "7.24.0"
   },
-  "releaseVersion": "0.91.0",
-  "sourceCommit": "86009569448d2bd0f879f1bd0d444834cce8970d",
+  "releaseVersion": "0.92.0",
+  "sourceCommit": "48ba8ac0f61864e43b84aefb3ce561ab6151a2e2",
   "sourceRepository": "https://github.com/QuantumOpsAI/pliora-contracts",
   "specPath": "openapi/fitapp-experience-api-v1.yaml",
-  "specSha256": "3caa7d0718d3e0940482f74c684f393e9df7f49c17ced12be03bc6e62c62c1ad",
-  "swiftClientSha256": "edef73c4756988f1b98c39fce2fcd666ff51be3acbecdbe61184ba90df0fea06"
+  "specSha256": "356339b263025413243ac2af998f6d1f06f5b5af93a8ae8221dfee5390ce0eb8",
+  "swiftClientSha256": "68191b9f8283da8ef35cdbd5be814d8df58b6a04be64dabce49fca0ec1fd86bb"
 }

@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Detalhe de um exercício. Os identificadores seguem a regra de &#x60;ExerciseCatalogItem&#x60;. Os atributos aparecem só quando a origem os informa — hoje &#x60;secondaryMuscles&#x60; só existe em exercício próprio. &#x60;steps&#x60; está sempre presente: lista vazia é \&quot;este exercício não tem instruções escritas\&quot;. &#x60;media&#x60; está sempre presente: lista vazia é \&quot;sem vídeo\&quot;, e nenhum asset é pré-requisito de prescrever. */
+/** Detalhe de um exercício. Os identificadores seguem a regra de &#x60;ExerciseCatalogItem&#x60;. Os atributos aparecem só quando a origem os informa — hoje &#x60;secondaryMuscles&#x60; só existe em exercício próprio. O detalhe não tem passos escritos: a execução é mostrada só pelo vídeo. &#x60;media&#x60; está sempre presente: lista vazia é \&quot;sem vídeo\&quot;, e nenhum asset é pré-requisito de prescrever. */
 public struct ExerciseCatalogDetail: Codable, JSONEncodable, Hashable {
 
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -24,7 +24,6 @@ public struct ExerciseCatalogDetail: Codable, JSONEncodable, Hashable {
     public static let mechanicRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let forceRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let gripsRule = ArrayRule(minItems: 1, maxItems: 20, uniqueItems: false)
-    public static let stepsRule = ArrayRule(minItems: nil, maxItems: 30, uniqueItems: false)
     public static let mediaRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var exerciseId: String?
@@ -50,13 +49,11 @@ public struct ExerciseCatalogDetail: Codable, JSONEncodable, Hashable {
     public var force: String?
     /** Lista de textos de atributo. O servidor a entrega **sem repetição e na ordem da origem**, e o app a exibe nessa ordem (por isso o schema não declara `uniqueItems`: os clientes gerados a tratariam como conjunto, de ordem instável). Lista ausente significa que a origem não a informa; o contrato não usa lista vazia para isso. */
     public var grips: [String]?
-    /** Passos de execução, em ordem. O app os numera; o texto não traz numeração. */
-    public var steps: [String]
     /** Assets de mídia disponíveis, com a mesma forma que o aluno recebe. `angle` e `demonstrator` distinguem os assets de um mesmo exercício quando houver mais de um. */
     public var media: [ExerciseMediaAsset]
     public var similarQuery: ExerciseSimilarQuery?
 
-    public init(exerciseId: String? = nil, variantId: String? = nil, catalogRef: String? = nil, name: String, origin: ExerciseOrigin, favorite: Bool, primaryMuscles: [String]? = nil, secondaryMuscles: [String]? = nil, equipment: String? = nil, difficulty: String? = nil, mechanic: String? = nil, force: String? = nil, grips: [String]? = nil, steps: [String], media: [ExerciseMediaAsset], similarQuery: ExerciseSimilarQuery? = nil) {
+    public init(exerciseId: String? = nil, variantId: String? = nil, catalogRef: String? = nil, name: String, origin: ExerciseOrigin, favorite: Bool, primaryMuscles: [String]? = nil, secondaryMuscles: [String]? = nil, equipment: String? = nil, difficulty: String? = nil, mechanic: String? = nil, force: String? = nil, grips: [String]? = nil, media: [ExerciseMediaAsset], similarQuery: ExerciseSimilarQuery? = nil) {
         self.exerciseId = exerciseId
         self.variantId = variantId
         self.catalogRef = catalogRef
@@ -70,7 +67,6 @@ public struct ExerciseCatalogDetail: Codable, JSONEncodable, Hashable {
         self.mechanic = mechanic
         self.force = force
         self.grips = grips
-        self.steps = steps
         self.media = media
         self.similarQuery = similarQuery
     }
@@ -89,7 +85,6 @@ public struct ExerciseCatalogDetail: Codable, JSONEncodable, Hashable {
         case mechanic
         case force
         case grips
-        case steps
         case media
         case similarQuery
     }
@@ -111,7 +106,6 @@ public struct ExerciseCatalogDetail: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(mechanic, forKey: .mechanic)
         try container.encodeIfPresent(force, forKey: .force)
         try container.encodeIfPresent(grips, forKey: .grips)
-        try container.encode(steps, forKey: .steps)
         try container.encode(media, forKey: .media)
         try container.encodeIfPresent(similarQuery, forKey: .similarQuery)
     }
