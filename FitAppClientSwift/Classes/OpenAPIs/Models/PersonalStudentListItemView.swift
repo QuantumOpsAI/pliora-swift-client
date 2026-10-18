@@ -25,17 +25,20 @@ public struct PersonalStudentListItemView: Codable, JSONEncodable, Hashable {
     /** O nome que o aluno informou no próprio Perfil, **como ele escreveu**, de 1 a 60 caracteres (code points Unicode), preservado byte a byte. Em vínculos `ACTIVE` e `PAUSED` é **obrigatório e nunca nulo**: o onboarding do aluno exige o nome antes do aceite do vínculo (`DEC-PHOME-6`, `DOC-ONBOARDING-ASSESSMENT` §3.10), e o commit do aceite recusa enquanto o perfil não tem nome. Em `ENDED` é **sempre `null`** (ou ausente, que equivale a `null`), porque o nome é do aluno e não acompanha um vínculo encerrado — `studentLabel`, que é do personal, continua. Não é o `studentLabel` desta carteira nem o `studentDisplayName` dos convites (metadado privado do personal): outro dono, outro campo, e o nome do aluno nunca entra em `studentDisplayName`. A tela mostra este nome quando houver, com `studentLabel` como linha secundária se diferirem; nunca o traduz, nunca o trunca sem reticências e nunca o usa como chave. */
     public var studentName: String?
     public var status: RelationshipStatus
+    /** Presente **exatamente** em `PAUSED` (desde 0.93.0): o lado que pausou, por papel — nunca nome, e-mail, data ou motivo. A lista `Vínculos pausados` diz `Pausado por você` quando é `PERSONAL` e `Pausado pelo aluno` quando é `STUDENT` — `P7` de `DOC-RELATIONSHIP-LIFECYCLE` §3, decisão do owner (2026-10-17, opção A). O aviso `Vínculo pausado`, a Orientação e a fila seguem sem autoria. Valor desconhecido é tratado como pausa sem autoria. */
+    public var pausedBy: RelationshipPausedBy?
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var startedAt: Date
     /** Instante server-owned do encerramento. Presente exatamente em `ENDED` e ausente nos demais estados; a ausência é ausência, nunca data zero. */
     public var endedAt: Date?
 
-    public init(relationshipId: String, studentId: String, studentLabel: String? = nil, studentName: String? = nil, status: RelationshipStatus, startedAt: Date, endedAt: Date? = nil) {
+    public init(relationshipId: String, studentId: String, studentLabel: String? = nil, studentName: String? = nil, status: RelationshipStatus, pausedBy: RelationshipPausedBy? = nil, startedAt: Date, endedAt: Date? = nil) {
         self.relationshipId = relationshipId
         self.studentId = studentId
         self.studentLabel = studentLabel
         self.studentName = studentName
         self.status = status
+        self.pausedBy = pausedBy
         self.startedAt = startedAt
         self.endedAt = endedAt
     }
@@ -46,6 +49,7 @@ public struct PersonalStudentListItemView: Codable, JSONEncodable, Hashable {
         case studentLabel
         case studentName
         case status
+        case pausedBy
         case startedAt
         case endedAt
     }
@@ -59,6 +63,7 @@ public struct PersonalStudentListItemView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(studentLabel, forKey: .studentLabel)
         try container.encodeIfPresent(studentName, forKey: .studentName)
         try container.encode(status, forKey: .status)
+        try container.encodeIfPresent(pausedBy, forKey: .pausedBy)
         try container.encode(startedAt, forKey: .startedAt)
         try container.encodeIfPresent(endedAt, forKey: .endedAt)
     }
@@ -68,6 +73,7 @@ public struct PersonalStudentListItemView: Codable, JSONEncodable, Hashable {
 extension PersonalStudentListItemView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if status == .unknownDefaultOpenApi { return true }
+        if pausedBy == .unknownDefaultOpenApi { return true }
         return false
     }
 }
