@@ -21,6 +21,7 @@ public struct PersonalAttentionSubstitutionParameters: Codable, JSONEncodable, H
     public static let exerciseLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let prescribedVariantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescribedVariantLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let equipmentContextKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
     public var reasonCode: ReasonCode
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var exerciseId: String
@@ -30,14 +31,17 @@ public struct PersonalAttentionSubstitutionParameters: Codable, JSONEncodable, H
     public var prescribedVariantId: String
     /** Rótulo da variante prescrita, preservado sem tradução e sem substituir `prescribedVariantId`. Uma variante de exercício do catálogo, que tem uma só, leva o `displayName` da prescrição; o catálogo não é guardado (ADR-0014) e nenhum nome vem dele. */
     public var prescribedVariantLabel: String
+    /** Contexto de equipamento que discrimina o par `exerciseId` + `prescribedVariantId` deste item: presente quando o vínculo registra dois ou mais contextos para o par — caso em que abrir o relatório sem ele responderia `422` — e ausente quando não discrimina. Código de máquina opaco que o cliente devolve verbatim como `equipmentContextKey` de `listPersonalStudentExerciseSessionHistory`, nunca o interpreta e nunca o inventa. */
+    public var equipmentContextKey: String?
     public var substitutionReason: SubstitutionReason
 
-    public init(reasonCode: ReasonCode, exerciseId: String, exerciseLabel: String, prescribedVariantId: String, prescribedVariantLabel: String, substitutionReason: SubstitutionReason) {
+    public init(reasonCode: ReasonCode, exerciseId: String, exerciseLabel: String, prescribedVariantId: String, prescribedVariantLabel: String, equipmentContextKey: String? = nil, substitutionReason: SubstitutionReason) {
         self.reasonCode = reasonCode
         self.exerciseId = exerciseId
         self.exerciseLabel = exerciseLabel
         self.prescribedVariantId = prescribedVariantId
         self.prescribedVariantLabel = prescribedVariantLabel
+        self.equipmentContextKey = equipmentContextKey
         self.substitutionReason = substitutionReason
     }
 
@@ -47,6 +51,7 @@ public struct PersonalAttentionSubstitutionParameters: Codable, JSONEncodable, H
         case exerciseLabel
         case prescribedVariantId
         case prescribedVariantLabel
+        case equipmentContextKey
         case substitutionReason
     }
 
@@ -59,6 +64,7 @@ public struct PersonalAttentionSubstitutionParameters: Codable, JSONEncodable, H
         try container.encode(exerciseLabel, forKey: .exerciseLabel)
         try container.encode(prescribedVariantId, forKey: .prescribedVariantId)
         try container.encode(prescribedVariantLabel, forKey: .prescribedVariantLabel)
+        try container.encodeIfPresent(equipmentContextKey, forKey: .equipmentContextKey)
         try container.encode(substitutionReason, forKey: .substitutionReason)
     }
 }

@@ -17,11 +17,11 @@ public struct StartPersonalStepUpChallengeRequest: Codable, JSONEncodable, Hasha
     public static let targetRevisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let mutationIntentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public var purpose: StepUpPurpose
-    /** Referência **opaca** do alvo/caso que o ato protege — o caso de análise que o comando final endereça. Opaco de propósito: nem pergunta, nem condição, nem resposta nem justificativa viajam neste campo nem neste corpo. */
+    /** Referência **opaca** do alvo/caso que o ato protege — o caso de análise que o comando final endereça. Montagem fixa, pela convenção de vínculo do step-up: `\"opq_case_\" + analysis.caseId`, com `analysis.caseId` lido de `GET /personal/students/{studentId}/anamnesis/analysis` — o `caseId` cru, sem o prefixo, ainda emite desafio e prova e só é recusado no commit do ato com `STEP_UP_PROOF_MISMATCH`. Ex.: `caseId` `01K00000000000000000CA01` vira `opq_case_01K00000000000000000CA01`. Opaco de propósito: nem pergunta, nem condição, nem resposta nem justificativa viajam neste campo nem neste corpo. */
     public var targetRef: String
-    /** Versão esperada do alvo — a versão concluída que a decisão endereça. Divergência no commit do ato é conflito recuperável, nunca last-write-wins. */
+    /** Versão esperada do alvo — a versão concluída que a decisão endereça: `analysis.targetAnamnesisVersion.versionNumber` da mesma leitura de `GET /personal/students/{studentId}/anamnesis/analysis`. Divergência no commit do ato é conflito recuperável, nunca last-write-wins. */
     public var targetVersion: Int
-    /** Revisão esperada do alvo — o compare-and-set que a prova carrega: prova emitida sobre uma revisão não serve a outra. */
+    /** Revisão esperada do alvo — `analysis.revision` da mesma leitura, a revisão publicada do caso que o `If-Match` do commit ecoa: o compare-and-set que a prova carrega. Prova emitida sobre uma revisão não serve a outra. */
     public var targetRevision: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var mutationIntentId: String
