@@ -26,7 +26,7 @@ public struct PersonalStudentComparableExerciseKey: Codable, JSONEncodable, Hash
     public var variantId: String
     /** Rótulo da variante, preservado verbatim; para exercício do catálogo, que tem uma variante só, é o `displayName` da prescrição. O catálogo não é guardado (ADR-0014): nenhum nome vem dele. */
     public var variantLabel: String
-    /** Terceiro membro da chave, quando ele discrimina. Código de máquina estável, **nunca nome de aparelho exibível**. Ausente quando não discrimina. */
+    /** Terceiro membro da chave. Numa referência é o contexto que o vínculo registra para aquela chave — publicado como gravado, inclusive um valor-padrão interno como `CATALOG_DEFAULT` ou `PERSONAL_DEFAULT`, que no fio é código de máquina comum; ausente quando a chave não registra contexto. No `comparableKey` do relatório é o **eco da chave consultada**: presente exatamente quando o cliente o enviou, ausente quando a consulta veio sem contexto — mesmo quando o servidor resolveu o único contexto do par, a resolução não vaza para o eco. Código de máquina estável, **nunca nome de aparelho exibível**, que o cliente devolve verbatim e nunca interpreta. */
     public var equipmentContextKey: String?
 
     public init(exerciseId: String, exerciseLabel: String, variantId: String, variantLabel: String, equipmentContextKey: String? = nil) {
