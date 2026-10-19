@@ -1,4 +1,4 @@
-# ReplayProblemDetails
+# SessionRevocationConflictProblemDetails
 
 ## Properties
 Name | Type | Description | Notes

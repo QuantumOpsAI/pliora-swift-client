@@ -36,6 +36,7 @@ open class SessionsAPI {
     /**
      Rotacionar refresh token e renovar sessão
      - POST /sessions/refresh
+     - Consome o refresh token apresentado, persiste o sucessor e devolve o novo envelope da sessão numa única transação. `issuedAt` é a âncora dos prazos: `expiresIn` e `refreshExpiresIn` são durações contadas de `issuedAt`, nunca da recepção — o vencimento de cada credencial é `issuedAt` + a duração publicada. **Repetição idempotente.** A `Idempotency-Key` nomeia a tentativa: repetir a mesma chave com o mesmo corpo devolve o **envelope original** gravado na primeira execução — mesmo `accessToken`, mesmo `refreshToken`, mesmo `issuedAt` e as mesmas durações — sem rotacionar de novo e **sem prolongar prazo nenhum**. Um replay servido vinte minutos depois traz o `issuedAt` original: quem tinha um access de quinze minutos recebe de volta um access já vencido, nunca quinze minutos novos a partir da recepção. Por isso uma resposta perdida é recuperável: a nova tentativa repete a mesma chave e o mesmo corpo, inclusive depois de morte de processo, e nunca troca o corpo sob a chave nem gera chave nova para reusar o refresh antigo. **Recusas, lidas pelo `code`, nunca pelo status sozinho.** `401 SESSION_INVALID` é a única recusa autoritativa que encerra a sessão no cliente: refresh inexistente, expirado ou de família revogada. `409 REFRESH_REPLAY_DETECTED` é o replay comprovado de um refresh já consumido apresentado sob **outra** chave, e revoga a família inteira — também exige entrada interativa. `409 IDEMPOTENCY_CONFLICT` é a mesma chave reutilizada com corpo divergente: falha de protocolo, **nunca prova de família revogada**, e a credencial é preservada. `422 VALIDATION_FAILED` cobre pedido malformado, inclusive a `Idempotency-Key` ausente, em branco ou longa demais. Timeout, `408`, `429`, `5xx`, cancelamento e resposta malformada são falhas indeterminadas: preservam a credencial e pedem nova tentativa com a **mesma** chave e o **mesmo** corpo — nunca são lidos como sessão inválida.
      - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
      - parameter refreshSessionRequest: (body)
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
@@ -84,6 +85,7 @@ open class SessionsAPI {
     /**
      Revogar todas as sessões da identidade autenticada
      - DELETE /sessions
+     - A credencial Bearer é o gate de ator: ausente ou inválida, a resposta é `401 SESSION_INVALID` qualquer que seja a chave. Válida, a `Idempotency-Key` decide a repetição: a mesma chave com a mesma credencial devolve o resultado registrado, sem revogar de novo; a mesma chave com outra credencial é `409 IDEMPOTENCY_CONFLICT`, falha de protocolo que não prova revogação; e a chave ausente ou malformada sob credencial válida é `422 VALIDATION_FAILED`. Falha indeterminada (timeout, `5xx`, resposta malformada) nunca é confirmação de revogação: o cliente não afirma sessão remota encerrada antes da resposta conclusiva.
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -133,6 +135,7 @@ open class SessionsAPI {
     /**
      Revogar a sessão autenticada atual
      - DELETE /sessions/current
+     - A credencial Bearer é o gate de ator: ausente ou inválida, a resposta é `401 SESSION_INVALID` qualquer que seja a chave. Válida, a `Idempotency-Key` decide a repetição: a mesma chave com a mesma credencial devolve o resultado registrado, sem revogar de novo; a mesma chave com outra credencial é `409 IDEMPOTENCY_CONFLICT`, falha de protocolo que não prova revogação; e a chave ausente ou malformada sob credencial válida é `422 VALIDATION_FAILED`. Falha indeterminada (timeout, `5xx`, resposta malformada) nunca é confirmação de revogação: o cliente não afirma sessão remota encerrada antes da resposta conclusiva.
      - Bearer Token:
        - type: http
        - name: BearerAuth

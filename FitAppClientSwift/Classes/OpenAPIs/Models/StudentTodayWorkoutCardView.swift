@@ -13,6 +13,8 @@ import AnyCodable
 public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
 
     public var status: StudentTodayWorkoutCardStatus
+    /** Presente **exatamente** em `TRAINING_PAUSED` (desde 0.93.0, `P4` de `DOC-RELATIONSHIP-LIFECYCLE` §7.4 e §11.1): o lado que pausou o vínculo, por papel — nunca nome, e-mail, data nem motivo. `STUDENT` liga a variante `C10b` do cartão (`Você pausou o vínculo com seu personal.`, com a ação `Retomar vínculo`); `PERSONAL`, a ausência do campo ou um valor que o cliente não conhece mantêm a variante neutra `C10` da `Q-18`. O cartão não decide a retomada: a ação depende do estado relido em `getStudentRelationship`. */
+    public var pausedBy: RelationshipPausedBy?
     /** Decidido pelo servidor: `true` se e somente se a conta nunca concluiu sessão alguma, em nenhuma relação, e só com `status` `WORKOUT_AVAILABLE`; `false` em qualquer outro estado. O cliente não o deriva de outra leitura, como a do último treino. */
     public var firstWorkout: Bool
     public var prescribedWorkout: StudentTodayCardPrescribedWorkoutView?
@@ -23,8 +25,9 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
     public var planStartsOn: Date?
     public var sequencePlan: StudentTodaySequencePlanView?
 
-    public init(status: StudentTodayWorkoutCardStatus, firstWorkout: Bool, prescribedWorkout: StudentTodayCardPrescribedWorkoutView?, openSession: StudentTodayCardOpenSessionView?, completedSession: StudentTodayCardCompletedSessionView?, nextScheduledWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, planStartsOn: Date? = nil, sequencePlan: StudentTodaySequencePlanView? = nil) {
+    public init(status: StudentTodayWorkoutCardStatus, pausedBy: RelationshipPausedBy? = nil, firstWorkout: Bool, prescribedWorkout: StudentTodayCardPrescribedWorkoutView?, openSession: StudentTodayCardOpenSessionView?, completedSession: StudentTodayCardCompletedSessionView?, nextScheduledWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, planStartsOn: Date? = nil, sequencePlan: StudentTodaySequencePlanView? = nil) {
         self.status = status
+        self.pausedBy = pausedBy
         self.firstWorkout = firstWorkout
         self.prescribedWorkout = prescribedWorkout
         self.openSession = openSession
@@ -36,6 +39,7 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case status
+        case pausedBy
         case firstWorkout
         case prescribedWorkout
         case openSession
@@ -50,6 +54,7 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(status, forKey: .status)
+        try container.encodeIfPresent(pausedBy, forKey: .pausedBy)
         try container.encode(firstWorkout, forKey: .firstWorkout)
         try container.encode(prescribedWorkout, forKey: .prescribedWorkout)
         try container.encode(openSession, forKey: .openSession)
@@ -64,6 +69,7 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
 extension StudentTodayWorkoutCardView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if status == .unknownDefaultOpenApi { return true }
+        if pausedBy == .unknownDefaultOpenApi { return true }
         return false
     }
 }

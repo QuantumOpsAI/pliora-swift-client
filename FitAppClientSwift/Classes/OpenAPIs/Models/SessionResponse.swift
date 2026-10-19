@@ -25,7 +25,11 @@ public struct SessionResponse: Codable, JSONEncodable, Hashable {
     public var accessToken: String
     public var refreshToken: String
     public var tokenType: TokenType
+    /** Instante em que o servidor emitiu este envelope, sempre em UTC. É a âncora única dos prazos: `expiresIn` e `refreshExpiresIn` são durações contadas **a partir de `issuedAt`**, nunca da recepção — o vencimento de cada credencial é `issuedAt` + a duração correspondente. Não existe par redundante de `expiresAt`: as três datas não são prazos independentes. Uma resposta recuperada por replay idempotente traz o `issuedAt` ORIGINAL da execução, e por isso não prolonga access, refresh, inatividade nem o máximo absoluto da família. */
+    public var issuedAt: Date
+    /** Duração do access token em segundos, contada de `issuedAt`: o vencimento é `issuedAt + expiresIn`, nunca a recepção mais esta duração. */
     public var expiresIn: Int
+    /** Duração do refresh token em segundos, contada de `issuedAt`: o vencimento por inatividade é `issuedAt + refreshExpiresIn`, nunca a recepção mais esta duração. */
     public var refreshExpiresIn: Int
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var sessionId: String
@@ -34,10 +38,11 @@ public struct SessionResponse: Codable, JSONEncodable, Hashable {
     /** Estado durável da jornada da conta. Não é derivado de a identidade ter sido criada ou reencontrada nesta autenticação; só muda após uma transição de onboarding real. */
     public var onboardingRequired: Bool?
 
-    public init(accessToken: String, refreshToken: String, tokenType: TokenType, expiresIn: Int, refreshExpiresIn: Int, sessionId: String, identityId: String, onboardingRequired: Bool? = nil) {
+    public init(accessToken: String, refreshToken: String, tokenType: TokenType, issuedAt: Date, expiresIn: Int, refreshExpiresIn: Int, sessionId: String, identityId: String, onboardingRequired: Bool? = nil) {
         self.accessToken = accessToken
         self.refreshToken = refreshToken
         self.tokenType = tokenType
+        self.issuedAt = issuedAt
         self.expiresIn = expiresIn
         self.refreshExpiresIn = refreshExpiresIn
         self.sessionId = sessionId
@@ -49,6 +54,7 @@ public struct SessionResponse: Codable, JSONEncodable, Hashable {
         case accessToken
         case refreshToken
         case tokenType
+        case issuedAt
         case expiresIn
         case refreshExpiresIn
         case sessionId
@@ -63,6 +69,7 @@ public struct SessionResponse: Codable, JSONEncodable, Hashable {
         try container.encode(accessToken, forKey: .accessToken)
         try container.encode(refreshToken, forKey: .refreshToken)
         try container.encode(tokenType, forKey: .tokenType)
+        try container.encode(issuedAt, forKey: .issuedAt)
         try container.encode(expiresIn, forKey: .expiresIn)
         try container.encode(refreshExpiresIn, forKey: .refreshExpiresIn)
         try container.encode(sessionId, forKey: .sessionId)

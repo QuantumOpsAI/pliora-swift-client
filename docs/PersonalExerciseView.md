@@ -13,7 +13,6 @@ Name | Type | Description | Notes
 **difficulty** | **String** | Texto de um atributo do exercício como a origem o entrega, no idioma que ela serve (&#x60;Content-Language&#x60;). Preservado como veio: o app não traduz, não reescreve e não o compara com rótulo de filtro — a relação com o filtro é o &#x60;similarQuery&#x60; do detalhe. | [optional]
 **mechanic** | **String** | Texto de um atributo do exercício como a origem o entrega, no idioma que ela serve (&#x60;Content-Language&#x60;). Preservado como veio: o app não traduz, não reescreve e não o compara com rótulo de filtro — a relação com o filtro é o &#x60;similarQuery&#x60; do detalhe. | [optional]
 **force** | **String** | Texto de um atributo do exercício como a origem o entrega, no idioma que ela serve (&#x60;Content-Language&#x60;). Preservado como veio: o app não traduz, não reescreve e não o compara com rótulo de filtro — a relação com o filtro é o &#x60;similarQuery&#x60; do detalhe. | [optional]
-**steps** | **[String]** | Passos de execução, em ordem, até 12 de 500 caracteres. O app os numera; o texto não traz numeração. Lista vazia é \&quot;sem instruções escritas\&quot;. O schema não declara &#x60;uniqueItems&#x60;: a lista é ordenada e os clientes gerados a tratariam como conjunto, de ordem instável. |
 **revision** | **String** | Revisão do exercício, opaca; o mesmo valor do &#x60;ETag&#x60; e o que &#x60;If-Match&#x60; ecoa. |
 **video** | [**PersonalExerciseVideoView**](PersonalExerciseVideoView.md) |  |
 **updatedAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. |

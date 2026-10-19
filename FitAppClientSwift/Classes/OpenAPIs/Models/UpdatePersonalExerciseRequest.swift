@@ -20,7 +20,6 @@ public struct UpdatePersonalExerciseRequest: Codable, JSONEncodable, Hashable {
     public static let difficultyRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let mechanicRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let forceRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
-    public static let stepsRule = ArrayRule(minItems: nil, maxItems: 12, uniqueItems: false)
     /** Nome do exercício, como o personal o escreveu: texto autoral preservado, sem tradução nem reescrita, e que não segue `Accept-Language`. */
     public var name: String
     /** Texto de um atributo do exercício como a origem o entrega, no idioma que ela serve (`Content-Language`). Preservado como veio: o app não traduz, não reescreve e não o compara com rótulo de filtro — a relação com o filtro é o `similarQuery` do detalhe. */
@@ -35,10 +34,8 @@ public struct UpdatePersonalExerciseRequest: Codable, JSONEncodable, Hashable {
     public var mechanic: String?
     /** Texto de um atributo do exercício como a origem o entrega, no idioma que ela serve (`Content-Language`). Preservado como veio: o app não traduz, não reescreve e não o compara com rótulo de filtro — a relação com o filtro é o `similarQuery` do detalhe. */
     public var force: String?
-    /** Passos de execução, em ordem, até 12 de 500 caracteres. O app os numera; o texto não traz numeração. Lista vazia é \"sem instruções escritas\". O schema não declara `uniqueItems`: a lista é ordenada e os clientes gerados a tratariam como conjunto, de ordem instável. */
-    public var steps: [String]?
 
-    public init(name: String, primaryMuscle: String, secondaryMuscles: [String]? = nil, equipment: String? = nil, difficulty: String? = nil, mechanic: String? = nil, force: String? = nil, steps: [String]? = nil) {
+    public init(name: String, primaryMuscle: String, secondaryMuscles: [String]? = nil, equipment: String? = nil, difficulty: String? = nil, mechanic: String? = nil, force: String? = nil) {
         self.name = name
         self.primaryMuscle = primaryMuscle
         self.secondaryMuscles = secondaryMuscles
@@ -46,7 +43,6 @@ public struct UpdatePersonalExerciseRequest: Codable, JSONEncodable, Hashable {
         self.difficulty = difficulty
         self.mechanic = mechanic
         self.force = force
-        self.steps = steps
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -57,7 +53,6 @@ public struct UpdatePersonalExerciseRequest: Codable, JSONEncodable, Hashable {
         case difficulty
         case mechanic
         case force
-        case steps
     }
 
     // Encodable protocol methods
@@ -71,6 +66,5 @@ public struct UpdatePersonalExerciseRequest: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(difficulty, forKey: .difficulty)
         try container.encodeIfPresent(mechanic, forKey: .mechanic)
         try container.encodeIfPresent(force, forKey: .force)
-        try container.encodeIfPresent(steps, forKey: .steps)
     }
 }

@@ -22,7 +22,6 @@ public struct PersonalExerciseView: Codable, JSONEncodable, Hashable {
     public static let difficultyRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let mechanicRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let forceRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
-    public static let stepsRule = ArrayRule(minItems: nil, maxItems: 12, uniqueItems: false)
     public static let revisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var exerciseId: String
@@ -43,15 +42,13 @@ public struct PersonalExerciseView: Codable, JSONEncodable, Hashable {
     public var mechanic: String?
     /** Texto de um atributo do exercício como a origem o entrega, no idioma que ela serve (`Content-Language`). Preservado como veio: o app não traduz, não reescreve e não o compara com rótulo de filtro — a relação com o filtro é o `similarQuery` do detalhe. */
     public var force: String?
-    /** Passos de execução, em ordem, até 12 de 500 caracteres. O app os numera; o texto não traz numeração. Lista vazia é \"sem instruções escritas\". O schema não declara `uniqueItems`: a lista é ordenada e os clientes gerados a tratariam como conjunto, de ordem instável. */
-    public var steps: [String]
     /** Revisão do exercício, opaca; o mesmo valor do `ETag` e o que `If-Match` ecoa. */
     public var revision: String
     public var video: PersonalExerciseVideoView
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var updatedAt: Date
 
-    public init(exerciseId: String, variantId: String, status: PersonalExerciseStatus, name: String, primaryMuscle: String, secondaryMuscles: [String]? = nil, equipment: String? = nil, difficulty: String? = nil, mechanic: String? = nil, force: String? = nil, steps: [String], revision: String, video: PersonalExerciseVideoView, updatedAt: Date) {
+    public init(exerciseId: String, variantId: String, status: PersonalExerciseStatus, name: String, primaryMuscle: String, secondaryMuscles: [String]? = nil, equipment: String? = nil, difficulty: String? = nil, mechanic: String? = nil, force: String? = nil, revision: String, video: PersonalExerciseVideoView, updatedAt: Date) {
         self.exerciseId = exerciseId
         self.variantId = variantId
         self.status = status
@@ -62,7 +59,6 @@ public struct PersonalExerciseView: Codable, JSONEncodable, Hashable {
         self.difficulty = difficulty
         self.mechanic = mechanic
         self.force = force
-        self.steps = steps
         self.revision = revision
         self.video = video
         self.updatedAt = updatedAt
@@ -79,7 +75,6 @@ public struct PersonalExerciseView: Codable, JSONEncodable, Hashable {
         case difficulty
         case mechanic
         case force
-        case steps
         case revision
         case video
         case updatedAt
@@ -99,7 +94,6 @@ public struct PersonalExerciseView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(difficulty, forKey: .difficulty)
         try container.encodeIfPresent(mechanic, forKey: .mechanic)
         try container.encodeIfPresent(force, forKey: .force)
-        try container.encode(steps, forKey: .steps)
         try container.encode(revision, forKey: .revision)
         try container.encode(video, forKey: .video)
         try container.encode(updatedAt, forKey: .updatedAt)
