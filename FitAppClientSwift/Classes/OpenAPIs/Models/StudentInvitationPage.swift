@@ -10,27 +10,36 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Página owner-only com um item por invitationId, relógio asOf servidor e cursor opaco. Não inclui itens excluídos, URL, código, token ou destino em claro. */
+/** Página owner-only com um item por invitationId, relógio asOf servidor e cursor opaco. Não inclui itens excluídos, URL, código, token ou destino em claro. &#x60;asOf&#x60;, &#x60;expiresAt&#x60; e &#x60;querySnapshotId&#x60; selam a leitura — toda página aceita da mesma continuação os repete, e uma mudança no conjunto visível invalida o cursor com 409 — nunca entrega página de leitura velha. */
 public struct StudentInvitationPage: Codable, JSONEncodable, Hashable {
 
     public static let nextCursorRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let querySnapshotIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Convites da página atual, na ordem definida pelo servidor. */
     public var items: [PersonalStudentInvitationListItemView]
     /** Token opaco de continuação. Não é offset, ID interno ou dado a ser interpretado pelo cliente. */
     public var nextCursor: String?
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var asOf: Date
+    /** Instante absoluto em que a leitura expira, fixado na primeira página e repetido nas seguintes — continuar nunca o estende. Passado dele, a continuação responde `410 CURSOR_EXPIRED` e a coleção recomeça. */
+    public var expiresAt: Date
+    /** Identificador opaco emitido pelo servidor que marca a equivalência desta leitura — dono, coleção, `query`/`status` resolvidos, locale e conteúdo autorizado. Todas as páginas da mesma continuação trazem o mesmo valor; o cliente não o calcula, não o decodifica e não o usa como autorização. */
+    public var querySnapshotId: String
 
-    public init(items: [PersonalStudentInvitationListItemView], nextCursor: String? = nil, asOf: Date) {
+    public init(items: [PersonalStudentInvitationListItemView], nextCursor: String? = nil, asOf: Date, expiresAt: Date, querySnapshotId: String) {
         self.items = items
         self.nextCursor = nextCursor
         self.asOf = asOf
+        self.expiresAt = expiresAt
+        self.querySnapshotId = querySnapshotId
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case items
         case nextCursor
         case asOf
+        case expiresAt
+        case querySnapshotId
     }
 
     // Encodable protocol methods
@@ -40,5 +49,7 @@ public struct StudentInvitationPage: Codable, JSONEncodable, Hashable {
         try container.encode(items, forKey: .items)
         try container.encodeIfPresent(nextCursor, forKey: .nextCursor)
         try container.encode(asOf, forKey: .asOf)
+        try container.encode(expiresAt, forKey: .expiresAt)
+        try container.encode(querySnapshotId, forKey: .querySnapshotId)
     }
 }

@@ -478,6 +478,64 @@ open class StudentOnboardingAPI {
     }
 
     /**
+     Ler, como personal do vínculo, a situação atual da autorização corporal do aluno
+
+     - parameter studentId: (path) Aluno do vínculo do personal autenticado.
+     - parameter relationshipId: (query) Vínculo que a leitura endereça — **obrigatório** e igual ao vínculo atual do par personal+aluno: o servidor nunca resolve outro vínculo da mesma pessoa silenciosamente. Divergente do vínculo atual é &#x60;409 ANAMNESIS_RELATIONSHIP_MISMATCH&#x60;; ID que não alcança um vínculo deste par é &#x60;404&#x60;, indistinguível de aluno inexistente.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getPersonalStudentBodyAuthorization(studentId: String, relationshipId: String, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalStudentBodyAuthorizationView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getPersonalStudentBodyAuthorizationWithRequestBuilder(studentId: studentId, relationshipId: relationshipId, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Ler, como personal do vínculo, a situação atual da autorização corporal do aluno
+     - GET /personal/students/{studentId}/body-authorization
+     - Leitura sem efeito colateral, autorizada somente ao personal do vínculo **ativo** com o aluno do path, e reautorizada a cada chamada (`DOC-STUDENT-JOURNEY-BODY-TECH` §2). Publica **somente a situação atual pertinente**: vínculo, scope `MANUAL_BODY_DATA`, `decision`, `effectiveAccess`, `revision`, `asOf` e a única ação permitida ao personal — `ADVISE_STUDENT`, orientar o aluno. O personal **não concede nem altera** esta autorização e nenhuma resposta daqui a presume: a escolha é ato exclusivo do aluno na rota dele. Nunca viajam `presentationId`, texto apresentado, digest, prova do ato, instante nem identidade do autor, e nenhum consentimento por outros pessoais. `relationshipId` na query é **obrigatório** e precisa ser o vínculo atual com o aluno do path — um vínculo anterior do mesmo par, ou qualquer ID divergente do resolvido, responde `409 ANAMNESIS_RELATIONSHIP_MISMATCH` e nada se resolve silenciosamente; ID que não alcança um vínculo deste par responde `404`, indistinguível de aluno inexistente ou de outra relação. Vínculo pausado é `403 RELATIONSHIP_PAUSED`, só vínculos encerrados é `403 RELATIONSHIP_INACTIVE` e a base de compartilhamento retirada é `403 SHARING_GRANT_REQUIRED` — o mesmo predicado da leitura da anamnese. Resposta `private, no-store`: nada fica em cache que restaure, depois de uma retirada, o que deixou de ser autorizado.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter studentId: (path) Aluno do vínculo do personal autenticado.
+     - parameter relationshipId: (query) Vínculo que a leitura endereça — **obrigatório** e igual ao vínculo atual do par personal+aluno: o servidor nunca resolve outro vínculo da mesma pessoa silenciosamente. Divergente do vínculo atual é &#x60;409 ANAMNESIS_RELATIONSHIP_MISMATCH&#x60;; ID que não alcança um vínculo deste par é &#x60;404&#x60;, indistinguível de aluno inexistente.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<PersonalStudentBodyAuthorizationView>
+     */
+    open class func getPersonalStudentBodyAuthorizationWithRequestBuilder(studentId: String, relationshipId: String, acceptLanguage: String? = nil) -> RequestBuilder<PersonalStudentBodyAuthorizationView> {
+        var localVariablePath = "/personal/students/{studentId}/body-authorization"
+        let studentIdPreEscape = "\(APIHelper.mapValueToPathItem(studentId))"
+        let studentIdPostEscape = studentIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{studentId}", with: studentIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "relationshipId": (wrappedValue: relationshipId.encodeToJSON(), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PersonalStudentBodyAuthorizationView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      Ler o caso de análise vigente do próprio aluno
 
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
@@ -617,6 +675,59 @@ open class StudentOnboardingAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<StudentAnamnesisConsentView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Ler a autorização corporal específica do aluno neste vínculo
+
+     - parameter relationshipId: (path) Vínculo endereçado, o mesmo &#x60;relationshipId&#x60; da carteira (personal) ou de &#x60;getStudentRelationship&#x60; (aluno). Vínculo inexistente, alheio ou de que a conta só é parte no outro papel responde &#x60;404 RELATIONSHIP_NOT_FOUND&#x60;, indistinguível de inexistente.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getStudentBodyAuthorization(relationshipId: String, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentBodyAuthorizationView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getStudentBodyAuthorizationWithRequestBuilder(relationshipId: relationshipId, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Ler a autorização corporal específica do aluno neste vínculo
+     - GET /student/relationships/{relationshipId}/body-authorization
+     - Estado da autorização corporal específica do aluno **deste vínculo**, no scope `MANUAL_BODY_DATA` (`DOC-STUDENT-JOURNEY-BODY-TECH` §2): a `decision` gravada, a `effectiveAccess` reavaliada pelo servidor a cada chamada e, quando há documento configurado para o scope, a `presentation` emitida para uma nova escolha — emitida a cada leitura, vinculada a esta conta, a este vínculo, ao scope e ao locale negociado, com validade **absoluta de 15 minutos** que nenhuma consulta prorroga. Versão, texto e digest do documento são escolhidos pelo servidor; a leitura não grava decisão nenhuma — só emite a apresentação oferecida. **Recurso separado do aceite do convite.** Os três `StudentConsentType` permanecem exatamente três e nenhum deles concede, revoga nem presume esta autorização; a escolha corporal nunca é lida de outro vínculo. `effectiveAccess` é `ALLOWED` somente com vínculo `ACTIVE`, relação e atores atuais, base de compartilhamento vigente e `decision` `GRANTED`; `UNAVAILABLE` significa ausência de documento configurado — não é `DECLINED` nem autorização presumida, e a UI não habilita escolha nesse estado. `revision` e o `ETag` desta resposta são o mesmo valor e são o `If-Match` que `setStudentBodyAuthorization` exige: o estado inicial `NOT_DECIDED` responde revisão `0` com `ETag` próprio, emitido aqui. Vínculo `PAUSED` responde `200` — a gestão da retirada continua nele — e `ENDED` responde `200` com o registro preservado e permissão `DENIED`: o que o encerramento não restaura é a coleta e a leitura de números, não o registro da escolha. Só a conta que é aluna **deste** vínculo lê; qualquer outra recebe `404`, indistinguível de inexistente.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter relationshipId: (path) Vínculo endereçado, o mesmo &#x60;relationshipId&#x60; da carteira (personal) ou de &#x60;getStudentRelationship&#x60; (aluno). Vínculo inexistente, alheio ou de que a conta só é parte no outro papel responde &#x60;404 RELATIONSHIP_NOT_FOUND&#x60;, indistinguível de inexistente.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<StudentBodyAuthorizationView>
+     */
+    open class func getStudentBodyAuthorizationWithRequestBuilder(relationshipId: String, acceptLanguage: String? = nil) -> RequestBuilder<StudentBodyAuthorizationView> {
+        var localVariablePath = "/student/relationships/{relationshipId}/body-authorization"
+        let relationshipIdPreEscape = "\(APIHelper.mapValueToPathItem(relationshipId))"
+        let relationshipIdPostEscape = relationshipIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{relationshipId}", with: relationshipIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentBodyAuthorizationView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
@@ -1258,6 +1369,68 @@ open class StudentOnboardingAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<PersonalStudentAnamnesisControlsView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Registrar a escolha explícita do aluno sobre dados corporais manuais
+
+     - parameter relationshipId: (path) Vínculo endereçado, o mesmo &#x60;relationshipId&#x60; da carteira (personal) ou de &#x60;getStudentRelationship&#x60; (aluno). Vínculo inexistente, alheio ou de que a conta só é parte no outro papel responde &#x60;404 RELATIONSHIP_NOT_FOUND&#x60;, indistinguível de inexistente.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; exato da **autorização corporal específica** deste vínculo — o mesmo valor de &#x60;revision&#x60; emitido por &#x60;getStudentBodyAuthorization&#x60; ou pelo último &#x60;setStudentBodyAuthorization&#x60;, enviado verbatim. Não é o &#x60;ETag&#x60; do vínculo nem o do rascunho da anamnese, e nunca se deriva de &#x60;revision&#x60;. O curinga &#x60;*&#x60; não é elegível — quem nunca leu o recurso também o enviaria, e derrubaria a precondição —; ausente, vazio ou &#x60;*&#x60; é &#x60;428 PRECONDITION_REQUIRED&#x60; e divergente é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter setStudentBodyAuthorizationRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func setStudentBodyAuthorization(relationshipId: String, idempotencyKey: String, ifMatch: String, setStudentBodyAuthorizationRequest: SetStudentBodyAuthorizationRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentBodyAuthorizationView?, _ error: Error?) -> Void)) -> RequestTask {
+        return setStudentBodyAuthorizationWithRequestBuilder(relationshipId: relationshipId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, setStudentBodyAuthorizationRequest: setStudentBodyAuthorizationRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Registrar a escolha explícita do aluno sobre dados corporais manuais
+     - PUT /student/relationships/{relationshipId}/body-authorization
+     - Grava a escolha explícita do aluno deste vínculo sobre o scope `MANUAL_BODY_DATA` (`DOC-STUDENT-JOURNEY-BODY-TECH` §2). O corpo fecha com `relationshipId`, `scope` e `decision` — `GRANTED` ou `DECLINED`, porque `NOT_DECIDED` é o **estado inicial**, nunca um ato que se escreve. `GRANTED` exige o `presentationId` de uma apresentação emitida por `getStudentBodyAuthorization` à mesma conta, vínculo, scope e locale, ainda válida e do documento ainda aceitável: ausente ou desconhecida responde `409 BODY_AUTHORIZATION_DOCUMENT_UNAVAILABLE`; apresentação expirada, superada ou de vínculo, scope, locale ou documento diverso responde `409 BODY_AUTHORIZATION_PRESENTATION_CHANGED` — texto atualizado exige nova leitura e nova escolha explícita, **nunca grant presumido**. `DECLINED` não exige documento novo: ninguém precisa aceitar texto para retirar acesso. `Idempotency-Key` é obrigatória, escopada a ator+vínculo+operação, e `If-Match` carrega o `ETag` **deste recurso** — nunca o do vínculo nem o do rascunho da anamnese —; ausente, vazio ou `*` é `428 PRECONDITION_REQUIRED`, divergente é `412 PRECONDITION_FAILED` com `currentRevision`. A repetição confirmada é reautorizada no estado atual antes de devolver o resultado guardado, e uma retirada que obteve o lock antes vence uma escrita concorrente. `GRANTED` exige vínculo `ACTIVE`; `DECLINED` continua possível em `PAUSED`; vínculo `ENDED` não recebe ato nenhum — fora de `ACTIVE` a concessão e qualquer escrita em `ENDED` respondem `409 RELATIONSHIP_INACTIVE`. O corpo não recebe `authorId`, `acceptedAt`, texto nem digest do documento: autor e instante são do servidor, e campo forjado é `422`. O personal nunca escreve aqui: esta rota é só do aluno do vínculo. Nenhum grant importa ficha, prova ou avaliação de outro vínculo.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter relationshipId: (path) Vínculo endereçado, o mesmo &#x60;relationshipId&#x60; da carteira (personal) ou de &#x60;getStudentRelationship&#x60; (aluno). Vínculo inexistente, alheio ou de que a conta só é parte no outro papel responde &#x60;404 RELATIONSHIP_NOT_FOUND&#x60;, indistinguível de inexistente.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) &#x60;ETag&#x60; exato da **autorização corporal específica** deste vínculo — o mesmo valor de &#x60;revision&#x60; emitido por &#x60;getStudentBodyAuthorization&#x60; ou pelo último &#x60;setStudentBodyAuthorization&#x60;, enviado verbatim. Não é o &#x60;ETag&#x60; do vínculo nem o do rascunho da anamnese, e nunca se deriva de &#x60;revision&#x60;. O curinga &#x60;*&#x60; não é elegível — quem nunca leu o recurso também o enviaria, e derrubaria a precondição —; ausente, vazio ou &#x60;*&#x60; é &#x60;428 PRECONDITION_REQUIRED&#x60; e divergente é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado.
+     - parameter setStudentBodyAuthorizationRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<StudentBodyAuthorizationView>
+     */
+    open class func setStudentBodyAuthorizationWithRequestBuilder(relationshipId: String, idempotencyKey: String, ifMatch: String, setStudentBodyAuthorizationRequest: SetStudentBodyAuthorizationRequest, acceptLanguage: String? = nil) -> RequestBuilder<StudentBodyAuthorizationView> {
+        var localVariablePath = "/student/relationships/{relationshipId}/body-authorization"
+        let relationshipIdPreEscape = "\(APIHelper.mapValueToPathItem(relationshipId))"
+        let relationshipIdPostEscape = relationshipIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{relationshipId}", with: relationshipIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: setStudentBodyAuthorizationRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+            "If-Match": ifMatch.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentBodyAuthorizationView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
