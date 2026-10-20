@@ -21,7 +21,6 @@ public struct PersonalAttentionLoadDivergenceParameters: Codable, JSONEncodable,
     public static let exerciseLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let variantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let variantLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
-    public static let equipmentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let equipmentContextKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
     public var reasonCode: ReasonCode
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -32,8 +31,6 @@ public struct PersonalAttentionLoadDivergenceParameters: Codable, JSONEncodable,
     public var variantId: String
     /** Rótulo da variante, preservado sem tradução e sem substituir `variantId`. Uma variante prescrita de exercício do catálogo, que tem uma só, leva o `displayName` da prescrição; o catálogo não é guardado (ADR-0014) e nenhum nome vem dele. */
     public var variantLabel: String
-    /** Equipamento, quando ele for materialmente relevante para a comparação. Ausente quando não discrimina; ausência aqui é ausência, e nunca um equipamento padrão presumido. É a identidade do equipamento, não o `equipmentContextKey` que fecha a chave de comparabilidade — este sim é o que o relatório recebe. */
-    public var equipmentId: String?
     /** Terceiro membro da chave de comparabilidade deste item, publicado quando o contexto discrimina: o par `exerciseId` + `variantId` registra dois ou mais contextos neste vínculo e a consulta do relatório sem ele responderia `422`. Ausente quando o par tem um único contexto, que o relatório resolve sozinho. Código de máquina opaco que o cliente devolve verbatim como `equipmentContextKey` de `listPersonalStudentExerciseSessionHistory`, nunca o interpreta e nunca o inventa. */
     public var equipmentContextKey: String?
     /** Carga prescrita da sessão na unidade canônica, reusando a representação já publicada na execução. Comparação é por igualdade exata, sem tolerância. */
@@ -41,13 +38,12 @@ public struct PersonalAttentionLoadDivergenceParameters: Codable, JSONEncodable,
     /** Carga executada da sessão, na mesma unidade canônica. */
     public var performedLoad: WorkoutLoad
 
-    public init(reasonCode: ReasonCode, exerciseId: String, exerciseLabel: String, variantId: String, variantLabel: String, equipmentId: String? = nil, equipmentContextKey: String? = nil, prescribedLoad: WorkoutLoad, performedLoad: WorkoutLoad) {
+    public init(reasonCode: ReasonCode, exerciseId: String, exerciseLabel: String, variantId: String, variantLabel: String, equipmentContextKey: String? = nil, prescribedLoad: WorkoutLoad, performedLoad: WorkoutLoad) {
         self.reasonCode = reasonCode
         self.exerciseId = exerciseId
         self.exerciseLabel = exerciseLabel
         self.variantId = variantId
         self.variantLabel = variantLabel
-        self.equipmentId = equipmentId
         self.equipmentContextKey = equipmentContextKey
         self.prescribedLoad = prescribedLoad
         self.performedLoad = performedLoad
@@ -59,7 +55,6 @@ public struct PersonalAttentionLoadDivergenceParameters: Codable, JSONEncodable,
         case exerciseLabel
         case variantId
         case variantLabel
-        case equipmentId
         case equipmentContextKey
         case prescribedLoad
         case performedLoad
@@ -74,7 +69,6 @@ public struct PersonalAttentionLoadDivergenceParameters: Codable, JSONEncodable,
         try container.encode(exerciseLabel, forKey: .exerciseLabel)
         try container.encode(variantId, forKey: .variantId)
         try container.encode(variantLabel, forKey: .variantLabel)
-        try container.encodeIfPresent(equipmentId, forKey: .equipmentId)
         try container.encodeIfPresent(equipmentContextKey, forKey: .equipmentContextKey)
         try container.encode(prescribedLoad, forKey: .prescribedLoad)
         try container.encode(performedLoad, forKey: .performedLoad)

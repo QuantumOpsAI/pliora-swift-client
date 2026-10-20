@@ -152,7 +152,7 @@ open class PersonalProfileAPI {
      - Bearer Token:
        - type: http
        - name: BearerAuth
-     - responseHeaders: [Content-Language(Locale)]
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
      - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
      - returns: RequestBuilder<Void>
