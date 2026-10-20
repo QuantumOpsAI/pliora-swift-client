@@ -10,25 +10,41 @@ import Foundation
 import AnyCodable
 #endif
 
-/** A invariante correlacionada do selo, declarada como proibição e não como &#x60;if&#x60;/&#x60;then&#x60;: uma página que carrega item &#x60;PROJECTION&#x60; sem publicar o corte &#x60;asOf&#x60; é proibida. É a mesma regra que &#x60;SyncItemOrigin&#x60; já publica, escrita na forma que o gate de compatibilidade percorre — ele recursa em &#x60;allOf&#x60;, &#x60;anyOf&#x60; e &#x60;not&#x60; e nunca em &#x60;if&#x60;/&#x60;then&#x60;/&#x60;else&#x60;. */
+/** As combinações que o servidor nunca emite, declaradas como proibição e não como &#x60;if&#x60;/&#x60;then&#x60;: uma página selada como &#x60;FACT&#x60;, porque esta leitura é integralmente derivada, e uma página &#x60;PROJECTION&#x60; sem o corte &#x60;asOf&#x60; que o selo exige. A forma é a que o gate de compatibilidade percorre — ele recursa em &#x60;allOf&#x60;, &#x60;anyOf&#x60; e &#x60;not&#x60; e nunca em &#x60;if&#x60;/&#x60;then&#x60;/&#x60;else&#x60;. */
 public struct PersonalAttentionPage: Codable, JSONEncodable, Hashable {
 
+    public static let querySnapshotIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let nextCursorRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
-    /** Instante do servidor em que esta página foi calculada, obrigatório em toda leitura. Ele é o que ancora a janela móvel dos motivos de projeção, e é exigido pelo selo `PROJECTION` de `SyncItemOrigin`. */
+    /** Instante do servidor em que a leitura foi cortada, obrigatório em toda página. Ele ancora a janela móvel dos motivos de projeção e é o mesmo em todas as páginas de uma leitura aceita. */
     public var asOf: Date
-    /** Itens na ordenação total definida pela operação. Lista vazia é exatamente zero itens nesta leitura, e nunca erro, indisponibilidade ou afirmação sobre o estado de alguém. */
-    public var items: [PersonalAttentionItemView]
+    /** Selo de origem reusado sem variação. Nesta leitura é sempre `PROJECTION`: a página é um read model derivado e reconstruível, e o selo é o que torna `asOf` exigível por schema, e não só por prosa. */
+    public var origin: SyncItemOrigin
+    /** Identificador opaco da equivalência da leitura, derivado autenticamente do mesmo escopo e digest do cursor. O cliente não o calcula, não o decodifica e nunca o usa como autorização; ele só permite reconhecer que duas páginas pertencem à mesma leitura. */
+    public var querySnapshotId: String
+    /** Instante absoluto de expiração da continuação — `asOf` mais 300 segundos, fixo desde a primeira página e **nunca** prorrogado por continuação. Depois dele o cursor responde `410 CURSOR_EXPIRED`. */
+    public var expiresAt: Date
+    public var counts: PersonalAttentionQueryCounts
+    /** Grupos por vínculo na ordenação total definida pela operação. Lista vazia é exatamente zero vínculos nesta leitura, e nunca erro, indisponibilidade ou afirmação sobre o estado de alguém. */
+    public var items: [PersonalAttentionStudentGroup]
     /** Cursor opaco da próxima página, **nulo na última**. Nunca é offset, índice ou dado a ser interpretado pelo cliente. */
     public var nextCursor: String?
 
-    public init(asOf: Date, items: [PersonalAttentionItemView], nextCursor: String?) {
+    public init(asOf: Date, origin: SyncItemOrigin, querySnapshotId: String, expiresAt: Date, counts: PersonalAttentionQueryCounts, items: [PersonalAttentionStudentGroup], nextCursor: String?) {
         self.asOf = asOf
+        self.origin = origin
+        self.querySnapshotId = querySnapshotId
+        self.expiresAt = expiresAt
+        self.counts = counts
         self.items = items
         self.nextCursor = nextCursor
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case asOf
+        case origin
+        case querySnapshotId
+        case expiresAt
+        case counts
         case items
         case nextCursor
     }
@@ -38,7 +54,19 @@ public struct PersonalAttentionPage: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(asOf, forKey: .asOf)
+        try container.encode(origin, forKey: .origin)
+        try container.encode(querySnapshotId, forKey: .querySnapshotId)
+        try container.encode(expiresAt, forKey: .expiresAt)
+        try container.encode(counts, forKey: .counts)
         try container.encode(items, forKey: .items)
         try container.encode(nextCursor, forKey: .nextCursor)
+    }
+}
+
+
+extension PersonalAttentionPage: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if origin == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

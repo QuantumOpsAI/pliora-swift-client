@@ -396,15 +396,16 @@ open class StudentInvitationsAPI {
      Listar convites de aluno emitidos pelo personal
 
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter query: (query) Busca global por nome informado ou e-mail do convite, restrita aos convites do personal autenticado e combinável com &#x60;status&#x60;. Aceita 1–254 code points após trim; ausente ou vazia equivale a sem busca. O servidor normaliza o termo uma única vez e aplica o predicado ao conjunto inteiro antes do corte e da página — nunca é filtro local da página carregada. O termo novo exige leitura nova — o &#x60;query&#x60; resolvido entra no escopo do cursor. (optional)
      - parameter status: (query) Filtra pelo estágio do ciclo de vida do convite; ausente devolve todos os estágios. Não filtra pelo estado de entrega. (optional)
-     - parameter cursor: (query) Cursor opaco de continuação devolvido por uma página anterior; nunca é offset, ID interno ou dado a ser interpretado pelo cliente. (optional)
-     - parameter limit: (query) Tamanho de página solicitado pelo cliente; o padrão é 20 e o servidor impõe o máximo de 100, podendo devolver menos itens. (optional, default to 20)
+     - parameter cursor: (query) Cursor opaco de continuação devolvido por uma página anterior; nunca é offset, ID interno ou dado a ser interpretado pelo cliente. Ele autentica dono, coleção, &#x60;query&#x60;/ &#x60;status&#x60; resolvidos e locale da leitura que o emitiu, além da posição, do &#x60;asOf&#x60; e do prazo absoluto de expiração. (optional)
+     - parameter limit: (query) Tamanho de página solicitado pelo cliente; o padrão é 20 e o servidor impõe o máximo de 100, podendo devolver menos itens. Valor fora da faixa é &#x60;422 VALIDATION_ERROR&#x60;, nunca clamp silencioso. (optional, default to 20)
      - parameter apiResponseQueue: The queue on which api response is dispatched.
      - parameter completion: completion handler to receive the data and the error objects
      */
     @discardableResult
-    open class func listPersonalStudentInvitations(acceptLanguage: String? = nil, status: StudentInvitationLifecycleStatus? = nil, cursor: String? = nil, limit: Int? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentInvitationPage?, _ error: Error?) -> Void)) -> RequestTask {
-        return listPersonalStudentInvitationsWithRequestBuilder(acceptLanguage: acceptLanguage, status: status, cursor: cursor, limit: limit).execute(apiResponseQueue) { result in
+    open class func listPersonalStudentInvitations(acceptLanguage: String? = nil, query: String? = nil, status: StudentInvitationLifecycleStatus? = nil, cursor: String? = nil, limit: Int? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentInvitationPage?, _ error: Error?) -> Void)) -> RequestTask {
+        return listPersonalStudentInvitationsWithRequestBuilder(acceptLanguage: acceptLanguage, query: query, status: status, cursor: cursor, limit: limit).execute(apiResponseQueue) { result in
             switch result {
             case let .success(response):
                 completion(response.body, nil)
@@ -417,24 +418,26 @@ open class StudentInvitationsAPI {
     /**
      Listar convites de aluno emitidos pelo personal
      - GET /personal/student-invitations
-     - Página owner-only com um item por invitationId, asOf do servidor, cursor opaco e status/cursor/limit. Excluído não aparece. Sem URL/código/token/destino cru; detalhes/histórico e GET share-link autorizados são superfícies separadas. Expirado permanece visível renovável; availableActions/linkAvailability são do servidor, não relógio/cache local. REVOKED existente é fato terminal com só REMOVE e copy neutra Convite encerrado.
+     - Página owner-only com um item por invitationId, asOf do servidor, cursor opaco e query/status/cursor/limit. Excluído não aparece. Sem URL/código/token/destino cru; detalhes/histórico e GET share-link autorizados são superfícies separadas — a coleção nunca materializa link para buscar e-mail. Expirado permanece visível renovável; availableActions/linkAvailability são do servidor, não relógio/cache local. REVOKED existente é fato terminal com só REMOVE e copy neutra Convite encerrado. `query` aplica-se ao conjunto inteiro do dono ANTES de status, corte e página, casando `studentDisplayName` autorado e o e-mail convidado por substring literal da chave normalizada no servidor (trim, espaços Unicode colapsados, NFD sem marcas combinantes, casefold); `%`, `_` e `\\` não são wildcard, e a ordem publicada por envio/ID se mantém — nunca relevância de busca. O e-mail casado continua mascarado na resposta e a busca nunca alcança convite ou conta de outro dono; o termo digitado é dado sensível e não vai para métricas nem logs. O cursor autentica dono, coleção, `query`/`status` resolvidos e locale — token adulterado ou de outro dono/coleção/query/status é `422 INVALID_CURSOR` sem revelar qual vínculo falhou; mudança no conjunto visível entre páginas é `409 CURSOR_SNAPSHOT_CHANGED` sem itens; os 300 segundos absolutos da leitura são `410 CURSOR_EXPIRED` e a continuação nunca estende o prazo. Toda página de uma mesma leitura carrega o mesmo `asOf`, `expiresAt` e `querySnapshotId`.
      - Bearer Token:
        - type: http
        - name: BearerAuth
      - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter query: (query) Busca global por nome informado ou e-mail do convite, restrita aos convites do personal autenticado e combinável com &#x60;status&#x60;. Aceita 1–254 code points após trim; ausente ou vazia equivale a sem busca. O servidor normaliza o termo uma única vez e aplica o predicado ao conjunto inteiro antes do corte e da página — nunca é filtro local da página carregada. O termo novo exige leitura nova — o &#x60;query&#x60; resolvido entra no escopo do cursor. (optional)
      - parameter status: (query) Filtra pelo estágio do ciclo de vida do convite; ausente devolve todos os estágios. Não filtra pelo estado de entrega. (optional)
-     - parameter cursor: (query) Cursor opaco de continuação devolvido por uma página anterior; nunca é offset, ID interno ou dado a ser interpretado pelo cliente. (optional)
-     - parameter limit: (query) Tamanho de página solicitado pelo cliente; o padrão é 20 e o servidor impõe o máximo de 100, podendo devolver menos itens. (optional, default to 20)
+     - parameter cursor: (query) Cursor opaco de continuação devolvido por uma página anterior; nunca é offset, ID interno ou dado a ser interpretado pelo cliente. Ele autentica dono, coleção, &#x60;query&#x60;/ &#x60;status&#x60; resolvidos e locale da leitura que o emitiu, além da posição, do &#x60;asOf&#x60; e do prazo absoluto de expiração. (optional)
+     - parameter limit: (query) Tamanho de página solicitado pelo cliente; o padrão é 20 e o servidor impõe o máximo de 100, podendo devolver menos itens. Valor fora da faixa é &#x60;422 VALIDATION_ERROR&#x60;, nunca clamp silencioso. (optional, default to 20)
      - returns: RequestBuilder<StudentInvitationPage>
      */
-    open class func listPersonalStudentInvitationsWithRequestBuilder(acceptLanguage: String? = nil, status: StudentInvitationLifecycleStatus? = nil, cursor: String? = nil, limit: Int? = nil) -> RequestBuilder<StudentInvitationPage> {
+    open class func listPersonalStudentInvitationsWithRequestBuilder(acceptLanguage: String? = nil, query: String? = nil, status: StudentInvitationLifecycleStatus? = nil, cursor: String? = nil, limit: Int? = nil) -> RequestBuilder<StudentInvitationPage> {
         let localVariablePath = "/personal/student-invitations"
         let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
         let localVariableParameters: [String: Any]? = nil
 
         var localVariableUrlComponents = URLComponents(string: localVariableURLString)
         localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "query": (wrappedValue: query?.encodeToJSON(), isExplode: true),
             "status": (wrappedValue: status?.encodeToJSON(), isExplode: true),
             "cursor": (wrappedValue: cursor?.encodeToJSON(), isExplode: true),
             "limit": (wrappedValue: limit?.encodeToJSON(), isExplode: true),

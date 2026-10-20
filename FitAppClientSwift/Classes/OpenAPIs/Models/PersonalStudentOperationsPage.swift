@@ -10,22 +10,31 @@ import Foundation
 import AnyCodable
 #endif
 
-/** As combinações que o servidor nunca emite, declaradas como proibição e não como &#x60;if&#x60;/&#x60;then&#x60;: uma página selada como &#x60;FACT&#x60;, porque esta leitura é integralmente derivada, e uma página &#x60;PROJECTION&#x60; sem o corte &#x60;asOf&#x60; que o selo exige. A forma é a que o gate de compatibilidade percorre — ele recursa em &#x60;allOf&#x60;, &#x60;anyOf&#x60; e &#x60;not&#x60; e nunca em &#x60;if&#x60;/&#x60;then&#x60;/&#x60;else&#x60; — e mantém os exemplos publicados verificáveis contra o schema, como em &#x60;EntryContextView&#x60;. */
+/** As combinações que o servidor nunca emite, declaradas como proibição e não como &#x60;if&#x60;/&#x60;then&#x60;: uma página selada como &#x60;FACT&#x60;, porque esta leitura é integralmente derivada, e uma página &#x60;PROJECTION&#x60; sem o corte &#x60;asOf&#x60; que o selo exige. A forma é a que o gate de compatibilidade percorre — ele recursa em &#x60;allOf&#x60;, &#x60;anyOf&#x60; e &#x60;not&#x60; e nunca em &#x60;if&#x60;/&#x60;then&#x60;/&#x60;else&#x60;. */
 public struct PersonalStudentOperationsPage: Codable, JSONEncodable, Hashable {
 
+    public static let querySnapshotIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let nextCursorRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
-    /** Instante do servidor em que esta página foi calculada, obrigatório em toda leitura. Ele amarra cada estado a um corte, e é o que impede que uma leitura de três dias atrás e uma de três segundos atrás sejam indistinguíveis. */
+    /** Instante do servidor em que a leitura foi cortada, obrigatório em toda página. Ele amarra cada estado a um corte, e é o mesmo em todas as páginas de uma leitura aceita. */
     public var asOf: Date
-    /** Selo de origem já publicado, reusado sem variação. Nesta leitura ele é sempre `PROJECTION`, porque nada aqui é entidade armazenada: cada item é derivado dos fatos de relacionamento, anamnese, elegibilidade, atribuição e execução, e o selo `PROJECTION` é o que torna `asOf` exigível por schema, e não só por prosa. */
+    /** Selo de origem já publicado, reusado sem variação. Nesta leitura ele é sempre `PROJECTION`, porque nada aqui é entidade armazenada: cada linha é derivada dos fatos de relacionamento, anamnese, elegibilidade, atribuição e execução, e o selo `PROJECTION` é o que torna `asOf` exigível por schema, e não só por prosa. */
     public var origin: SyncItemOrigin
-    /** Vínculos ativos desta página, na ordenação total definida pela operação. Lista vazia é exatamente zero vínculos ativos nesta leitura, e nunca erro, indisponibilidade ou afirmação sobre o estado de alguém. */
-    public var items: [PersonalStudentOperationItemView]
+    /** Identificador opaco da equivalência da leitura, derivado autenticamente do mesmo escopo e digest do cursor. O cliente não o calcula, não o decodifica e nunca o usa como autorização; ele só permite reconhecer que duas páginas pertencem à mesma leitura. */
+    public var querySnapshotId: String
+    /** Instante absoluto de expiração da continuação — `asOf` mais 300 segundos, fixo desde a primeira página e **nunca** prorrogado por continuação. Depois dele o cursor responde `410 CURSOR_EXPIRED`. */
+    public var expiresAt: Date
+    public var counts: PersonalPortfolioQueryCounts
+    /** Linhas por vínculo desta página, na ordenação total definida pela operação e discriminadas por `relationshipStatus`. Lista vazia é exatamente zero vínculos que casam o recorte desta leitura, e nunca erro, indisponibilidade ou afirmação sobre o estado de alguém. */
+    public var items: [PersonalPortfolioRow]
     /** Cursor opaco da próxima página, **nulo na última**. Nunca é offset, índice ou dado a ser interpretado pelo cliente. */
     public var nextCursor: String?
 
-    public init(asOf: Date, origin: SyncItemOrigin, items: [PersonalStudentOperationItemView], nextCursor: String?) {
+    public init(asOf: Date, origin: SyncItemOrigin, querySnapshotId: String, expiresAt: Date, counts: PersonalPortfolioQueryCounts, items: [PersonalPortfolioRow], nextCursor: String?) {
         self.asOf = asOf
         self.origin = origin
+        self.querySnapshotId = querySnapshotId
+        self.expiresAt = expiresAt
+        self.counts = counts
         self.items = items
         self.nextCursor = nextCursor
     }
@@ -33,6 +42,9 @@ public struct PersonalStudentOperationsPage: Codable, JSONEncodable, Hashable {
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case asOf
         case origin
+        case querySnapshotId
+        case expiresAt
+        case counts
         case items
         case nextCursor
     }
@@ -43,6 +55,9 @@ public struct PersonalStudentOperationsPage: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(asOf, forKey: .asOf)
         try container.encode(origin, forKey: .origin)
+        try container.encode(querySnapshotId, forKey: .querySnapshotId)
+        try container.encode(expiresAt, forKey: .expiresAt)
+        try container.encode(counts, forKey: .counts)
         try container.encode(items, forKey: .items)
         try container.encode(nextCursor, forKey: .nextCursor)
     }
