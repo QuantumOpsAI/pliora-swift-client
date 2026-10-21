@@ -12,6 +12,7 @@ import AnyCodable
 
 /** Seção da anamnese. &#x60;oneOf&#x60; discriminado por &#x60;sectionKey&#x60;: cada membro fecha o próprio conteúdo com &#x60;additionalProperties: false&#x60;. **Não existe seção genérica e não existe &#x60;answers&#x60; livre**: uma &#x60;sectionKey&#x60; sem membro publicado não é aceita por este contrato. */
 public enum StudentAnamnesisSection: Codable, JSONEncodable, Hashable {
+    case typeStudentAnamnesisBodyDataSection(StudentAnamnesisBodyDataSection)
     case typeStudentAnamnesisGoalSection(StudentAnamnesisGoalSection)
     case typeStudentAnamnesisHistorySection(StudentAnamnesisHistorySection)
     case typeStudentAnamnesisReadinessFollowUpSection(StudentAnamnesisReadinessFollowUpSection)
@@ -25,6 +26,8 @@ public enum StudentAnamnesisSection: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
+        case .typeStudentAnamnesisBodyDataSection(let value):
+            try container.encode(value)
         case .typeStudentAnamnesisGoalSection(let value):
             try container.encode(value)
         case .typeStudentAnamnesisHistorySection(let value):
@@ -49,6 +52,8 @@ public enum StudentAnamnesisSection: Codable, JSONEncodable, Hashable {
         let discriminatorValue = try keyedContainer.decode(String.self, forKey: .sectionKey)
 
         switch discriminatorValue {
+        case "BODY_DATA":
+            self = .typeStudentAnamnesisBodyDataSection(try StudentAnamnesisBodyDataSection(from: decoder))
         case "GOAL":
             self = .typeStudentAnamnesisGoalSection(try StudentAnamnesisGoalSection(from: decoder))
         case "HISTORY":

@@ -7,21 +7,29 @@ Method | HTTP request | Description
 [**acknowledgePersonalStudentAnamnesisCorrection**](StudentOnboardingAPI.md#acknowledgepersonalstudentanamnesiscorrection) | **POST** /personal/students/{studentId}/anamnesis/analysis/decisions/correction-acknowledgement | Confirmar que a nova versão concluída corrige a resposta anterior
 [**answerStudentAnamnesisClarification**](StudentOnboardingAPI.md#answerstudentanamnesisclarification) | **POST** /student/anamnesis/analysis/cases/{caseId}/clarification-requests/{clarificationRequestId}/answer | Responder a pergunta de esclarecimento pendente do caso vigente
 [**completeStudentOnboarding**](StudentOnboardingAPI.md#completestudentonboarding) | **POST** /student/onboarding/complete | Concluir a anamnese funcional, fixando uma versão concluída imutável
+[**correctPersonalStudentBodyAssessment**](StudentOnboardingAPI.md#correctpersonalstudentbodyassessment) | **POST** /personal/students/{studentId}/body-assessments/{assessmentId}/corrections | Corrigir uma avaliação por substituição integral append-only, sem tocar o original
+[**createPersonalStudentBodyAssessment**](StudentOnboardingAPI.md#createpersonalstudentbodyassessment) | **POST** /personal/students/{studentId}/body-assessments | Registrar, como personal do vínculo, uma avaliação corporal manual do aluno
 [**declarePersonalStudentAnamnesisCleared**](StudentOnboardingAPI.md#declarepersonalstudentanamnesiscleared) | **POST** /personal/students/{studentId}/anamnesis/analysis/decisions/medical-declaration | Declarar que viu a liberação médica do aluno, com prova de step-up
 [**getPersonalStudentAnamnesis**](StudentOnboardingAPI.md#getpersonalstudentanamnesis) | **GET** /personal/students/{studentId}/anamnesis | Ler, como personal do vínculo, a anamnese deste vínculo
 [**getPersonalStudentAnamnesisAnalysis**](StudentOnboardingAPI.md#getpersonalstudentanamnesisanalysis) | **GET** /personal/students/{studentId}/anamnesis/analysis | Ler o caso de análise vigente da ficha deste vínculo
 [**getPersonalStudentAnamnesisControls**](StudentOnboardingAPI.md#getpersonalstudentanamnesiscontrols) | **GET** /personal/students/{studentId}/anamnesis/controls | Ler a exigência opcional e a solicitação de preenchimento da ficha deste vínculo
 [**getPersonalStudentAnamnesisVersion**](StudentOnboardingAPI.md#getpersonalstudentanamnesisversion) | **GET** /personal/students/{studentId}/anamnesis/versions/{anamnesisVersionId} | Ler o conteúdo de uma versão da ficha deste vínculo
+[**getPersonalStudentBodyAssessment**](StudentOnboardingAPI.md#getpersonalstudentbodyassessment) | **GET** /personal/students/{studentId}/body-assessments/{assessmentId} | Ler, como personal do vínculo, o registro profissional completo de uma avaliação
 [**getPersonalStudentBodyAuthorization**](StudentOnboardingAPI.md#getpersonalstudentbodyauthorization) | **GET** /personal/students/{studentId}/body-authorization | Ler, como personal do vínculo, a situação atual da autorização corporal do aluno
 [**getStudentAnamnesisAnalysis**](StudentOnboardingAPI.md#getstudentanamnesisanalysis) | **GET** /student/anamnesis/analysis | Ler o caso de análise vigente do próprio aluno
 [**getStudentAnamnesisAnalysisPending**](StudentOnboardingAPI.md#getstudentanamnesisanalysispending) | **GET** /student/anamnesis/analysis/pending | Pendência mínima da análise de anamnese para a Hoje do aluno
 [**getStudentAnamnesisConsent**](StudentOnboardingAPI.md#getstudentanamnesisconsent) | **GET** /student/anamnesis/consent | Recuperar o termo exato aceito no vínculo atual
+[**getStudentBodyAssessment**](StudentOnboardingAPI.md#getstudentbodyassessment) | **GET** /student/relationships/{relationshipId}/body-assessments/{assessmentId} | Ler, como aluno do vínculo, o registro profissional completo de uma avaliação
 [**getStudentBodyAuthorization**](StudentOnboardingAPI.md#getstudentbodyauthorization) | **GET** /student/relationships/{relationshipId}/body-authorization | Ler a autorização corporal específica do aluno neste vínculo
 [**getStudentOnboarding**](StudentOnboardingAPI.md#getstudentonboarding) | **GET** /student/onboarding | Ler a entrada do aluno — onboarding, anamnese funcional, prontidão e elegibilidade
 [**grantPersonalStudentAnamnesisExemption**](StudentOnboardingAPI.md#grantpersonalstudentanamnesisexemption) | **POST** /personal/students/{studentId}/anamnesis/analysis/decisions/professional-exemption | Assumir a responsabilidade profissional e liberar, com prova de step-up
 [**listPersonalStudentAnamnesisAnalysisActs**](StudentOnboardingAPI.md#listpersonalstudentanamnesisanalysisacts) | **GET** /personal/students/{studentId}/anamnesis/analysis/history | Histórico protegido dos atos de análise da ficha deste vínculo
+[**listPersonalStudentBodyAssessments**](StudentOnboardingAPI.md#listpersonalstudentbodyassessments) | **GET** /personal/students/{studentId}/body-assessments | Ler, como personal do vínculo, o histórico de avaliações corporais registradas
+[**listPersonalStudentBodyDeclarations**](StudentOnboardingAPI.md#listpersonalstudentbodydeclarations) | **GET** /personal/students/{studentId}/anamnesis/body-declarations | Ler, como personal do vínculo, o histórico declarado do aluno
 [**listStudentAnamnesisAnalysisActs**](StudentOnboardingAPI.md#liststudentanamnesisanalysisacts) | **GET** /student/anamnesis/analysis/history | Histórico protegido dos atos de análise do próprio aluno
 [**listStudentAnamnesisVersions**](StudentOnboardingAPI.md#liststudentanamnesisversions) | **GET** /student/anamnesis/versions | Ler o próprio acervo de versões concluídas da anamnese, de todos os vínculos
+[**listStudentBodyAssessments**](StudentOnboardingAPI.md#liststudentbodyassessments) | **GET** /student/relationships/{relationshipId}/body-assessments | Ler o histórico próprio de avaliações corporais profissionais deste vínculo
+[**listStudentBodyDeclarations**](StudentOnboardingAPI.md#liststudentbodydeclarations) | **GET** /student/anamnesis/body-declarations | Ler o próprio histórico de declarações corporais por versão integral
 [**openPersonalStudentAnamnesisAnalysis**](StudentOnboardingAPI.md#openpersonalstudentanamnesisanalysis) | **POST** /personal/students/{studentId}/anamnesis/analysis | Abrir o caso de análise da anamnese por exceção deste vínculo
 [**refusePersonalStudentAnamnesisPrescription**](StudentOnboardingAPI.md#refusepersonalstudentanamnesisprescription) | **POST** /personal/students/{studentId}/anamnesis/analysis/decisions/refusal | Registrar a decisão de não liberar nova prescrição neste vínculo
 [**requestPersonalStudentAnamnesisClarification**](StudentOnboardingAPI.md#requestpersonalstudentanamnesisclarification) | **POST** /personal/students/{studentId}/anamnesis/analysis/clarification-requests | Perguntar esclarecimento ao aluno dentro do caso de análise vigente
@@ -158,7 +166,7 @@ Name | Type | Description  | Notes
 
 Concluir a anamnese funcional, fixando uma versão concluída imutável
 
-Transforma o rascunho privado vigente em uma **versão concluída imutável**, com `If-Match` obrigatório, ecoando a mesma e única revisão desta superfície — `anamnesis.draft.revision`, publicada como `ETag` na leitura. Concluir **cria versão**; editar depois e concluir de novo cria **outra** versão e **preserva** a anterior, que continua consultável. Nenhuma versão é reescrita, apagada ou substituída em silêncio. A idempotência é **por versão, não por aluno**: repetir a mesma tentativa sobre a mesma `revision` devolve a mesma versão em vez de criar outra, e portanto produz no máximo uma notificação por versão concluída. A entrega real ao personal **não** é pós-condição desta operação e não é afirmada por ela. **Resposta canônica única, sem ramificação por idade.** Menor e adulto concluem exatamente da mesma forma. Triagem de prontidão pendente e autorização de responsável ausente **não** impedem concluir: elas aparecem apenas como motivos nomeados e acumuláveis em `prescriptionEligibility`. Não existe, aqui, resposta de \"conclusão pendente por responsável\", nem operação de autorização embutida. Concluir afirma que existe versão concluída; **não** afirma elegibilidade para prescrição. **Conclui a ficha do vínculo atual, não uma anamnese global (`DEC-PHOME-19`).** O corpo repete `relationshipId`, o vínculo dono da ficha lida; vínculo trocado depois da leitura é `409 ANAMNESIS_RELATIONSHIP_MISMATCH` e vínculo encerrado, sem outro atual, é `403 RELATIONSHIP_INACTIVE` — a ficha encerrada fica congelada, sem versão nova. Com o vínculo pausado a conclusão é aceita. A versão nasce com o aluno como autor, a ficha e o vínculo de origem, a revisão do rascunho e o instante do servidor; `versionNumber` é local à ficha. A conclusão é **única por ficha e revisão do rascunho**: duas conclusões concorrentes da mesma revisão, mesmo com chaves diferentes, devolvem a mesma versão, sem número duplicado; revisão velha é `412`, nunca last-write-wins. Nada de outra ficha conclui esta, e nenhuma versão de outra ficha a substitui. A conclusão satisfaz, no mesmo commit, a solicitação de preenchimento pendente desta ficha. A repetição reautoriza o vínculo antes de devolver o resultado guardado. Quando a ficha tem caso de análise por exceção vigente, a versão nova assume o alvo do caso **no mesmo commit**: o ato `TARGET_VERSION_SUPERSEDED` fica gravado no histórico, perguntas ainda pendentes ganham `supersededAt` e passam a recusar resposta tardia, a `revision` do caso avança — `If-Match` com a revisão anterior é `412` — e um caso pendente volta a `AWAITING_PERSONAL` sem que a razão `ANAMNESIS_ANALYSIS_PENDING` saia da elegibilidade.
+Transforma o rascunho privado vigente em uma **versão concluída imutável**, com `If-Match` obrigatório, ecoando a mesma e única revisão desta superfície — `anamnesis.draft.revision`, publicada como `ETag` na leitura. Concluir **cria versão**; editar depois e concluir de novo cria **outra** versão e **preserva** a anterior, que continua consultável. Nenhuma versão é reescrita, apagada ou substituída em silêncio. A idempotência é **por versão, não por aluno**: repetir a mesma tentativa sobre a mesma `revision` devolve a mesma versão em vez de criar outra, e portanto produz no máximo uma notificação por versão concluída. A entrega real ao personal **não** é pós-condição desta operação e não é afirmada por ela. **Resposta canônica única, sem ramificação por idade.** Menor e adulto concluem exatamente da mesma forma. Triagem de prontidão pendente e autorização de responsável ausente **não** impedem concluir: elas aparecem apenas como motivos nomeados e acumuláveis em `prescriptionEligibility`. Não existe, aqui, resposta de \"conclusão pendente por responsável\", nem operação de autorização embutida. Concluir afirma que existe versão concluída; **não** afirma elegibilidade para prescrição. **Conclui a ficha do vínculo atual, não uma anamnese global (`DEC-PHOME-19`).** O corpo repete `relationshipId`, o vínculo dono da ficha lida; vínculo trocado depois da leitura é `409 ANAMNESIS_RELATIONSHIP_MISMATCH` e vínculo encerrado, sem outro atual, é `403 RELATIONSHIP_INACTIVE` — a ficha encerrada fica congelada, sem versão nova. Com o vínculo pausado a conclusão é aceita. A versão nasce com o aluno como autor, a ficha e o vínculo de origem, a revisão do rascunho e o instante do servidor; `versionNumber` é local à ficha. A conclusão é **única por ficha e revisão do rascunho**: duas conclusões concorrentes da mesma revisão, mesmo com chaves diferentes, devolvem a mesma versão, sem número duplicado; revisão velha é `412`, nunca last-write-wins. Nada de outra ficha conclui esta, e nenhuma versão de outra ficha a substitui. A conclusão satisfaz, no mesmo commit, a solicitação de preenchimento pendente desta ficha. A repetição reautoriza o vínculo antes de devolver o resultado guardado. Quando a ficha tem caso de análise por exceção vigente, a versão nova assume o alvo do caso **no mesmo commit**: o ato `TARGET_VERSION_SUPERSEDED` fica gravado no histórico, perguntas ainda pendentes ganham `supersededAt` e passam a recusar resposta tardia, a `revision` do caso avança — `If-Match` com a revisão anterior é `412` — e um caso pendente volta a `AWAITING_PERSONAL` sem que a razão `ANAMNESIS_ANALYSIS_PENDING` saia da elegibilidade. **`BODY_DATA` na conclusão (`DOC-STUDENT-JOURNEY-BODY-TECH` §3/§5.2).** A versão integral congela o rascunho inteiro — inclusive a seção `BODY_DATA`, quando presente — e publica a declaração somente nesta transação. Um rascunho `PROVIDED` **com números** exige autorização corporal efetiva **atual**: sem ela a conclusão é recusada com `403 BODY_AUTHORIZATION_REQUIRED` — nunca concluída em silêncio com valores ocultos — e com o vínculo `PAUSED` é `409 RELATIONSHIP_INACTIVE`; nas duas recusas nada é congelado, a resposta funcional do rascunho é preservada e o aluno continua depois de descartar os números ou salvar `SKIPPED`, sem nova aceitação funcional. `BODY_DATA` ausente ou `SKIPPED` não bloqueia nada: a seção nunca entra nas faltas de `ANAMNESIS_INCOMPLETE` nem em qualquer gate de conclusão funcional.
 
 ### Example
 ```swift
@@ -195,6 +203,122 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**StudentOnboardingCompletionView**](StudentOnboardingCompletionView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **correctPersonalStudentBodyAssessment**
+```swift
+    open class func correctPersonalStudentBodyAssessment(studentId: String, assessmentId: String, idempotencyKey: String, ifMatch: String, correctPersonalStudentBodyAssessmentRequest: CorrectPersonalStudentBodyAssessmentRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: BodyAssessmentView?, _ error: Error?) -> Void)
+```
+
+Corrigir uma avaliação por substituição integral append-only, sem tocar o original
+
+Correção **append-only** da avaliação endereçada (`DOC-STUDENT-JOURNEY-BODY-TECH` §5.1): o corpo traz a **substituição integral** dos campos — omissão **não** conserva valor antigo — mais `reason`, a justificativa simples da correção de 1–200 caracteres, sem solicitar diagnóstico. O servidor cria **outro** `assessmentId`, `authorId` e `recordedAt` com `supersedesId` apontando o predecessor: o original é **imutável**, a origem `PERSONAL_MEASURED` nunca muda e a cadeia permanece linear — duas correções com chaves diferentes do mesmo predecessor terminam com uma confirmada e a perdedora recebendo `409 BODY_ASSESSMENT_SUPERSEDED`, nunca bifurcação. `Idempotency-Key` é obrigatória e `If-Match` carrega o `ETag` **do registro predecessor lido**: ausente, vazio ou `*` é `428 PRECONDITION_REQUIRED`, divergente é `412 PRECONDITION_FAILED` com `currentRevision`. A repetição confirmada é reautorizada no estado atual **antes** de servir o `201` guardado e antes de recusar a revisão que a própria primeira escrita consumiu; mesma chave com corpo diferente é `409 IDEMPOTENCY_CONFLICT`. Um personal diferente **não** corrige registro de outro vínculo — alvo fora do par é `404`. As mesmas regras fechadas de `createPersonalStudentBodyAssessment` valem para data civil, método, procedência, métricas e composição; exige vínculo `ACTIVE` e autorização corporal efetiva, e campo forjado — `origin`, `authorId`, `recordedAt`, `supersedesId` — é `422`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo do personal autenticado.
+let assessmentId = "assessmentId_example" // String | Registro profissional de avaliação corporal endereçado dentro do vínculo. ID que não alcança um registro **deste** vínculo e deste par responde `404`, indistinguível de inexistente — nenhuma resposta confirma avaliação de outro vínculo.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let ifMatch = "ifMatch_example" // String | `ETag` exato do **registro predecessor** lido — o mesmo valor de `revision` emitido por `getPersonalStudentBodyAssessment` ou pelo `201` do próprio registro, enviado verbatim. Não é o `ETag` do vínculo, da autorização corporal nem de uma coleção, e nunca se deriva de `revision`. O curinga `*` não é elegível — quem nunca leu o registro também o enviaria, e derrubaria a precondição —; ausente, vazio ou `*` é `428 PRECONDITION_REQUIRED` e divergente é `412 PRECONDITION_FAILED` com `currentRevision`, sem registro novo. O predecessor já corrigido recusa por `409 BODY_ASSESSMENT_SUPERSEDED`, não por esta precondição.
+let correctPersonalStudentBodyAssessmentRequest = CorrectPersonalStudentBodyAssessmentRequest(relationshipId: "relationshipId_example", reason: "reason_example", measuredOn: Date(), timeZone: "timeZone_example", method: BodyAssessmentMethod(), methodDescription: "methodDescription_example", _protocol: BodyAssessmentProvenance(status: BodyAssessmentProvenanceStatus(), description: "description_example"), device: nil, metrics: BodyAssessmentMetrics(weightKg: 123, heightCm: 123, waistCm: 123, hipCm: 123, chestCm: 123, leftUpperArmCm: 123, rightUpperArmCm: 123, leftThighCm: 123, rightThighCm: 123, leftCalfCm: 123, rightCalfCm: 123, bodyFatPercent: 123, fatMassKg: 123, leanMassKg: 123)) // CorrectPersonalStudentBodyAssessmentRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Corrigir uma avaliação por substituição integral append-only, sem tocar o original
+StudentOnboardingAPI.correctPersonalStudentBodyAssessment(studentId: studentId, assessmentId: assessmentId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, correctPersonalStudentBodyAssessmentRequest: correctPersonalStudentBodyAssessmentRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo do personal autenticado. |
+ **assessmentId** | **String** | Registro profissional de avaliação corporal endereçado dentro do vínculo. ID que não alcança um registro **deste** vínculo e deste par responde &#x60;404&#x60;, indistinguível de inexistente — nenhuma resposta confirma avaliação de outro vínculo. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **ifMatch** | **String** | &#x60;ETag&#x60; exato do **registro predecessor** lido — o mesmo valor de &#x60;revision&#x60; emitido por &#x60;getPersonalStudentBodyAssessment&#x60; ou pelo &#x60;201&#x60; do próprio registro, enviado verbatim. Não é o &#x60;ETag&#x60; do vínculo, da autorização corporal nem de uma coleção, e nunca se deriva de &#x60;revision&#x60;. O curinga &#x60;*&#x60; não é elegível — quem nunca leu o registro também o enviaria, e derrubaria a precondição —; ausente, vazio ou &#x60;*&#x60; é &#x60;428 PRECONDITION_REQUIRED&#x60; e divergente é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem registro novo. O predecessor já corrigido recusa por &#x60;409 BODY_ASSESSMENT_SUPERSEDED&#x60;, não por esta precondição. |
+ **correctPersonalStudentBodyAssessmentRequest** | [**CorrectPersonalStudentBodyAssessmentRequest**](CorrectPersonalStudentBodyAssessmentRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**BodyAssessmentView**](BodyAssessmentView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **createPersonalStudentBodyAssessment**
+```swift
+    open class func createPersonalStudentBodyAssessment(studentId: String, idempotencyKey: String, createPersonalStudentBodyAssessmentRequest: CreatePersonalStudentBodyAssessmentRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: BodyAssessmentView?, _ error: Error?) -> Void)
+```
+
+Registrar, como personal do vínculo, uma avaliação corporal manual do aluno
+
+Registro de uma **avaliação corporal manual** do aluno deste vínculo pelo personal autenticado (`DOC-STUDENT-JOURNEY-BODY-TECH` §4–§5.1). A autoria é do servidor: o request **nunca** recebe `origin`, `authorId`, nome de autor, `recordedAt` nem número de versão — `origin` é sempre `PERSONAL_MEASURED`, `authorId` deriva da conta autenticada e `recordedAt` é o instante UTC do servidor; campo forjado é `422`. O formulário começa vazio: nenhum número declarado pelo aluno é copiado como medição nem preenchido em background. O conjunto é **fechado**: `measuredOn` civil ISO não futura ao relógio do servidor na `timeZone` IANA enviada e validada; `method` em `ANTHROPOMETRY`, `SKINFOLDS`, `BIOIMPEDANCE` ou `OTHER` — `OTHER` exige `methodDescription` de 1–120 code points, `SKINFOLDS` exige `protocol` e `BIOIMPEDANCE` exige `device`, cada um com `status` `KNOWN` (exige `description` 1–120) ou `NOT_RECORDED` (proíbe `description`), e nunca se inventa protocolo ou aparelho; `metrics` fecha em 14 campos com unidade e limite próprios, exige **pelo menos um** valor e recusa campo desconhecido, zero, negativo, texto, notação inválida ou mais de **2 casas decimais** com `422`. Métrica de composição corporal (`bodyFatPercent`, `fatMassKg`, `leanMassKg`) exige método `SKINFOLDS`, `BIOIMPEDANCE` ou `OTHER` — nunca se produz composição a partir de peso e altura, e este contrato **não calcula soma, IMC, meta, laudo nem campo clínico livre**. `Idempotency-Key` é obrigatória, escopada a ator+vínculo+operação: a repetição confirmada é reautorizada no estado atual e devolve a resposta `201` original, sem inserir outro registro; mesma chave com corpo diferente é `409 IDEMPOTENCY_CONFLICT`. `relationshipId` do corpo precisa ser o vínculo atual do par personal+aluno — divergente é `409 ANAMNESIS_RELATIONSHIP_MISMATCH`, estrangeiro é `404`. Coleta numérica exige vínculo `ACTIVE` e autorização corporal efetiva: `PAUSED`/`ENDED` é `409 RELATIONSHIP_INACTIVE`, sem grant é `403 BODY_AUTHORIZATION_REQUIRED`, base de compartilhamento retirada é `403 SHARING_GRANT_REQUIRED`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo do personal autenticado.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let createPersonalStudentBodyAssessmentRequest = CreatePersonalStudentBodyAssessmentRequest(relationshipId: "relationshipId_example", measuredOn: Date(), timeZone: "timeZone_example", method: BodyAssessmentMethod(), methodDescription: "methodDescription_example", _protocol: BodyAssessmentProvenance(status: BodyAssessmentProvenanceStatus(), description: "description_example"), device: nil, metrics: BodyAssessmentMetrics(weightKg: 123, heightCm: 123, waistCm: 123, hipCm: 123, chestCm: 123, leftUpperArmCm: 123, rightUpperArmCm: 123, leftThighCm: 123, rightThighCm: 123, leftCalfCm: 123, rightCalfCm: 123, bodyFatPercent: 123, fatMassKg: 123, leanMassKg: 123)) // CreatePersonalStudentBodyAssessmentRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Registrar, como personal do vínculo, uma avaliação corporal manual do aluno
+StudentOnboardingAPI.createPersonalStudentBodyAssessment(studentId: studentId, idempotencyKey: idempotencyKey, createPersonalStudentBodyAssessmentRequest: createPersonalStudentBodyAssessmentRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo do personal autenticado. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **createPersonalStudentBodyAssessmentRequest** | [**CreatePersonalStudentBodyAssessmentRequest**](CreatePersonalStudentBodyAssessmentRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**BodyAssessmentView**](BodyAssessmentView.md)
 
 ### Authorization
 
@@ -272,7 +396,7 @@ Name | Type | Description  | Notes
 
 Ler, como personal do vínculo, a anamnese deste vínculo
 
-Leitura sem efeito colateral, autorizada somente ao personal do vínculo **ativo**, e reautorizada a cada chamada (`DEC-PHOME-19`). Cada novo vínculo tem a sua ficha, mesmo quando o aluno volta ao mesmo personal; a resposta fala da ficha **deste** vínculo, e de nada mais (`DEC-PHOME-20`): nenhuma versão de outra ficha é visível aqui — nem conteúdo, metadados, referência nem a existência dela. **Duas dimensões separadas, no mesmo bloco da linha operacional.** `anamnesis` publica o preenchimento da ficha deste vínculo e a referência da versão concluída mais recente dela; `authorizedVersions` publica as versões concluídas **da ficha deste vínculo** por referência; nenhuma dimensão é inferida de outra. **O que autoriza cada versão.** Toda versão legível aqui é da ficha deste vínculo, legível porque o aluno aceitou explicitamente o termo no commit do vínculo — consentimento registrado, não presumido, sem alternância. Não existe autorização de versões de outros vínculos. A autorização é aplicada **antes** de selecionar a versão mais recente, contar, ordenar e projetar metadados: o servidor nunca entrega o acervo para o app filtrar. **Antes da primeira conclusão desta ficha a resposta é apenas estado:** `currentFormState` `NO_ANAMNESIS` ou `IN_PROGRESS`, sem conteúdo, resumo, contagem, percentual, data ou prontidão do rascunho. **Depois dela** viajam a referência e o conteúdo da versão mais recente da ficha deste vínculo, em `latestCurrentVersion`. Uma edição em curso do aluno é invisível aqui e **não** devolve o estado a \"em andamento\": o personal continua vendo a última versão concluída até que outra seja concluída. Falha de leitura é erro com nova tentativa, nunca uma ausência declarada. O conteúdo de cada versão da ficha deste vínculo é lido em `getPersonalStudentAnamnesisVersion`, com o mesmo predicado. A operação existe porque a leitura profissional não cabe, de modo compatível, na projeção do próprio aluno: o ator, a autorização e o recorte projetado são outros, e colapsá-los exporia rascunho privado. Ela **não** expõe identidade, nome ou contato de responsável, **não** oferece caminho para conceder, revogar ou consultar autorização de responsável e **não** registra liberação médica ou dispensa: essas superfícies não têm contrato nesta fatia. A autorização de responsável aparece exclusivamente como motivo nomeado em `prescriptionEligibility`. Um aluno inexistente e um aluno de outra relação respondem de forma indistinguível. Vínculo pausado ou encerrado é `403` próprio, e nenhuma recusa expõe nada sobre outras fichas. Resposta `private, no-store`: nada fica em cache que restaure, depois de uma revogação, o que deixou de ser autorizado.
+Leitura sem efeito colateral, autorizada somente ao personal do vínculo **ativo**, e reautorizada a cada chamada (`DEC-PHOME-19`). Cada novo vínculo tem a sua ficha, mesmo quando o aluno volta ao mesmo personal; a resposta fala da ficha **deste** vínculo, e de nada mais (`DEC-PHOME-20`): nenhuma versão de outra ficha é visível aqui — nem conteúdo, metadados, referência nem a existência dela. **Duas dimensões separadas, no mesmo bloco da linha operacional.** `anamnesis` publica o preenchimento da ficha deste vínculo e a referência da versão concluída mais recente dela; `authorizedVersions` publica as versões concluídas **da ficha deste vínculo** por referência; nenhuma dimensão é inferida de outra. **O que autoriza cada versão.** Toda versão legível aqui é da ficha deste vínculo, legível porque o aluno aceitou explicitamente o termo no commit do vínculo — consentimento registrado, não presumido, sem alternância. Não existe autorização de versões de outros vínculos. A autorização é aplicada **antes** de selecionar a versão mais recente, contar, ordenar e projetar metadados: o servidor nunca entrega o acervo para o app filtrar. **Antes da primeira conclusão desta ficha a resposta é apenas estado:** `currentFormState` `NO_ANAMNESIS` ou `IN_PROGRESS`, sem conteúdo, resumo, contagem, percentual, data ou prontidão do rascunho. **Depois dela** viajam a referência e o conteúdo da versão mais recente da ficha deste vínculo, em `latestCurrentVersion`. Uma edição em curso do aluno é invisível aqui e **não** devolve o estado a \"em andamento\": o personal continua vendo a última versão concluída até que outra seja concluída. Falha de leitura é erro com nova tentativa, nunca uma ausência declarada. O conteúdo de cada versão da ficha deste vínculo é lido em `getPersonalStudentAnamnesisVersion`, com o mesmo predicado. A operação existe porque a leitura profissional não cabe, de modo compatível, na projeção do próprio aluno: o ator, a autorização e o recorte projetado são outros, e colapsá-los exporia rascunho privado. Ela **não** expõe identidade, nome ou contato de responsável, **não** oferece caminho para conceder, revogar ou consultar autorização de responsável e **não** registra liberação médica ou dispensa: essas superfícies não têm contrato nesta fatia. A autorização de responsável aparece exclusivamente como motivo nomeado em `prescriptionEligibility`. Um aluno inexistente e um aluno de outra relação respondem de forma indistinguível. Vínculo pausado ou encerrado é `403` próprio, e nenhuma recusa expõe nada sobre outras fichas. Resposta `private, no-store`: nada fica em cache que restaure, depois de uma revogação, o que deixou de ser autorizado. **`BODY_DATA` segue autorização própria.** A seção viaja nas versões somente quando a autorização corporal específica do vínculo (`effectiveAccess` `ALLOWED` em `getPersonalStudentBodyAuthorization`) permite a leitura na transação; sem ela o mapper a retira da versão projetada, sem flag, contagem nem marca de \"dado oculto\" — `GOAL`, `HISTORY` e `TRAINING_CONTEXT` legitimamente autorizadas seguem intactas.
 
 ### Example
 ```swift
@@ -428,7 +552,7 @@ Name | Type | Description  | Notes
 
 Ler o conteúdo de uma versão da ficha deste vínculo
 
-Conteúdo de **uma** versão concluída da ficha **deste vínculo**, relido e reautorizado a cada chamada pelo **mesmo predicado** de `getPersonalStudentAnamnesis` (`DEC-PHOME-19`): a versão é legível pelo aceite real do termo. Desde `DEC-PHOME-20` nenhuma versão de outra ficha é legível aqui, por nenhum caminho. O identificador opaco não concede acesso: versão inexistente, de outro aluno ou **de qualquer ficha que não a deste vínculo** respondem o **mesmo** `404 STUDENT_RESOURCE_NOT_FOUND`, sem confirmar existência, número ou data. Vínculo pausado ou encerrado é o `403` próprio. Rascunho nunca é legível aqui. Resposta `private, no-store`: depois de uma revogação, nenhuma releitura devolve o conteúdo antes autorizado.
+Conteúdo de **uma** versão concluída da ficha **deste vínculo**, relido e reautorizado a cada chamada pelo **mesmo predicado** de `getPersonalStudentAnamnesis` (`DEC-PHOME-19`): a versão é legível pelo aceite real do termo. Desde `DEC-PHOME-20` nenhuma versão de outra ficha é legível aqui, por nenhum caminho. O identificador opaco não concede acesso: versão inexistente, de outro aluno ou **de qualquer ficha que não a deste vínculo** respondem o **mesmo** `404 STUDENT_RESOURCE_NOT_FOUND`, sem confirmar existência, número ou data. Vínculo pausado ou encerrado é o `403` próprio. Rascunho nunca é legível aqui. Resposta `private, no-store`: depois de uma revogação, nenhuma releitura devolve o conteúdo antes autorizado. A seção `BODY_DATA` viaja somente com a autorização corporal efetiva do vínculo; sem ela a versão projetada a omite, sem flag, contagem nem marca de omissão.
 
 ### Example
 ```swift
@@ -463,6 +587,62 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**PersonalStudentAnamnesisVersionView**](PersonalStudentAnamnesisVersionView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getPersonalStudentBodyAssessment**
+```swift
+    open class func getPersonalStudentBodyAssessment(studentId: String, assessmentId: String, relationshipId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: BodyAssessmentView?, _ error: Error?) -> Void)
+```
+
+Ler, como personal do vínculo, o registro profissional completo de uma avaliação
+
+Leitura sem efeito colateral, reautorizada a cada chamada, do **registro profissional completo** de uma avaliação corporal deste vínculo (`DOC-STUDENT-JOURNEY-BODY-TECH` §4–§6): identidade, autor opaco, origem `PERSONAL_MEASURED`, `measuredOn` civil e `timeZone` originais, `recordedAt` UTC do servidor, método e procedência, números e cadeia de correção (`supersedesId`, `correctionReason`). O `ETag` desta resposta é o `revision` do registro e é o `If-Match` que `correctPersonalStudentBodyAssessment` exige sobre o predecessor — sempre o do **registro**, nunca o do vínculo nem o de uma coleção. `relationshipId` na query é **obrigatório** e precisa ser o vínculo atual do par: divergente é `409 ANAMNESIS_RELATIONSHIP_MISMATCH`, e vínculo ou `assessmentId` que não alcançam este par respondem `404`, indistinguível de inexistente. A permissão é reavaliada: base retirada é `403 SHARING_GRANT_REQUIRED`, sem grant é `403 BODY_AUTHORIZATION_REQUIRED`, `PAUSED`/`ENDED` é `409 RELATIONSHIP_INACTIVE`, sem payload corporal. Resposta `private, no-store`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo do personal autenticado.
+let assessmentId = "assessmentId_example" // String | Registro profissional de avaliação corporal endereçado dentro do vínculo. ID que não alcança um registro **deste** vínculo e deste par responde `404`, indistinguível de inexistente — nenhuma resposta confirma avaliação de outro vínculo.
+let relationshipId = "relationshipId_example" // String | Vínculo que a leitura endereça — **obrigatório** e igual ao vínculo atual do par personal+aluno: o servidor nunca resolve outro vínculo da mesma pessoa silenciosamente. Divergente do vínculo atual é `409 ANAMNESIS_RELATIONSHIP_MISMATCH`; ID que não alcança um vínculo deste par é `404`, indistinguível de aluno inexistente.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Ler, como personal do vínculo, o registro profissional completo de uma avaliação
+StudentOnboardingAPI.getPersonalStudentBodyAssessment(studentId: studentId, assessmentId: assessmentId, relationshipId: relationshipId, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo do personal autenticado. |
+ **assessmentId** | **String** | Registro profissional de avaliação corporal endereçado dentro do vínculo. ID que não alcança um registro **deste** vínculo e deste par responde &#x60;404&#x60;, indistinguível de inexistente — nenhuma resposta confirma avaliação de outro vínculo. |
+ **relationshipId** | **String** | Vínculo que a leitura endereça — **obrigatório** e igual ao vínculo atual do par personal+aluno: o servidor nunca resolve outro vínculo da mesma pessoa silenciosamente. Divergente do vínculo atual é &#x60;409 ANAMNESIS_RELATIONSHIP_MISMATCH&#x60;; ID que não alcança um vínculo deste par é &#x60;404&#x60;, indistinguível de aluno inexistente. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**BodyAssessmentView**](BodyAssessmentView.md)
 
 ### Authorization
 
@@ -667,6 +847,60 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**StudentAnamnesisConsentView**](StudentAnamnesisConsentView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStudentBodyAssessment**
+```swift
+    open class func getStudentBodyAssessment(relationshipId: String, assessmentId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: BodyAssessmentView?, _ error: Error?) -> Void)
+```
+
+Ler, como aluno do vínculo, o registro profissional completo de uma avaliação
+
+Leitura sem efeito colateral, reautorizada a cada chamada, do **registro profissional completo** de uma avaliação corporal deste vínculo (`DOC-STUDENT-JOURNEY-BODY-TECH` §4–§6): identidade, autor opaco, origem `PERSONAL_MEASURED`, `measuredOn` civil e `timeZone` originais, `recordedAt` UTC do servidor, método e procedência, os números medidos e a posição na cadeia de correção (`supersedesId`, `correctionReason`). Registro corrigido **permanece** na história e nunca é reescrito: a versão mais recente da cadeia convive com os originais imutáveis. `assessmentId` que não alcança registro deste vínculo responde `404`, indistinguível de inexistente — nenhum detalhe confirma registro de outro vínculo. A leitura de números reavalia a permissão atual: sem autorização corporal efetiva é `403 BODY_AUTHORIZATION_REQUIRED`; vínculo `PAUSED` ou `ENDED` é `409 RELATIONSHIP_INACTIVE`, sem payload corporal. O aluno não escreve registro profissional: esta resposta **não emite `ETag`** — nenhuma precondição de escrita se apoia nela. Resposta `private, no-store`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let relationshipId = "relationshipId_example" // String | Vínculo endereçado, o mesmo `relationshipId` da carteira (personal) ou de `getStudentRelationship` (aluno). Vínculo inexistente, alheio ou de que a conta só é parte no outro papel responde `404 RELATIONSHIP_NOT_FOUND`, indistinguível de inexistente.
+let assessmentId = "assessmentId_example" // String | Registro profissional de avaliação corporal endereçado dentro do vínculo. ID que não alcança um registro **deste** vínculo e deste par responde `404`, indistinguível de inexistente — nenhuma resposta confirma avaliação de outro vínculo.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Ler, como aluno do vínculo, o registro profissional completo de uma avaliação
+StudentOnboardingAPI.getStudentBodyAssessment(relationshipId: relationshipId, assessmentId: assessmentId, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **relationshipId** | **String** | Vínculo endereçado, o mesmo &#x60;relationshipId&#x60; da carteira (personal) ou de &#x60;getStudentRelationship&#x60; (aluno). Vínculo inexistente, alheio ou de que a conta só é parte no outro papel responde &#x60;404 RELATIONSHIP_NOT_FOUND&#x60;, indistinguível de inexistente. |
+ **assessmentId** | **String** | Registro profissional de avaliação corporal endereçado dentro do vínculo. ID que não alcança um registro **deste** vínculo e deste par responde &#x60;404&#x60;, indistinguível de inexistente — nenhuma resposta confirma avaliação de outro vínculo. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**BodyAssessmentView**](BodyAssessmentView.md)
 
 ### Authorization
 
@@ -895,6 +1129,122 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **listPersonalStudentBodyAssessments**
+```swift
+    open class func listPersonalStudentBodyAssessments(studentId: String, relationshipId: String, acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, completion: @escaping (_ data: BodyAssessmentPage?, _ error: Error?) -> Void)
+```
+
+Ler, como personal do vínculo, o histórico de avaliações corporais registradas
+
+Leitura sem efeito colateral, reautorizada a cada chamada, do histórico de **avaliações corporais profissionais** registradas pelo personal **neste vínculo** (`DOC-STUDENT-JOURNEY-BODY-TECH` §4–§6), autorizada somente ao personal do vínculo com o aluno do path. É uma coleção **própria da origem `PERSONAL_MEASURED`**: nunca é timeline unificada com a declaração do aluno — o histórico declarado é outra coleção, com leitura e cursor próprios, e nenhum dos dois empresta item ou continuação ao outro. A ordem é total e do servidor: `recordedAt` (UTC) **DESC** e `assessmentId` **DESC**; o `asOf` é capturado na primeira página e a seleção cobre somente registros publicados `<=asOf`, de modo que correção ou medição retrodatada posteriores ao corte não reescrevem o retrato antigo. Registros corrigidos **permanecem** na história, lidos pela cadeia de `supersedesId`. `relationshipId` na query é **obrigatório** e precisa ser o vínculo atual do par personal+aluno: um vínculo anterior do mesmo par, ou qualquer ID divergente do resolvido, responde `409 ANAMNESIS_RELATIONSHIP_MISMATCH` e nada se resolve silenciosamente; ID que não alcança um vínculo deste par responde `404`, indistinguível de aluno inexistente. A paginação é só por cursor opaco, `limit` 1–100 (padrão 20), `nextCursor` nulo na última página; o cursor autentica **ator + origem + vínculo + asOf + posição** com expiração **absoluta de 5 minutos** — origem, ator, vínculo ou coleção trocados, ou token adulterado, é `422 INVALID_CURSOR` **sem** `fieldErrors` e sem revelar qual vínculo falhou; expirado é `410 CURSOR_EXPIRED`. A permissão é reavaliada em cada página: base de compartilhamento retirada é `403 SHARING_GRANT_REQUIRED`, sem autorização corporal efetiva é `403 BODY_AUTHORIZATION_REQUIRED`, e vínculo `PAUSED` ou `ENDED` é `409 RELATIONSHIP_INACTIVE`, sem payload corporal — nenhum registro, contagem ou `total` revela o que a permissão não alcança. Resposta `private, no-store`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo do personal autenticado.
+let relationshipId = "relationshipId_example" // String | Vínculo que a leitura endereça — **obrigatório** e igual ao vínculo atual do par personal+aluno: o servidor nunca resolve outro vínculo da mesma pessoa silenciosamente. Divergente do vínculo atual é `409 ANAMNESIS_RELATIONSHIP_MISMATCH`; ID que não alcança um vínculo deste par é `404`, indistinguível de aluno inexistente.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+let cursor = "cursor_example" // String | Cursor opaco de continuação devolvido por uma página anterior desta coleção; nunca é offset, ID interno ou dado a ser interpretado pelo cliente. Ele autentica ator, origem `PERSONAL_MEASURED`, vínculo, `asOf` e posição da leitura que o emitiu, com expiração absoluta de 5 minutos: cursor de outra origem, outro ator, outro vínculo ou outra coleção é `422 INVALID_CURSOR`, e expirado é `410 CURSOR_EXPIRED`. (optional)
+let limit = 987 // Int | Tamanho de página solicitado pelo cliente; o padrão é 20 e o servidor impõe o máximo de 100, podendo devolver menos itens. Valor fora da faixa é `422 VALIDATION_ERROR`, nunca clamp silencioso. (optional) (default to 20)
+
+// Ler, como personal do vínculo, o histórico de avaliações corporais registradas
+StudentOnboardingAPI.listPersonalStudentBodyAssessments(studentId: studentId, relationshipId: relationshipId, acceptLanguage: acceptLanguage, cursor: cursor, limit: limit) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo do personal autenticado. |
+ **relationshipId** | **String** | Vínculo que a leitura endereça — **obrigatório** e igual ao vínculo atual do par personal+aluno: o servidor nunca resolve outro vínculo da mesma pessoa silenciosamente. Divergente do vínculo atual é &#x60;409 ANAMNESIS_RELATIONSHIP_MISMATCH&#x60;; ID que não alcança um vínculo deste par é &#x60;404&#x60;, indistinguível de aluno inexistente. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+ **cursor** | **String** | Cursor opaco de continuação devolvido por uma página anterior desta coleção; nunca é offset, ID interno ou dado a ser interpretado pelo cliente. Ele autentica ator, origem &#x60;PERSONAL_MEASURED&#x60;, vínculo, &#x60;asOf&#x60; e posição da leitura que o emitiu, com expiração absoluta de 5 minutos: cursor de outra origem, outro ator, outro vínculo ou outra coleção é &#x60;422 INVALID_CURSOR&#x60;, e expirado é &#x60;410 CURSOR_EXPIRED&#x60;. | [optional]
+ **limit** | **Int** | Tamanho de página solicitado pelo cliente; o padrão é 20 e o servidor impõe o máximo de 100, podendo devolver menos itens. Valor fora da faixa é &#x60;422 VALIDATION_ERROR&#x60;, nunca clamp silencioso. | [optional] [default to 20]
+
+### Return type
+
+[**BodyAssessmentPage**](BodyAssessmentPage.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **listPersonalStudentBodyDeclarations**
+```swift
+    open class func listPersonalStudentBodyDeclarations(studentId: String, relationshipId: String, acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, completion: @escaping (_ data: PersonalStudentBodyDeclarationsPage?, _ error: Error?) -> Void)
+```
+
+Ler, como personal do vínculo, o histórico declarado do aluno
+
+Histórico declarado autorizado do vínculo **atual** deste par (`DOC-STUDENT-JOURNEY-BODY-TECH` §3/§6): os mesmos itens de `listStudentBodyDeclarations` — um por versão integral concluída da ficha deste vínculo que levou `BODY_DATA` `PROVIDED`, com `anamnesisVersionId`, `versionNumber` integral, `recordId`, autor, origem `STUDENT_DECLARED`, `declaredOn`/`timeZone`, números e `completedAt`. Somente versões concluídas: **nenhuma indicação de rascunho** viaja — nem número, nem existência de edição em curso, nem `updatedAt` privado. `relationshipId` é **obrigatório** e precisa ser o vínculo atual do par: divergente é `409 ANAMNESIS_RELATIONSHIP_MISMATCH`, e ID que não alcança vínculo deste par é `404`, indistinguível de aluno inexistente. **A leitura é reautorizada a cada página.** Exige vínculo `ACTIVE` — `PAUSED`/`ENDED` é `409 RELATIONSHIP_INACTIVE`, sem payload corporal —, base de compartilhamento vigente e autorização corporal efetiva `ALLOWED`: sem ela é `403 BODY_AUTHORIZATION_REQUIRED`, e a recusa não carrega item, contagem nem sinal de \"ocultos\" — uma declaração sem permissão de leitura simplesmente não integra a página. Retirada ou pausa entre páginas recusa a continuação da mesma forma: nenhum snapshot antigo serve conteúdo depois de perdida a permissão. **Ordenação e continuação.** Items por `completedAt` DESC e `anamnesisVersionId` DESC, com `asOf` capturado na primeira página — somente registros publicados `<= asOf`. O `cursor` é opaco e autenticado: liga ator, origem `STUDENT_DECLARED`, vínculo, `asOf`, posição e expiração absoluta de 300 segundos, nunca prorrogada; cursor de outra origem, coleção, ator ou vínculo é `422` com `INVALID_CURSOR` em `fieldErrors`, e expirado é `410 CURSOR_EXPIRED`, ambos sem página. `limit` de 1 a 100, padrão 20; fora da faixa é `422`, nunca clamp.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let studentId = "studentId_example" // String | Aluno do vínculo ativo do personal autenticado.
+let relationshipId = "relationshipId_example" // String | Vínculo que a leitura endereça — **obrigatório** e igual ao vínculo atual do par personal+aluno: o servidor nunca resolve outro vínculo da mesma pessoa silenciosamente. Divergente do vínculo atual é `409 ANAMNESIS_RELATIONSHIP_MISMATCH`; ID que não alcança um vínculo deste par é `404`, indistinguível de aluno inexistente.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+let cursor = "cursor_example" // String | Cursor opaco de continuação emitido por esta operação para esta leitura; nunca é offset nem dado a ser interpretado pelo cliente. Token de outra origem, coleção, ator ou vínculo, ou adulterado, é `422` com `INVALID_CURSOR`; a expiração absoluta de 300 segundos é `410`. (optional)
+let limit = 987 // Int | Tamanho de página solicitado; o padrão é 20 e o máximo é 100. Fora da faixa é `422` com `fieldErrors` — nunca clamp silencioso. (optional) (default to 20)
+
+// Ler, como personal do vínculo, o histórico declarado do aluno
+StudentOnboardingAPI.listPersonalStudentBodyDeclarations(studentId: studentId, relationshipId: relationshipId, acceptLanguage: acceptLanguage, cursor: cursor, limit: limit) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **studentId** | **String** | Aluno do vínculo ativo do personal autenticado. |
+ **relationshipId** | **String** | Vínculo que a leitura endereça — **obrigatório** e igual ao vínculo atual do par personal+aluno: o servidor nunca resolve outro vínculo da mesma pessoa silenciosamente. Divergente do vínculo atual é &#x60;409 ANAMNESIS_RELATIONSHIP_MISMATCH&#x60;; ID que não alcança um vínculo deste par é &#x60;404&#x60;, indistinguível de aluno inexistente. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+ **cursor** | **String** | Cursor opaco de continuação emitido por esta operação para esta leitura; nunca é offset nem dado a ser interpretado pelo cliente. Token de outra origem, coleção, ator ou vínculo, ou adulterado, é &#x60;422&#x60; com &#x60;INVALID_CURSOR&#x60;; a expiração absoluta de 300 segundos é &#x60;410&#x60;. | [optional]
+ **limit** | **Int** | Tamanho de página solicitado; o padrão é 20 e o máximo é 100. Fora da faixa é &#x60;422&#x60; com &#x60;fieldErrors&#x60; — nunca clamp silencioso. | [optional] [default to 20]
+
+### Return type
+
+[**PersonalStudentBodyDeclarationsPage**](PersonalStudentBodyDeclarationsPage.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **listStudentAnamnesisAnalysisActs**
 ```swift
     open class func listStudentAnamnesisAnalysisActs(acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, completion: @escaping (_ data: StudentAnamnesisAnalysisHistoryPage?, _ error: Error?) -> Void)
@@ -987,6 +1337,118 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**StudentAnamnesisArchiveView**](StudentAnamnesisArchiveView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **listStudentBodyAssessments**
+```swift
+    open class func listStudentBodyAssessments(relationshipId: String, acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, completion: @escaping (_ data: BodyAssessmentPage?, _ error: Error?) -> Void)
+```
+
+Ler o histórico próprio de avaliações corporais profissionais deste vínculo
+
+Leitura sem efeito colateral, reautorizada a cada chamada, do histórico de **avaliações corporais profissionais** registradas **neste vínculo** (`DOC-STUDENT-JOURNEY-BODY-TECH` §4–§6), autorizada somente à conta que é aluna deste vínculo — qualquer outra recebe `404`, indistinguível de inexistente. É uma coleção **própria da origem `PERSONAL_MEASURED`**: nunca é timeline unificada com a declaração do aluno — o histórico declarado é outra coleção, com leitura e cursor próprios, e nenhum dos dois empresta item ou continuação ao outro. A ordem é total e do servidor: `recordedAt` (instante UTC de registro) **DESC** e `assessmentId` **DESC**; o `asOf` é capturado na primeira página e a seleção cobre somente registros publicados `<=asOf` — uma medição retrodatada ou uma correção posteriores ao corte entram só em leitura nova, e o retrato antigo não muda. Registros corrigidos **permanecem** na história: a cadeia de correção se lê por `supersedesId`, sem apagar o original. A paginação é só por cursor opaco, `limit` 1–100 (padrão 20), `nextCursor` nulo na última página; o cursor autentica **ator + origem + vínculo + asOf + posição** com expiração **absoluta de 5 minutos** que nenhuma página prorroga — cursor de outra origem, outro ator ou outro vínculo, adulterado ou de outra coleção é `422 INVALID_CURSOR`, opaco e sem revelar qual vínculo falhou; expirado é `410 CURSOR_EXPIRED` e a leitura recomeça. A leitura de números reavalia a permissão atual em cada página: sem autorização corporal efetiva deste vínculo é `403 BODY_AUTHORIZATION_REQUIRED`, e vínculo `PAUSED` ou `ENDED` é `409 RELATIONSHIP_INACTIVE`, **sem payload corporal** — nenhum registro, contagem ou `total` revela o que a permissão não alcança. Resposta `private, no-store`: nada fica em cache que restaure, depois de uma retirada, o que deixou de ser autorizado.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let relationshipId = "relationshipId_example" // String | Vínculo endereçado, o mesmo `relationshipId` da carteira (personal) ou de `getStudentRelationship` (aluno). Vínculo inexistente, alheio ou de que a conta só é parte no outro papel responde `404 RELATIONSHIP_NOT_FOUND`, indistinguível de inexistente.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+let cursor = "cursor_example" // String | Cursor opaco de continuação devolvido por uma página anterior desta coleção; nunca é offset, ID interno ou dado a ser interpretado pelo cliente. Ele autentica ator, origem `PERSONAL_MEASURED`, vínculo, `asOf` e posição da leitura que o emitiu, com expiração absoluta de 5 minutos: cursor de outra origem, outro ator, outro vínculo ou outra coleção é `422 INVALID_CURSOR`, e expirado é `410 CURSOR_EXPIRED`. (optional)
+let limit = 987 // Int | Tamanho de página solicitado pelo cliente; o padrão é 20 e o servidor impõe o máximo de 100, podendo devolver menos itens. Valor fora da faixa é `422 VALIDATION_ERROR`, nunca clamp silencioso. (optional) (default to 20)
+
+// Ler o histórico próprio de avaliações corporais profissionais deste vínculo
+StudentOnboardingAPI.listStudentBodyAssessments(relationshipId: relationshipId, acceptLanguage: acceptLanguage, cursor: cursor, limit: limit) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **relationshipId** | **String** | Vínculo endereçado, o mesmo &#x60;relationshipId&#x60; da carteira (personal) ou de &#x60;getStudentRelationship&#x60; (aluno). Vínculo inexistente, alheio ou de que a conta só é parte no outro papel responde &#x60;404 RELATIONSHIP_NOT_FOUND&#x60;, indistinguível de inexistente. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+ **cursor** | **String** | Cursor opaco de continuação devolvido por uma página anterior desta coleção; nunca é offset, ID interno ou dado a ser interpretado pelo cliente. Ele autentica ator, origem &#x60;PERSONAL_MEASURED&#x60;, vínculo, &#x60;asOf&#x60; e posição da leitura que o emitiu, com expiração absoluta de 5 minutos: cursor de outra origem, outro ator, outro vínculo ou outra coleção é &#x60;422 INVALID_CURSOR&#x60;, e expirado é &#x60;410 CURSOR_EXPIRED&#x60;. | [optional]
+ **limit** | **Int** | Tamanho de página solicitado pelo cliente; o padrão é 20 e o servidor impõe o máximo de 100, podendo devolver menos itens. Valor fora da faixa é &#x60;422 VALIDATION_ERROR&#x60;, nunca clamp silencioso. | [optional] [default to 20]
+
+### Return type
+
+[**BodyAssessmentPage**](BodyAssessmentPage.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **listStudentBodyDeclarations**
+```swift
+    open class func listStudentBodyDeclarations(relationshipId: String, acceptLanguage: String? = nil, cursor: String? = nil, limit: Int? = nil, completion: @escaping (_ data: StudentBodyDeclarationsPage?, _ error: Error?) -> Void)
+```
+
+Ler o próprio histórico de declarações corporais por versão integral
+
+Histórico declarado do **próprio** aluno sobre um vínculo seu (`DOC-STUDENT-JOURNEY-BODY-TECH` §3/§6): um item por versão integral concluída da ficha daquele vínculo que levou `BODY_DATA` `PROVIDED` — `anamnesisVersionId`, `versionNumber` integral da ficha, `recordId`, autor, origem `STUDENT_DECLARED`, `declaredOn`/`timeZone`, os números declarados e o `completedAt` do servidor. Não existe versão corporal paralela: a declaração é a seção congelada da versão integral, e `versionNumber` é o da ficha inteira. Versões `SKIPPED` ou sem a seção não geram item — declaração é número publicado, não a escolha de pular. **Somente versões concluídas.** Rascunho privado, edição em curso, `updatedAt` privado, campos digitados sem concluir e progresso nunca aparecem aqui — publicar é o commit da conclusão, não o salvar. `relationshipId` é **obrigatório** e endereça o vínculo dono do histórico; inexistente ou de outra conta é `404`, indistinguível. **Leitura corporal exige vínculo `ACTIVE`** (`DOC-STUDENT-JOURNEY-BODY-TECH` §7): `PAUSED` e `ENDED` respondem `409 RELATIONSHIP_INACTIVE`, sem página e sem payload corporal — o encerramento não reabre a leitura de números por rota direta, e o acervo funcional segue em `listStudentAnamnesisVersions`. **Ordenação e continuação.** Items por `completedAt` DESC e `anamnesisVersionId` DESC, com `asOf` capturado na primeira página: somente registros publicados `<= asOf` entram, e uma conclusão posterior pertence a leitura nova. O `cursor` é opaco e autenticado — liga ator, origem `STUDENT_DECLARED`, vínculo, `asOf`, posição e expiração absoluta de 300 segundos, nunca prorrogada; cursor de outra origem, ator, vínculo ou adulterado é `422` com `INVALID_CURSOR` em `fieldErrors`, e expirado é `410 CURSOR_EXPIRED`, ambos sem página. `limit` de 1 a 100, padrão 20; fora da faixa é `422`, nunca clamp. Lista vazia é ausência declarada, não indisponibilidade.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let relationshipId = "relationshipId_example" // String | Vínculo dono do histórico declarado que a leitura endereça — **obrigatório**; o servidor nunca resolve outro vínculo da mesma pessoa silenciosamente. Inexistente ou de outra conta é `404`, indistinguível.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+let cursor = "cursor_example" // String | Cursor opaco de continuação emitido por esta operação para esta leitura; nunca é offset, ID interno ou dado a ser interpretado pelo cliente. Liga ator, origem `STUDENT_DECLARED`, vínculo, `asOf`, posição e `expiresAt` — token de outro escopo ou adulterado é `422` com `INVALID_CURSOR`, e a expiração absoluta de 300 segundos é `410`. (optional)
+let limit = 987 // Int | Tamanho de página solicitado; o padrão é 20 e o máximo é 100. Fora da faixa é `422` com `fieldErrors` — nunca clamp silencioso. (optional) (default to 20)
+
+// Ler o próprio histórico de declarações corporais por versão integral
+StudentOnboardingAPI.listStudentBodyDeclarations(relationshipId: relationshipId, acceptLanguage: acceptLanguage, cursor: cursor, limit: limit) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **relationshipId** | **String** | Vínculo dono do histórico declarado que a leitura endereça — **obrigatório**; o servidor nunca resolve outro vínculo da mesma pessoa silenciosamente. Inexistente ou de outra conta é &#x60;404&#x60;, indistinguível. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+ **cursor** | **String** | Cursor opaco de continuação emitido por esta operação para esta leitura; nunca é offset, ID interno ou dado a ser interpretado pelo cliente. Liga ator, origem &#x60;STUDENT_DECLARED&#x60;, vínculo, &#x60;asOf&#x60;, posição e &#x60;expiresAt&#x60; — token de outro escopo ou adulterado é &#x60;422&#x60; com &#x60;INVALID_CURSOR&#x60;, e a expiração absoluta de 300 segundos é &#x60;410&#x60;. | [optional]
+ **limit** | **Int** | Tamanho de página solicitado; o padrão é 20 e o máximo é 100. Fora da faixa é &#x60;422&#x60; com &#x60;fieldErrors&#x60; — nunca clamp silencioso. | [optional] [default to 20]
+
+### Return type
+
+[**StudentBodyDeclarationsPage**](StudentBodyDeclarationsPage.md)
 
 ### Authorization
 
@@ -1234,7 +1696,7 @@ Name | Type | Description  | Notes
 
 Salvar uma seção tipada da anamnese no rascunho privado do aluno
 
-Grava uma seção da anamnese funcional no **rascunho privado** do aluno. Salvar **não** conclui, **não** cria versão e **não** notifica o personal; antes da primeira conclusão o personal vê somente o fato de haver anamnese em andamento. **Não existe `answers` genérico.** O corpo carrega `section`, um `oneOf` discriminado por `sectionKey`, e cada membro fecha o próprio conteúdo com `additionalProperties: false`: uma seção sem membro publicado não é aceita por este contrato. A escrita é compare-and-set: `If-Match` com a revisão do rascunho — publicada tanto em `anamnesis.draft.revision` quanto no `ETag` da leitura, que são o mesmo valor — é obrigatório e duas edições concorrentes **nunca** aplicam last-write-wins — a perdedora recebe `412 PRECONDITION_FAILED` e o rascunho do servidor permanece exatamente como estava. A seção de **triagem de prontidão** (`READINESS_SCREENING` e o seu desdobramento) tem base própria de segurança da prestação do serviço: ela **não** tem pré-condição de consentimento destacado e **não** existe família de erro de consentimento nesta operação. Uma resposta positiva na triagem **não** impede continuar nem concluir; ela altera apenas a prontidão e a elegibilidade para prescrição. O contrato publica apenas a **chave** de cada pergunta do instrumento e a versão aplicada; a redação licenciada do instrumento não trafega por este contrato. **Ficha do vínculo atual (`DEC-PHOME-19`).** O corpo repete `relationshipId`, o vínculo dono da ficha lida (`anamnesis.relationshipId`): se o vínculo foi trocado ou encerrado depois da leitura, a escrita é `409 ANAMNESIS_RELATIONSHIP_MISMATCH` e nada é gravado — nem na ficha antiga, nem na nova. A revisão do rascunho não basta para isso, porque cada ficha tem a sua. Vínculo pausado aceita a escrita; vínculo encerrado congela a ficha (`403 RELATIONSHIP_INACTIVE`). Uma edição depois da conclusão continua privada: o personal não vê sequer que ela existe. A repetição com a mesma `Idempotency-Key` reautoriza o vínculo antes de devolver o resultado guardado.
+Grava uma seção da anamnese funcional no **rascunho privado** do aluno. Salvar **não** conclui, **não** cria versão e **não** notifica o personal; antes da primeira conclusão o personal vê somente o fato de haver anamnese em andamento. **Não existe `answers` genérico.** O corpo carrega `section`, um `oneOf` discriminado por `sectionKey`, e cada membro fecha o próprio conteúdo com `additionalProperties: false`: uma seção sem membro publicado não é aceita por este contrato. A escrita é compare-and-set: `If-Match` com a revisão do rascunho — publicada tanto em `anamnesis.draft.revision` quanto no `ETag` da leitura, que são o mesmo valor — é obrigatório e duas edições concorrentes **nunca** aplicam last-write-wins — a perdedora recebe `412 PRECONDITION_FAILED` e o rascunho do servidor permanece exatamente como estava. A seção de **triagem de prontidão** (`READINESS_SCREENING` e o seu desdobramento) tem base própria de segurança da prestação do serviço: ela **não** tem pré-condição de consentimento destacado e **não** existe família de erro de consentimento nesta operação. Uma resposta positiva na triagem **não** impede continuar nem concluir; ela altera apenas a prontidão e a elegibilidade para prescrição. O contrato publica apenas a **chave** de cada pergunta do instrumento e a versão aplicada; a redação licenciada do instrumento não trafega por este contrato. **Ficha do vínculo atual (`DEC-PHOME-19`).** O corpo repete `relationshipId`, o vínculo dono da ficha lida (`anamnesis.relationshipId`): se o vínculo foi trocado ou encerrado depois da leitura, a escrita é `409 ANAMNESIS_RELATIONSHIP_MISMATCH` e nada é gravado — nem na ficha antiga, nem na nova. A revisão do rascunho não basta para isso, porque cada ficha tem a sua. Vínculo pausado aceita a escrita; vínculo encerrado congela a ficha (`403 RELATIONSHIP_INACTIVE`). Uma edição depois da conclusão continua privada: o personal não vê sequer que ela existe. A repetição com a mesma `Idempotency-Key` reautoriza o vínculo antes de devolver o resultado guardado. **Seção `BODY_DATA` (opcional, `DOC-STUDENT-JOURNEY-BODY-TECH` §3).** A escrita de `PROVIDED` **com ao menos um número** exige autorização corporal efetiva atual (`effectiveAccess` `ALLOWED` do scope `MANUAL_BODY_DATA` sobre vínculo `ACTIVE`): sem ela é `403 BODY_AUTHORIZATION_REQUIRED`, e com o vínculo `PAUSED` é `409 RELATIONSHIP_INACTIVE` — a coleta numérica para, sem payload corporal na recusa. `SKIPPED` e a limpeza explícita dos números do rascunho **continuam permitidos** ao aluno do vínculo atual mesmo em `PAUSED` ou sem autorização corporal: o guard incide sobre gravar números, nunca sobre pular ou descartar esses campos para prosseguir funcionalmente. `ENDED` congela a ficha inteira pelo `403 RELATIONSHIP_INACTIVE` já publicado. A escolha de autorização não viaja neste payload e nunca é inferida de `PROVIDED` — ela vive em `getStudentBodyAuthorization`/`setStudentBodyAuthorization`. Salvar continua alterando somente o rascunho privado: nenhum número é publicado aqui.
 
 ### Example
 ```swift
@@ -1244,7 +1706,7 @@ import FitAppClientSwift
 let sectionKey = StudentAnamnesisSectionKey() // StudentAnamnesisSectionKey | Seção endereçada. `PUT` substitui **somente** esta seção do rascunho; as demais permanecem exatamente como estavam. O `sectionKey` do corpo seleciona o membro tipado do `oneOf` e precisa ser igual a este segmento: divergir é `422 ANAMNESIS_SECTION_KEY_MISMATCH`, nunca escrita na seção errada.
 let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
 let ifMatch = "ifMatch_example" // String | ETag exata da revisão lida pelo cliente; impede last-write-wins.
-let saveStudentAnamnesisSectionRequest = SaveStudentAnamnesisSectionRequest(relationshipId: "relationshipId_example", section: StudentAnamnesisSection(sectionKey: "sectionKey_example", primaryGoal: StudentTrainingGoal(), otherGoal: "otherGoal_example", secondaryGoals: [nil], otherSecondaryGoal: "otherSecondaryGoal_example", expectedTimeframe: StudentGoalTimeframe(), instrumentVersion: "instrumentVersion_example", answers: [StudentReadinessScreeningAnswer(questionKey: StudentReadinessQuestionKey(), answer: "answer_example")], followUps: [StudentReadinessFollowUp(questionKey: nil, conditionDescription: "conditionDescription_example", controlled: false, underMedicalGuidance: false)], injuriesAndSurgeries: [StudentAnamnesisHistoryEntry(description: "description_example", occurredOn: Date())], currentLimitations: [StudentAnamnesisBodyRegionLimitation(bodyRegion: StudentBodyRegion(), intensity: "intensity_example", notes: "notes_example")], reportedConditions: [nil], medicationsInUse: [StudentAnamnesisMedicationEntry(name: "name_example", purpose: "purpose_example")], previousExperience: StudentTrainingExperience(), availableDaysPerWeek: 123, sessionDuration: DurationMinutesRange(minimum: 123, maximum: 123), trainingLocation: StudentTrainingLocation(), otherTrainingLocation: "otherTrainingLocation_example", availableEquipment: [StudentAvailableEquipment()], preferredTimeOfDay: StudentPreferredTimeOfDay())) // SaveStudentAnamnesisSectionRequest |
+let saveStudentAnamnesisSectionRequest = SaveStudentAnamnesisSectionRequest(relationshipId: "relationshipId_example", section: StudentAnamnesisSection(sectionKey: "sectionKey_example", primaryGoal: StudentTrainingGoal(), otherGoal: "otherGoal_example", secondaryGoals: [nil], otherSecondaryGoal: "otherSecondaryGoal_example", expectedTimeframe: StudentGoalTimeframe(), instrumentVersion: "instrumentVersion_example", answers: [StudentReadinessScreeningAnswer(questionKey: StudentReadinessQuestionKey(), answer: "answer_example")], followUps: [StudentReadinessFollowUp(questionKey: nil, conditionDescription: "conditionDescription_example", controlled: false, underMedicalGuidance: false)], injuriesAndSurgeries: [StudentAnamnesisHistoryEntry(description: "description_example", occurredOn: Date())], currentLimitations: [StudentAnamnesisBodyRegionLimitation(bodyRegion: StudentBodyRegion(), intensity: "intensity_example", notes: "notes_example")], reportedConditions: [nil], medicationsInUse: [StudentAnamnesisMedicationEntry(name: "name_example", purpose: "purpose_example")], previousExperience: StudentTrainingExperience(), availableDaysPerWeek: 123, sessionDuration: DurationMinutesRange(minimum: 123, maximum: 123), trainingLocation: StudentTrainingLocation(), otherTrainingLocation: "otherTrainingLocation_example", availableEquipment: [StudentAvailableEquipment()], preferredTimeOfDay: StudentPreferredTimeOfDay(), choice: "choice_example", weightKg: 123, heightCm: 123, declaredOn: Date(), timeZone: "timeZone_example")) // SaveStudentAnamnesisSectionRequest |
 let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
 
 // Salvar uma seção tipada da anamnese no rascunho privado do aluno

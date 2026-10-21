@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Conteúdo de **uma** versão concluída da ficha deste vínculo, relida e reautorizada a cada leitura pelo mesmo predicado de &#x60;getPersonalStudentAnamnesis&#x60;. O identificador opaco não concede acesso. */
+/** Conteúdo de **uma** versão concluída da ficha deste vínculo, relida e reautorizada a cada leitura pelo mesmo predicado de &#x60;getPersonalStudentAnamnesis&#x60;. O identificador opaco não concede acesso. &#x60;BODY_DATA&#x60; viaja somente com a autorização corporal efetiva do vínculo; sem ela a versão é projetada sem a seção, sem flag nem contagem de omissão. */
 public struct PersonalStudentAnamnesisVersionView: Codable, JSONEncodable, Hashable {
 
     public static let studentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
