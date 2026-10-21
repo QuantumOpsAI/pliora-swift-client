@@ -10,13 +10,14 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Seções canônicas da anamnese **funcional**. Dado corporal declarado não está nesta lista: ele depende do consentimento destacado, que permanece bloqueado, e a anamnese funcional conclui sem ele. */
+/** Seções canônicas da anamnese, na ordem publicada. &#x60;BODY_DATA&#x60; é a seção **opcional** de dado corporal declarado (&#x60;DOC-STUDENT-JOURNEY-BODY-TECH&#x60; §3), depois de &#x60;TRAINING_CONTEXT&#x60;: recebe números somente com a autorização corporal específica efetiva e nunca é exigida para concluir a ficha. O bloqueio residual é de dado corporal real, sensor e auto-coleta — não desta seção sintética. */
 public enum StudentAnamnesisSectionKey: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case goal = "GOAL"
     case readinessScreening = "READINESS_SCREENING"
     case readinessScreeningFollowUp = "READINESS_SCREENING_FOLLOW_UP"
     case history = "HISTORY"
     case trainingContext = "TRAINING_CONTEXT"
+    case bodyData = "BODY_DATA"
     case unknownDefaultOpenApi = "unknown_default_open_api"
 }
 
