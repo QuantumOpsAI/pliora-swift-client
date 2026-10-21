@@ -205,6 +205,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/ExerciseVideoReportView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExpiredChallengeProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExpiredNotificationDestination.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/FieldError.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/GrantNotificationPurposeCommand.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/GrantPersonalStudentAnamnesisExemptionRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/HealthView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/IdentityContextResponse.swift
@@ -251,6 +252,10 @@ FitAppClientSwift/Classes/OpenAPIs/Models/NotificationDestinationView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/NotificationEffectiveEligibility.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/NotificationPreferences.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/NotificationPreferencesView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/NotificationPurposeCategory.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/NotificationPurposeCommand.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/NotificationPurposeDocument.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/NotificationPurposeView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/NotificationQuietHours.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/NotificationWeekday.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ObservationRecordedDigestItem.swift
@@ -618,6 +623,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/ResolveExerciseReferencesRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ResolveStudentInvitationRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RestPauseInterval.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RestPeriodSyncView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/RevokeNotificationPurposeCommand.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SavePersonalPreferencesRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SavePersonalProfileRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SavePersonalSpecialtiesRequest.swift
@@ -1132,6 +1138,7 @@ docs/ExerciseVideoReportView.md
 docs/ExpiredChallengeProblemDetails.md
 docs/ExpiredNotificationDestination.md
 docs/FieldError.md
+docs/GrantNotificationPurposeCommand.md
 docs/GrantPersonalStudentAnamnesisExemptionRequest.md
 docs/HealthView.md
 docs/IdentityAPI.md
@@ -1180,6 +1187,10 @@ docs/NotificationDestinationView.md
 docs/NotificationEffectiveEligibility.md
 docs/NotificationPreferences.md
 docs/NotificationPreferencesView.md
+docs/NotificationPurposeCategory.md
+docs/NotificationPurposeCommand.md
+docs/NotificationPurposeDocument.md
+docs/NotificationPurposeView.md
 docs/NotificationQuietHours.md
 docs/NotificationWeekday.md
 docs/NotificationsAPI.md
@@ -1558,6 +1569,7 @@ docs/ResolveExerciseReferencesRequest.md
 docs/ResolveStudentInvitationRequest.md
 docs/RestPauseInterval.md
 docs/RestPeriodSyncView.md
+docs/RevokeNotificationPurposeCommand.md
 docs/SavePersonalPreferencesRequest.md
 docs/SavePersonalProfileRequest.md
 docs/SavePersonalSpecialtiesRequest.md
