@@ -120,6 +120,59 @@ open class NotificationsAPI {
     }
 
     /**
+     Ler a finalidade remota e a decisão da própria conta
+
+     - parameter category: (path)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getMyNotificationPurpose(category: NotificationPurposeCategory, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: NotificationPurposeView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getMyNotificationPurposeWithRequestBuilder(category: category, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Ler a finalidade remota e a decisão da própria conta
+     - GET /me/notification-purposes/{category}
+     - DOC-NOTIFICATIONS-TECH §16.7. Documento editorial vigente, sem leitura de conteúdo de saúde nem registro de aceite. ANALYSIS_REQUESTS conserva fluxo anterior e não é aceito neste recurso. Sem contexto autorizado somente uma decisão própria preexistente pode ser lida para revogação.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String), X-Correlation-Id(String), ETag(String)]
+     - parameter category: (path)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<NotificationPurposeView>
+     */
+    open class func getMyNotificationPurposeWithRequestBuilder(category: NotificationPurposeCategory, acceptLanguage: String? = nil) -> RequestBuilder<NotificationPurposeView> {
+        var localVariablePath = "/me/notification-purposes/{category}"
+        let categoryPreEscape = "\(APIHelper.mapValueToPathItem(category))"
+        let categoryPostEscape = categoryPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{category}", with: categoryPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<NotificationPurposeView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      getMyPushDestinations
 
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
@@ -811,6 +864,68 @@ open class NotificationsAPI {
         let localVariableRequestBuilder: RequestBuilder<NotificationDestinationView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Autorizar ou revogar uma finalidade remota específica
+
+     - parameter category: (path)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) ETag própria emitida pela leitura, entre aspas; nunca wildcard.
+     - parameter notificationPurposeCommand: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func setMyNotificationPurpose(category: NotificationPurposeCategory, idempotencyKey: String, ifMatch: String, notificationPurposeCommand: NotificationPurposeCommand, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: NotificationPurposeView?, _ error: Error?) -> Void)) -> RequestTask {
+        return setMyNotificationPurposeWithRequestBuilder(category: category, idempotencyKey: idempotencyKey, ifMatch: ifMatch, notificationPurposeCommand: notificationPurposeCommand, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Autorizar ou revogar uma finalidade remota específica
+     - PUT /me/notification-purposes/{category}
+     - DOC-NOTIFICATIONS-TECH §16.7. GRANT é ato explícito sobre documentoVersion/documentDigest emitidos no locale negociado, com contexto autorizado. REVOKE exige somente decision e não exige aceite de texto novo. Preferência e permissão OS não mudam. Documento/revisão obsoletos falham412. Revogação serializa com admissão; replay reautoriza conta/sessão e nunca reativa decisão revogada. Registros mínimos de prova seguem retenção aprovada; não é aceite dos dados de origem.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String), X-Correlation-Id(String), ETag(String)]
+     - parameter category: (path)
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) ETag própria emitida pela leitura, entre aspas; nunca wildcard.
+     - parameter notificationPurposeCommand: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<NotificationPurposeView>
+     */
+    open class func setMyNotificationPurposeWithRequestBuilder(category: NotificationPurposeCategory, idempotencyKey: String, ifMatch: String, notificationPurposeCommand: NotificationPurposeCommand, acceptLanguage: String? = nil) -> RequestBuilder<NotificationPurposeView> {
+        var localVariablePath = "/me/notification-purposes/{category}"
+        let categoryPreEscape = "\(APIHelper.mapValueToPathItem(category))"
+        let categoryPostEscape = categoryPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{category}", with: categoryPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: notificationPurposeCommand)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+            "If-Match": ifMatch.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<NotificationPurposeView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
 
     /**

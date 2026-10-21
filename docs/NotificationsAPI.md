@@ -6,6 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**deactivateMyPushDestination**](NotificationsAPI.md#deactivatemypushdestination) | **DELETE** /me/push-destinations/{installationId} | deactivateMyPushDestination
 [**getMyNotificationPreferences**](NotificationsAPI.md#getmynotificationpreferences) | **GET** /me/notification-preferences | getMyNotificationPreferences
+[**getMyNotificationPurpose**](NotificationsAPI.md#getmynotificationpurpose) | **GET** /me/notification-purposes/{category} | Ler a finalidade remota e a decisão da própria conta
 [**getMyPushDestinations**](NotificationsAPI.md#getmypushdestinations) | **GET** /me/push-destinations | getMyPushDestinations
 [**getPersonalActivityDigest**](NotificationsAPI.md#getpersonalactivitydigest) | **GET** /personal/activity-digests/{digestId} | getPersonalActivityDigest
 [**getPersonalSessionRecognition**](NotificationsAPI.md#getpersonalsessionrecognition) | **GET** /personal/students/{studentId}/sessions/{sessionId}/recognition | getPersonalSessionRecognition
@@ -18,6 +19,7 @@ Method | HTTP request | Description
 [**prepareMyPushDestinationRegistration**](NotificationsAPI.md#preparemypushdestinationregistration) | **POST** /me/push-destination-registration-contexts | prepareMyPushDestinationRegistration
 [**putPersonalSessionRecognition**](NotificationsAPI.md#putpersonalsessionrecognition) | **PUT** /personal/students/{studentId}/sessions/{sessionId}/recognition | putPersonalSessionRecognition
 [**resolveMyNotificationDestination**](NotificationsAPI.md#resolvemynotificationdestination) | **GET** /me/notifications/{notificationId}/destination | resolveMyNotificationDestination
+[**setMyNotificationPurpose**](NotificationsAPI.md#setmynotificationpurpose) | **PUT** /me/notification-purposes/{category} | Autorizar ou revogar uma finalidade remota específica
 [**updateMyNotificationPreferences**](NotificationsAPI.md#updatemynotificationpreferences) | **PUT** /me/notification-preferences | updateMyNotificationPreferences
 [**upsertMyPushDestination**](NotificationsAPI.md#upsertmypushdestination) | **PUT** /me/push-destinations/{installationId} | upsertMyPushDestination
 
@@ -116,6 +118,58 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**NotificationPreferencesView**](NotificationPreferencesView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getMyNotificationPurpose**
+```swift
+    open class func getMyNotificationPurpose(category: NotificationPurposeCategory, acceptLanguage: String? = nil, completion: @escaping (_ data: NotificationPurposeView?, _ error: Error?) -> Void)
+```
+
+Ler a finalidade remota e a decisão da própria conta
+
+DOC-NOTIFICATIONS-TECH §16.7. Documento editorial vigente, sem leitura de conteúdo de saúde nem registro de aceite. ANALYSIS_REQUESTS conserva fluxo anterior e não é aceito neste recurso. Sem contexto autorizado somente uma decisão própria preexistente pode ser lida para revogação.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let category = NotificationPurposeCategory() // NotificationPurposeCategory |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Ler a finalidade remota e a decisão da própria conta
+NotificationsAPI.getMyNotificationPurpose(category: category, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **category** | [**NotificationPurposeCategory**](.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**NotificationPurposeView**](NotificationPurposeView.md)
 
 ### Authorization
 
@@ -778,6 +832,64 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **setMyNotificationPurpose**
+```swift
+    open class func setMyNotificationPurpose(category: NotificationPurposeCategory, idempotencyKey: String, ifMatch: String, notificationPurposeCommand: NotificationPurposeCommand, acceptLanguage: String? = nil, completion: @escaping (_ data: NotificationPurposeView?, _ error: Error?) -> Void)
+```
+
+Autorizar ou revogar uma finalidade remota específica
+
+DOC-NOTIFICATIONS-TECH §16.7. GRANT é ato explícito sobre documentoVersion/documentDigest emitidos no locale negociado, com contexto autorizado. REVOKE exige somente decision e não exige aceite de texto novo. Preferência e permissão OS não mudam. Documento/revisão obsoletos falham412. Revogação serializa com admissão; replay reautoriza conta/sessão e nunca reativa decisão revogada. Registros mínimos de prova seguem retenção aprovada; não é aceite dos dados de origem.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let category = NotificationPurposeCategory() // NotificationPurposeCategory |
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let ifMatch = "ifMatch_example" // String | ETag própria emitida pela leitura, entre aspas; nunca wildcard.
+let notificationPurposeCommand = NotificationPurposeCommand(decision: "decision_example", documentVersion: "documentVersion_example", documentDigest: "documentDigest_example") // NotificationPurposeCommand |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Autorizar ou revogar uma finalidade remota específica
+NotificationsAPI.setMyNotificationPurpose(category: category, idempotencyKey: idempotencyKey, ifMatch: ifMatch, notificationPurposeCommand: notificationPurposeCommand, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **category** | [**NotificationPurposeCategory**](.md) |  |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **ifMatch** | **String** | ETag própria emitida pela leitura, entre aspas; nunca wildcard. |
+ **notificationPurposeCommand** | [**NotificationPurposeCommand**](NotificationPurposeCommand.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**NotificationPurposeView**](NotificationPurposeView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

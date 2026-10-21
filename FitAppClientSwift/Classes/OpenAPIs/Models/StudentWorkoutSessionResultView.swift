@@ -18,6 +18,7 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
         case abandoned = "ABANDONED"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
+    public typealias FirstWorkoutRecorded = Bool
     public static let sessionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let workoutNameRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let durationSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
@@ -46,6 +47,8 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
     /** `COMPLETED` ou `ABANDONED`; sessão aberta não tem resultado. `ABANDONED` é o treino descartado ou encerrado sem série executada, e o app o marca como não concluído. */
     public var status: Status
     public var endedBy: WorkoutSessionEndedBy
+    /** Marco factual NTF-04: presente somente com true quando esta é a primeira conclusão elegível da conta, considerando todo o histórico e sem reiniciar na troca de personal. Exige status COMPLETED, endedBy STUDENT e ao menos uma série COMPLETED/PARTIAL. Omitido nos demais resultados; ausência não autoriza o cliente a inferir o marco. Feedback dentro do resultado independe de permissão, consentimento ou opt-in de push e não gera envio nem novo ato. */
+    public var firstWorkoutRecorded: FirstWorkoutRecorded?
     /** Exercícios feitos (`COMPLETED`), contados pelo servidor. */
     public var exercisesDone: Int
     /** Exercícios do treino na versão da sessão. */
@@ -69,7 +72,7 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
     /** A ordem prescrita dos mesmos exercícios. Presente se e somente se `executedOrder` é. */
     public var prescribedOrder: [String]?
 
-    public init(sessionId: String, workoutName: String, localDate: Date, startedAt: Date, endedAt: Date, durationSeconds: Int, status: Status, endedBy: WorkoutSessionEndedBy, exercisesDone: Int, exercisesPlanned: Int, setsDone: Int, setsPlanned: Int, volume: [WorkoutVolumePortion], records: [StudentWorkoutSessionRecord], sessionEffort: WorkoutSessionEffort? = nil, blocks: [StudentWorkoutSessionResultBlock]? = nil, exercises: [StudentWorkoutSessionResultExercise], executedOrder: [String]? = nil, prescribedOrder: [String]? = nil) {
+    public init(sessionId: String, workoutName: String, localDate: Date, startedAt: Date, endedAt: Date, durationSeconds: Int, status: Status, endedBy: WorkoutSessionEndedBy, firstWorkoutRecorded: FirstWorkoutRecorded? = nil, exercisesDone: Int, exercisesPlanned: Int, setsDone: Int, setsPlanned: Int, volume: [WorkoutVolumePortion], records: [StudentWorkoutSessionRecord], sessionEffort: WorkoutSessionEffort? = nil, blocks: [StudentWorkoutSessionResultBlock]? = nil, exercises: [StudentWorkoutSessionResultExercise], executedOrder: [String]? = nil, prescribedOrder: [String]? = nil) {
         self.sessionId = sessionId
         self.workoutName = workoutName
         self.localDate = localDate
@@ -78,6 +81,7 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
         self.durationSeconds = durationSeconds
         self.status = status
         self.endedBy = endedBy
+        self.firstWorkoutRecorded = firstWorkoutRecorded
         self.exercisesDone = exercisesDone
         self.exercisesPlanned = exercisesPlanned
         self.setsDone = setsDone
@@ -100,6 +104,7 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
         case durationSeconds
         case status
         case endedBy
+        case firstWorkoutRecorded
         case exercisesDone
         case exercisesPlanned
         case setsDone
@@ -125,6 +130,7 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
         try container.encode(durationSeconds, forKey: .durationSeconds)
         try container.encode(status, forKey: .status)
         try container.encode(endedBy, forKey: .endedBy)
+        try container.encodeIfPresent(firstWorkoutRecorded, forKey: .firstWorkoutRecorded)
         try container.encode(exercisesDone, forKey: .exercisesDone)
         try container.encode(exercisesPlanned, forKey: .exercisesPlanned)
         try container.encode(setsDone, forKey: .setsDone)
