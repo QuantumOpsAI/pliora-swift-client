@@ -100,6 +100,8 @@ FitAppClientSwift/Classes/OpenAPIs/Models/AvatarVariantView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/AvatarView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/BodyAuthorizationEffectiveAccess.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/BodyAuthorizationScope.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/BodyDeclarationsCursorExpiredProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/BodyDeclarationsValidationProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/BodyDocumentPresentation.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/BrazilianState.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/CalculatedLoadTarget.swift
@@ -405,6 +407,9 @@ FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentBodyAuthorizationConfli
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentBodyAuthorizationForbiddenProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentBodyAuthorizationValidationProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentBodyAuthorizationView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentBodyDeclarationsConflictProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentBodyDeclarationsForbiddenProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentBodyDeclarationsPage.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentComparableExerciseKey.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentDiscomfortExecutionContextView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentDiscomfortReportView.swift
@@ -644,6 +649,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisAnalysisValidationProb
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisAnalysisView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisArchiveVersionRef.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisArchiveView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisBodyDataSection.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisBodyRegionLimitation.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisConsentView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisDraftView.swift
@@ -660,6 +666,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisStateView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisTrainingContextSection.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisVersionRef.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisVersionView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentAnamnesisWriteForbiddenProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentAvailableEquipment.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentBodyAuthorizationConflictProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentBodyAuthorizationDecision.swift
@@ -667,6 +674,10 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentBodyAuthorizationPreconditionFa
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentBodyAuthorizationPreconditionRequiredProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentBodyAuthorizationValidationProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentBodyAuthorizationView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentBodyDeclarationView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentBodyDeclarationsConflictProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentBodyDeclarationsForbiddenProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentBodyDeclarationsPage.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentBodyRegion.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentConsentDecision.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentConsentType.swift
@@ -994,6 +1005,8 @@ docs/AvatarVariantView.md
 docs/AvatarView.md
 docs/BodyAuthorizationEffectiveAccess.md
 docs/BodyAuthorizationScope.md
+docs/BodyDeclarationsCursorExpiredProblemDetails.md
+docs/BodyDeclarationsValidationProblemDetails.md
 docs/BodyDocumentPresentation.md
 docs/BrazilianState.md
 docs/CalculatedLoadTarget.md
@@ -1311,6 +1324,9 @@ docs/PersonalStudentBodyAuthorizationConflictProblemDetails.md
 docs/PersonalStudentBodyAuthorizationForbiddenProblemDetails.md
 docs/PersonalStudentBodyAuthorizationValidationProblemDetails.md
 docs/PersonalStudentBodyAuthorizationView.md
+docs/PersonalStudentBodyDeclarationsConflictProblemDetails.md
+docs/PersonalStudentBodyDeclarationsForbiddenProblemDetails.md
+docs/PersonalStudentBodyDeclarationsPage.md
 docs/PersonalStudentComparableExerciseKey.md
 docs/PersonalStudentDiscomfortExecutionContextView.md
 docs/PersonalStudentDiscomfortReportView.md
@@ -1553,6 +1569,7 @@ docs/StudentAnamnesisAnalysisValidationProblemDetails.md
 docs/StudentAnamnesisAnalysisView.md
 docs/StudentAnamnesisArchiveVersionRef.md
 docs/StudentAnamnesisArchiveView.md
+docs/StudentAnamnesisBodyDataSection.md
 docs/StudentAnamnesisBodyRegionLimitation.md
 docs/StudentAnamnesisConsentView.md
 docs/StudentAnamnesisDraftView.md
@@ -1569,6 +1586,7 @@ docs/StudentAnamnesisStateView.md
 docs/StudentAnamnesisTrainingContextSection.md
 docs/StudentAnamnesisVersionRef.md
 docs/StudentAnamnesisVersionView.md
+docs/StudentAnamnesisWriteForbiddenProblemDetails.md
 docs/StudentAvailableEquipment.md
 docs/StudentBodyAuthorizationConflictProblemDetails.md
 docs/StudentBodyAuthorizationDecision.md
@@ -1576,6 +1594,10 @@ docs/StudentBodyAuthorizationPreconditionFailedProblemDetails.md
 docs/StudentBodyAuthorizationPreconditionRequiredProblemDetails.md
 docs/StudentBodyAuthorizationValidationProblemDetails.md
 docs/StudentBodyAuthorizationView.md
+docs/StudentBodyDeclarationView.md
+docs/StudentBodyDeclarationsConflictProblemDetails.md
+docs/StudentBodyDeclarationsForbiddenProblemDetails.md
+docs/StudentBodyDeclarationsPage.md
 docs/StudentBodyRegion.md
 docs/StudentConsentDecision.md
 docs/StudentConsentType.md
