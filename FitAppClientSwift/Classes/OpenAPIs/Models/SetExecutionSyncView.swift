@@ -37,6 +37,10 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
     public var status: ExecutedSetStatus
     public var target: ExecutionTargetValues
     public var actual: WorkoutSetValues?
+    /** Copiado pelo servidor da série prescrita ao persistir a execução (`DOC-STUDENT-WORKOUT-TECH` §6.5). O cliente não o envia nem o edita. */
+    public var repsPerSide: Bool?
+    /** true quando a série for adicional acrescentada durante a sessão ou após o término (`DOC-STUDENT-WORKOUT-TECH` §2.5.1). */
+    public var isAdditional: Bool?
     /** Duração medida pelo cronômetro da série por tempo, em segundos; nunca é sobrescrita. Ausente fora da série por tempo e na série pulada. */
     public var measuredDurationSeconds: Int?
     /** Duração que o aluno corrigiu, em segundos; existe somente quando é **diferente** de `measuredDurationSeconds` e então é igual a `actual.durationSeconds`. Ausente quer dizer que o aluno não corrigiu, e nunca zero. */
@@ -51,7 +55,7 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var completedAt: Date
 
-    public init(viewType: ViewType, setExecutionId: String, exerciseExecutionId: String, prescribedSetId: String, setIndex: Int, status: ExecutedSetStatus, target: ExecutionTargetValues, actual: WorkoutSetValues?, measuredDurationSeconds: Int? = nil, adjustedDurationSeconds: Int? = nil, executedVariantId: String, equipmentInstanceId: String?, observation: String?, startedAt: Date, completedAt: Date) {
+    public init(viewType: ViewType, setExecutionId: String, exerciseExecutionId: String, prescribedSetId: String, setIndex: Int, status: ExecutedSetStatus, target: ExecutionTargetValues, actual: WorkoutSetValues?, repsPerSide: Bool? = nil, isAdditional: Bool? = nil, measuredDurationSeconds: Int? = nil, adjustedDurationSeconds: Int? = nil, executedVariantId: String, equipmentInstanceId: String?, observation: String?, startedAt: Date, completedAt: Date) {
         self.viewType = viewType
         self.setExecutionId = setExecutionId
         self.exerciseExecutionId = exerciseExecutionId
@@ -60,6 +64,8 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
         self.status = status
         self.target = target
         self.actual = actual
+        self.repsPerSide = repsPerSide
+        self.isAdditional = isAdditional
         self.measuredDurationSeconds = measuredDurationSeconds
         self.adjustedDurationSeconds = adjustedDurationSeconds
         self.executedVariantId = executedVariantId
@@ -78,6 +84,8 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
         case status
         case target
         case actual
+        case repsPerSide
+        case isAdditional
         case measuredDurationSeconds
         case adjustedDurationSeconds
         case executedVariantId
@@ -99,6 +107,8 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(status, forKey: .status)
         try container.encode(target, forKey: .target)
         try container.encode(actual, forKey: .actual)
+        try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
+        try container.encodeIfPresent(isAdditional, forKey: .isAdditional)
         try container.encodeIfPresent(measuredDurationSeconds, forKey: .measuredDurationSeconds)
         try container.encodeIfPresent(adjustedDurationSeconds, forKey: .adjustedDurationSeconds)
         try container.encode(executedVariantId, forKey: .executedVariantId)

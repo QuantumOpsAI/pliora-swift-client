@@ -5,6 +5,7 @@ All URIs are relative to */api/v1*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**abandonStudentWorkoutSession**](WorkoutExecutionAPI.md#abandonstudentworkoutsession) | **POST** /student/workout-sessions/{sessionId}/abandonment | Abandonar a sessão preservando tudo o que já foi executado
+[**addStudentExerciseSetExecution**](WorkoutExecutionAPI.md#addstudentexercisesetexecution) | **POST** /student/workout-sessions/{sessionId}/exercises/{exerciseExecutionId}/sets | Acrescentar série ao exercício após o término da sessão
 [**amendStudentSetExecution**](WorkoutExecutionAPI.md#amendstudentsetexecution) | **POST** /student/workout-sessions/{sessionId}/set-executions/{setExecutionId}/amendments | Emendar os valores executados de uma série, preservando o valor anterior
 [**completeStudentWorkoutSession**](WorkoutExecutionAPI.md#completestudentworkoutsession) | **POST** /student/workout-sessions/{sessionId}/completion | Encerrar a sessão declarando todas as pendências de orquestração
 [**confirmStudentExerciseSkip**](WorkoutExecutionAPI.md#confirmstudentexerciseskip) | **POST** /student/workout-sessions/{sessionId}/skips | Confirmar explicitamente que um exercício não será realizado
@@ -66,6 +67,64 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**WorkoutSessionSyncView**](WorkoutSessionSyncView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **addStudentExerciseSetExecution**
+```swift
+    open class func addStudentExerciseSetExecution(sessionId: String, exerciseExecutionId: String, idempotencyKey: String, addStudentExerciseSetExecutionRequest: AddStudentExerciseSetExecutionRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: StudentSetExecutionResponse?, _ error: Error?) -> Void)
+```
+
+Acrescentar série ao exercício após o término da sessão
+
+Permite ao aluno acrescentar série a mais a um exercício mesmo com a sessão no estado terminal `COMPLETED` (`DOC-STUDENT-WORKOUT` §7.3; AL12 ações secundárias, §2.5.1). A série nasce como adicional (`isAdditional: true`), com os valores iniciais da série adicional (`DOC-UX-WORKOUT-CORE-SCREENS` §8). No resumo AL12 leva a marca `a mais` e, para o personal, `registrado depois` com o instante do registro na série. **Volume da sessão:** o volume é recalculado na leitura seguinte para incorporar carga × repetições da nova série (se informada em kg ou lb com repetições declaradas). **Recordes:** os recordes da sessão e da variante (§5) são reavaliados; superando a marca anterior, o recorde é consolidado com a data civil da sessão. **Consistência:** o dia já contava como treino concluído, mantendo o status do calendário e da consistência semanal inalterados; apenas a contagem de séries executadas (`setsDone`, `completedSetCount`) é incrementada. **Imutabilidade da sessão:** o instante de término (`endedAt`) e a nota de esforço do treino (`sessionEffort`) permanecem imutáveis (Q-15). Reenviar a mesma identidade (`setExecutionId`) com o mesmo corpo devolve a execução armazenada. Reenviar a mesma identidade com conteúdo diferente é `409 EXECUTION_IDENTITY_DIVERGENT`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let sessionId = "sessionId_example" // String | Sessão do aluno autenticado, com a mesma identidade adotada em `POST /student/workout-sessions`. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+let exerciseExecutionId = "exerciseExecutionId_example" // String | Identidade da execução do exercício dentro da sessão de treino endereçada.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let addStudentExerciseSetExecutionRequest = AddStudentExerciseSetExecutionRequest(setExecutionId: "setExecutionId_example", actual: WorkoutSetValues(loadValue: 123, loadUnit: "loadUnit_example", reps: 123, durationSeconds: 123, rpe: 123), startedAt: Date(), completedAt: Date(), observation: "observation_example") // AddStudentExerciseSetExecutionRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Acrescentar série ao exercício após o término da sessão
+WorkoutExecutionAPI.addStudentExerciseSetExecution(sessionId: sessionId, exerciseExecutionId: exerciseExecutionId, idempotencyKey: idempotencyKey, addStudentExerciseSetExecutionRequest: addStudentExerciseSetExecutionRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **sessionId** | **String** | Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível. |
+ **exerciseExecutionId** | **String** | Identidade da execução do exercício dentro da sessão de treino endereçada. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **addStudentExerciseSetExecutionRequest** | [**AddStudentExerciseSetExecutionRequest**](AddStudentExerciseSetExecutionRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**StudentSetExecutionResponse**](StudentSetExecutionResponse.md)
 
 ### Authorization
 

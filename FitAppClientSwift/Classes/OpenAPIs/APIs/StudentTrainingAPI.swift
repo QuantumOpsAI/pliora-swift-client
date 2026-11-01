@@ -807,6 +807,60 @@ open class StudentTrainingAPI {
     }
 
     /**
+     Marcar treino como feito depois
+
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter recordStudentWorkoutSessionRetroactivelyRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func recordStudentWorkoutSessionRetroactively(idempotencyKey: String, recordStudentWorkoutSessionRetroactivelyRequest: RecordStudentWorkoutSessionRetroactivelyRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: WorkoutSessionSyncView?, _ error: Error?) -> Void)) -> RequestTask {
+        return recordStudentWorkoutSessionRetroactivelyWithRequestBuilder(idempotencyKey: idempotencyKey, recordStudentWorkoutSessionRetroactivelyRequest: recordStudentWorkoutSessionRetroactivelyRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Marcar treino como feito depois
+     - POST /student/workout-sessions/retroactive
+     - Command do CTA \"Marcar como feito\" no histórico (AL14, §3.5; `DOC-STUDENT-WORKOUT` §6.7). Permite ao aluno registrar retroativamente um treino previsto em data civil passada que não possui sessão concluída. **Regra LE-9 (um treino concluído por dia).** Se a data informada já possuir uma sessão no estado `COMPLETED`, a operação é recusada com `409 SESSION_ALREADY_COMPLETED_FOR_DATE`. A interface não oferece a ação para dias já concluídos. **Sessão aberta.** Se o aluno já tiver uma sessão aberta no momento da chamada, a operação é recusada com `409 ACTIVE_SESSION_EXISTS`, carregando o `sessionId` da sessão aberta para o app levar à retomada. **Prescrição ativa.** Exige relacionamento ativo e versão de prescrição vigente na data solicitada; com vínculo inativo ou pausado responde `403 RELATIONSHIP_INACTIVE` ou `403 RELATIONSHIP_PAUSED`, e sem prescrição ativa `409 NO_ACTIVE_PRESCRIPTION`. **Validação temporal.** `date` no futuro responde `422 DATE_IN_FUTURE`; data anterior ao início do vínculo ativo responde `422 DATE_BEFORE_RELATIONSHIP_START`. **Idempotência.** O header `Idempotency-Key` é obrigatório. O reenvio com a mesma chave responde `200 OK` com a representação da sessão já gravada (`WorkoutSessionSyncView`). **Sessão prévia descartada ou interrompida.** Se o dia já possuía sessão `ABANDONED` ou `AUTO_AFTER_INTERRUPTION`, fatos já registrados (séries concluídas/parciais) são integralmente preservados com seus valores; séries prescritas sem fato recebem os valores prescritos marcados como não digitados (`DOC-WORKOUT-EXECUTION-SEMANTICS` §5); a sessão transiciona para `COMPLETED` com `recordedLater: true`. **Dia sem sessão prévia.** Uma nova sessão nasce diretamente no estado terminal `COMPLETED`, com `recordedLater: true`, vinculada à versão da prescrição vigente em `date`. **Sem duração inventada.** `durationSeconds` é nulo/ausente. Nenhum descanso é registrado (`rest_period` vazio, exibido como `—`). Séries com valores não digitados da prescrição ficam fora do volume e de recordes até que sejam eventualmente editadas pelo aluno.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter recordStudentWorkoutSessionRetroactivelyRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<WorkoutSessionSyncView>
+     */
+    open class func recordStudentWorkoutSessionRetroactivelyWithRequestBuilder(idempotencyKey: String, recordStudentWorkoutSessionRetroactivelyRequest: RecordStudentWorkoutSessionRetroactivelyRequest, acceptLanguage: String? = nil) -> RequestBuilder<WorkoutSessionSyncView> {
+        let localVariablePath = "/student/workout-sessions/retroactive"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: recordStudentWorkoutSessionRetroactivelyRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<WorkoutSessionSyncView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      Iniciar a sessão de treino do aluno
 
      - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.

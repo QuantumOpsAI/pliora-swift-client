@@ -27,6 +27,7 @@ public struct StudentWorkoutSessionResultExercise: Codable, JSONEncodable, Hasha
     public static let executedVariantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let executedVariantLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let blockKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
+    public static let exerciseRecordsRule = ArrayRule(minItems: nil, maxItems: 50, uniqueItems: false)
     public static let volumeRule = ArrayRule(minItems: nil, maxItems: 2, uniqueItems: false)
     public static let setsRule = ArrayRule(minItems: nil, maxItems: 50, uniqueItems: false)
     public static let discomfortsRule = ArrayRule(minItems: 1, maxItems: 50, uniqueItems: false)
@@ -46,6 +47,9 @@ public struct StudentWorkoutSessionResultExercise: Codable, JSONEncodable, Hasha
     public var firstTime: Bool
     /** O bloco combinado do exercício, quando ele consta em `blocks[]`; ausente fora de bloco. */
     public var blockKey: String?
+    public var lastComparableExecution: StudentWorkoutSessionResultLastComparableExecution?
+    /** Recordes históricos vigentes e recordes batidos nesta sessão para a variante (`DOC-STUDENT-WORKOUT-TECH` §2.5.1, §5). */
+    public var exerciseRecords: [StudentWorkoutSessionRecord]?
     /** O volume do exercício, uma parcela por unidade gravada, com a mesma regra de `WorkoutVolumePortion`. Vazia quando nenhuma série tem as duas grandezas. */
     public var volume: [WorkoutVolumePortion]
     /** As séries do exercício, na ordem de `prescribed.setIndex`. Vazia quando o exercício não tem série registrada, como o pulado. */
@@ -56,7 +60,7 @@ public struct StudentWorkoutSessionResultExercise: Codable, JSONEncodable, Hasha
     /** Os relatos de desconforto do exercício, só região e intensidade. Ausente quando não houve relato. */
     public var discomforts: [StudentWorkoutSessionResultDiscomfort]?
 
-    public init(exerciseExecutionId: String, exerciseId: String, displayName: String, executedVariantId: String, executedVariantLabel: String, status: Status, firstTime: Bool, blockKey: String? = nil, volume: [WorkoutVolumePortion], sets: [StudentWorkoutSessionResultSet], substitution: StudentWorkoutSessionResultSubstitution? = nil, deferral: StudentWorkoutSessionResultDeferral? = nil, skip: StudentWorkoutSessionResultSkip? = nil, discomforts: [StudentWorkoutSessionResultDiscomfort]? = nil) {
+    public init(exerciseExecutionId: String, exerciseId: String, displayName: String, executedVariantId: String, executedVariantLabel: String, status: Status, firstTime: Bool, blockKey: String? = nil, lastComparableExecution: StudentWorkoutSessionResultLastComparableExecution? = nil, exerciseRecords: [StudentWorkoutSessionRecord]? = nil, volume: [WorkoutVolumePortion], sets: [StudentWorkoutSessionResultSet], substitution: StudentWorkoutSessionResultSubstitution? = nil, deferral: StudentWorkoutSessionResultDeferral? = nil, skip: StudentWorkoutSessionResultSkip? = nil, discomforts: [StudentWorkoutSessionResultDiscomfort]? = nil) {
         self.exerciseExecutionId = exerciseExecutionId
         self.exerciseId = exerciseId
         self.displayName = displayName
@@ -65,6 +69,8 @@ public struct StudentWorkoutSessionResultExercise: Codable, JSONEncodable, Hasha
         self.status = status
         self.firstTime = firstTime
         self.blockKey = blockKey
+        self.lastComparableExecution = lastComparableExecution
+        self.exerciseRecords = exerciseRecords
         self.volume = volume
         self.sets = sets
         self.substitution = substitution
@@ -82,6 +88,8 @@ public struct StudentWorkoutSessionResultExercise: Codable, JSONEncodable, Hasha
         case status
         case firstTime
         case blockKey
+        case lastComparableExecution
+        case exerciseRecords
         case volume
         case sets
         case substitution
@@ -102,6 +110,8 @@ public struct StudentWorkoutSessionResultExercise: Codable, JSONEncodable, Hasha
         try container.encode(status, forKey: .status)
         try container.encode(firstTime, forKey: .firstTime)
         try container.encodeIfPresent(blockKey, forKey: .blockKey)
+        try container.encodeIfPresent(lastComparableExecution, forKey: .lastComparableExecution)
+        try container.encodeIfPresent(exerciseRecords, forKey: .exerciseRecords)
         try container.encode(volume, forKey: .volume)
         try container.encode(sets, forKey: .sets)
         try container.encodeIfPresent(substitution, forKey: .substitution)

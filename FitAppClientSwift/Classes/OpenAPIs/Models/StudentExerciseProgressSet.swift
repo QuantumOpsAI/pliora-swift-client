@@ -18,17 +18,21 @@ public struct StudentExerciseProgressSet: Codable, JSONEncodable, Hashable {
     public var setExecutionId: String
     public var setType: PrescribedSetType
     public var executed: StudentExerciseProgressExecuted
+    /** true quando a contagem de repetições for por lado (`DOC-STUDENT-WORKOUT-TECH` §6.5). */
+    public var repsPerSide: Bool?
 
-    public init(setExecutionId: String, setType: PrescribedSetType, executed: StudentExerciseProgressExecuted) {
+    public init(setExecutionId: String, setType: PrescribedSetType, executed: StudentExerciseProgressExecuted, repsPerSide: Bool? = nil) {
         self.setExecutionId = setExecutionId
         self.setType = setType
         self.executed = executed
+        self.repsPerSide = repsPerSide
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case setExecutionId
         case setType
         case executed
+        case repsPerSide
     }
 
     // Encodable protocol methods
@@ -38,6 +42,7 @@ public struct StudentExerciseProgressSet: Codable, JSONEncodable, Hashable {
         try container.encode(setExecutionId, forKey: .setExecutionId)
         try container.encode(setType, forKey: .setType)
         try container.encode(executed, forKey: .executed)
+        try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
     }
 }
 

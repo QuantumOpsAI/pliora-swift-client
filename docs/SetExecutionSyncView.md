@@ -11,6 +11,8 @@ Name | Type | Description | Notes
 **status** | [**ExecutedSetStatus**](ExecutedSetStatus.md) |  |
 **target** | [**ExecutionTargetValues**](ExecutionTargetValues.md) |  |
 **actual** | [**WorkoutSetValues**](WorkoutSetValues.md) |  |
+**repsPerSide** | **Bool** | Copiado pelo servidor da série prescrita ao persistir a execução (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §6.5). O cliente não o envia nem o edita. | [optional]
+**isAdditional** | **Bool** | true quando a série for adicional acrescentada durante a sessão ou após o término (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §2.5.1). | [optional]
 **measuredDurationSeconds** | **Int** | Duração medida pelo cronômetro da série por tempo, em segundos; nunca é sobrescrita. Ausente fora da série por tempo e na série pulada. | [optional]
 **adjustedDurationSeconds** | **Int** | Duração que o aluno corrigiu, em segundos; existe somente quando é **diferente** de &#x60;measuredDurationSeconds&#x60; e então é igual a &#x60;actual.durationSeconds&#x60;. Ausente quer dizer que o aluno não corrigiu, e nunca zero. | [optional]
 **executedVariantId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |

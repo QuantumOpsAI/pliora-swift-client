@@ -9,6 +9,10 @@ Name | Type | Description | Notes
 **prescribed** | [**WorkoutSummarySetView**](WorkoutSummarySetView.md) |  |
 **target** | [**ExecutionTargetValues**](ExecutionTargetValues.md) |  |
 **actual** | [**WorkoutSetValues**](WorkoutSetValues.md) |  |
+**repsPerSide** | **Bool** | true quando a contagem de repetições da série for por lado (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §6.5). | [optional]
+**isAdditional** | **Bool** | true quando a série for adicional acrescentada durante a sessão ou depois do término (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §2.5.1). | [optional]
+**adaptationBadges** | [StudentWorkoutSessionSetBadge] | Marcas curtas de adaptações ocorridas na série (AL12 item 2; &#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §2.5.1). | [optional]
+**restInterval** | [**StudentWorkoutSessionResultRestInterval**](StudentWorkoutSessionResultRestInterval.md) |  | [optional]
 **restOvertimeSeconds** | **Int** | O excedente do descanso depois da série: o medido menos o alvo efetivo (&#x60;adjustedTargetSeconds&#x60; quando presente, senão &#x60;targetSeconds&#x60;), nunca negativo. Derivado na leitura, nunca gravado. **Ausente** quando a série não tem descanso registrado ou o descanso não tinha alvo: sem alvo não há excedente, e a ausência nunca vira zero. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

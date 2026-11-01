@@ -29,10 +29,12 @@ public struct PrescribedSetSyncView: Codable, JSONEncodable, Hashable {
     public var effortType: PrescribedEffortType?
     /** Valor do esforço prescrito, na escala de `effortType`. Presente se e somente se `effortType` está presente; nunca é convertido no RPE declarado. */
     public var effortValue: Double?
+    /** true quando a contagem de repetições da série prescrita for por lado (`DOC-STUDENT-WORKOUT-TECH` §6.5). */
+    public var repsPerSide: Bool?
     /** Descanso prescrito **depois desta série**, em segundos, na forma achatada que o aluno consome. Fora de bloco é o do exercício; num bloco combinado é o do bloco, tomado uma vez por rodada (`LE-3`, `LE-12`): depois da série de um exercício que não é o último da rodada não há descanso — exceto o descanso entre estações do circuito, `stationRestSeconds` —, depois da série do último exercício vale o descanso do bloco, o máximo da faixa (`restRange.maxSeconds`), e depois da última rodada não há nenhum. **Ausente** quando não há descanso prescrito depois da série, e a ausência nunca é zero; presente, `0` é um descanso prescrito de zero segundo. O bloco, com a faixa, vai em `blocks`. */
     public var restSeconds: Int?
 
-    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, loadPercent: Double? = nil, target: WorkoutSetValues, effortType: PrescribedEffortType? = nil, effortValue: Double? = nil, restSeconds: Int? = nil) {
+    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, loadPercent: Double? = nil, target: WorkoutSetValues, effortType: PrescribedEffortType? = nil, effortValue: Double? = nil, repsPerSide: Bool? = nil, restSeconds: Int? = nil) {
         self.prescribedSetId = prescribedSetId
         self.setIndex = setIndex
         self.setType = setType
@@ -40,6 +42,7 @@ public struct PrescribedSetSyncView: Codable, JSONEncodable, Hashable {
         self.target = target
         self.effortType = effortType
         self.effortValue = effortValue
+        self.repsPerSide = repsPerSide
         self.restSeconds = restSeconds
     }
 
@@ -51,6 +54,7 @@ public struct PrescribedSetSyncView: Codable, JSONEncodable, Hashable {
         case target
         case effortType
         case effortValue
+        case repsPerSide
         case restSeconds
     }
 
@@ -65,6 +69,7 @@ public struct PrescribedSetSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(target, forKey: .target)
         try container.encodeIfPresent(effortType, forKey: .effortType)
         try container.encodeIfPresent(effortValue, forKey: .effortValue)
+        try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
         try container.encodeIfPresent(restSeconds, forKey: .restSeconds)
     }
 }

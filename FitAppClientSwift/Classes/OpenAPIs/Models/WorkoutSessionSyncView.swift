@@ -49,11 +49,13 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
     public var endedBy: WorkoutSessionEndedBy?
     /** A nota de esforço do treino inteiro, declarada pelo aluno ao terminar (`rateStudentWorkoutSessionEffort`). **Ausente** quando o aluno não a deu, e sempre ausente fora de `COMPLETED` com `endedBy: STUDENT`: a sessão aberta, a descartada e a encerrada pelo servidor não têm nota. Ausência nunca é zero. */
     public var sessionEffort: WorkoutSessionEffort?
+    /** true quando o treino foi marcado como feito depois (`DOC-STUDENT-WORKOUT-TECH` §3.5). */
+    public var recordedLater: Bool?
     public var exerciseOrderPolicy: ExerciseOrderPolicyView
     /** Um item por série **prescrita em percentual** do treino da sessão, na ordem da prescrição, cada `prescribedSetId` uma só vez; ausente quando nenhuma série do treino é em percentual. Fixado no início da sessão e nunca recalculado. O valor calculado vale para a **variante prescrita**: trocar de variante o tira, e a carga de referência não é transportada entre variantes. */
     public var calculatedLoadTargets: [CalculatedLoadTarget]?
 
-    public init(viewType: ViewType, sessionId: String, workoutAssignmentId: String, workoutId: String, prescriptionVersionId: String, status: Status, startedAt: Date, completedAt: Date? = nil, lastRecordedAt: Date, endedBy: WorkoutSessionEndedBy? = nil, sessionEffort: WorkoutSessionEffort? = nil, exerciseOrderPolicy: ExerciseOrderPolicyView, calculatedLoadTargets: [CalculatedLoadTarget]? = nil) {
+    public init(viewType: ViewType, sessionId: String, workoutAssignmentId: String, workoutId: String, prescriptionVersionId: String, status: Status, startedAt: Date, completedAt: Date? = nil, lastRecordedAt: Date, endedBy: WorkoutSessionEndedBy? = nil, sessionEffort: WorkoutSessionEffort? = nil, recordedLater: Bool? = nil, exerciseOrderPolicy: ExerciseOrderPolicyView, calculatedLoadTargets: [CalculatedLoadTarget]? = nil) {
         self.viewType = viewType
         self.sessionId = sessionId
         self.workoutAssignmentId = workoutAssignmentId
@@ -65,6 +67,7 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
         self.lastRecordedAt = lastRecordedAt
         self.endedBy = endedBy
         self.sessionEffort = sessionEffort
+        self.recordedLater = recordedLater
         self.exerciseOrderPolicy = exerciseOrderPolicy
         self.calculatedLoadTargets = calculatedLoadTargets
     }
@@ -81,6 +84,7 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
         case lastRecordedAt
         case endedBy
         case sessionEffort
+        case recordedLater
         case exerciseOrderPolicy
         case calculatedLoadTargets
     }
@@ -100,6 +104,7 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(lastRecordedAt, forKey: .lastRecordedAt)
         try container.encodeIfPresent(endedBy, forKey: .endedBy)
         try container.encodeIfPresent(sessionEffort, forKey: .sessionEffort)
+        try container.encodeIfPresent(recordedLater, forKey: .recordedLater)
         try container.encode(exerciseOrderPolicy, forKey: .exerciseOrderPolicy)
         try container.encodeIfPresent(calculatedLoadTargets, forKey: .calculatedLoadTargets)
     }

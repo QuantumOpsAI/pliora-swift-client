@@ -35,10 +35,12 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
     public var loadUnit: PrescribedLoadUnit?
     /** Percentual da carga de referência; exclui `loadValue` e `loadUnit`. */
     public var loadPercent: Double?
+    /** true quando a contagem de repetições da série prescrita for por lado (`DOC-STUDENT-WORKOUT-TECH` §6.5). */
+    public var repsPerSide: Bool?
     /** Descanso prescrito depois desta série, em segundos; ausente quando não há. */
     public var restSeconds: Int?
 
-    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, repsMin: Int? = nil, repsMax: Int? = nil, repsExact: Int? = nil, durationSeconds: Int? = nil, loadValue: Double? = nil, loadUnit: PrescribedLoadUnit? = nil, loadPercent: Double? = nil, restSeconds: Int? = nil) {
+    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, repsMin: Int? = nil, repsMax: Int? = nil, repsExact: Int? = nil, durationSeconds: Int? = nil, loadValue: Double? = nil, loadUnit: PrescribedLoadUnit? = nil, loadPercent: Double? = nil, repsPerSide: Bool? = nil, restSeconds: Int? = nil) {
         self.prescribedSetId = prescribedSetId
         self.setIndex = setIndex
         self.setType = setType
@@ -49,6 +51,7 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
         self.loadValue = loadValue
         self.loadUnit = loadUnit
         self.loadPercent = loadPercent
+        self.repsPerSide = repsPerSide
         self.restSeconds = restSeconds
     }
 
@@ -63,6 +66,7 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
         case loadValue
         case loadUnit
         case loadPercent
+        case repsPerSide
         case restSeconds
     }
 
@@ -80,6 +84,7 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(loadValue, forKey: .loadValue)
         try container.encodeIfPresent(loadUnit, forKey: .loadUnit)
         try container.encodeIfPresent(loadPercent, forKey: .loadPercent)
+        try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
         try container.encodeIfPresent(restSeconds, forKey: .restSeconds)
     }
 }
