@@ -15,6 +15,7 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
 
     public static let setExecutionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let roundIndexRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let adaptationBadgesRule = ArrayRule(minItems: nil, maxItems: 10, uniqueItems: false)
     public static let restOvertimeSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var setExecutionId: String
@@ -24,16 +25,27 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
     public var prescribed: WorkoutSummarySetView
     public var target: ExecutionTargetValues
     public var actual: WorkoutSetValues?
+    /** true quando a contagem de repetições da série for por lado (`DOC-STUDENT-WORKOUT-TECH` §6.5). */
+    public var repsPerSide: Bool?
+    /** true quando a série for adicional acrescentada durante a sessão ou depois do término (`DOC-STUDENT-WORKOUT-TECH` §2.5.1). */
+    public var isAdditional: Bool?
+    /** Marcas curtas de adaptações ocorridas na série (AL12 item 2; `DOC-STUDENT-WORKOUT-TECH` §2.5.1). */
+    public var adaptationBadges: [StudentWorkoutSessionSetBadge]?
+    public var restInterval: StudentWorkoutSessionResultRestInterval?
     /** O excedente do descanso depois da série: o medido menos o alvo efetivo (`adjustedTargetSeconds` quando presente, senão `targetSeconds`), nunca negativo. Derivado na leitura, nunca gravado. **Ausente** quando a série não tem descanso registrado ou o descanso não tinha alvo: sem alvo não há excedente, e a ausência nunca vira zero. */
     public var restOvertimeSeconds: Int?
 
-    public init(setExecutionId: String, status: ExecutedSetStatus, roundIndex: Int? = nil, prescribed: WorkoutSummarySetView, target: ExecutionTargetValues, actual: WorkoutSetValues?, restOvertimeSeconds: Int? = nil) {
+    public init(setExecutionId: String, status: ExecutedSetStatus, roundIndex: Int? = nil, prescribed: WorkoutSummarySetView, target: ExecutionTargetValues, actual: WorkoutSetValues?, repsPerSide: Bool? = nil, isAdditional: Bool? = nil, adaptationBadges: [StudentWorkoutSessionSetBadge]? = nil, restInterval: StudentWorkoutSessionResultRestInterval? = nil, restOvertimeSeconds: Int? = nil) {
         self.setExecutionId = setExecutionId
         self.status = status
         self.roundIndex = roundIndex
         self.prescribed = prescribed
         self.target = target
         self.actual = actual
+        self.repsPerSide = repsPerSide
+        self.isAdditional = isAdditional
+        self.adaptationBadges = adaptationBadges
+        self.restInterval = restInterval
         self.restOvertimeSeconds = restOvertimeSeconds
     }
 
@@ -44,6 +56,10 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
         case prescribed
         case target
         case actual
+        case repsPerSide
+        case isAdditional
+        case adaptationBadges
+        case restInterval
         case restOvertimeSeconds
     }
 
@@ -57,6 +73,10 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
         try container.encode(prescribed, forKey: .prescribed)
         try container.encode(target, forKey: .target)
         try container.encode(actual, forKey: .actual)
+        try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
+        try container.encodeIfPresent(isAdditional, forKey: .isAdditional)
+        try container.encodeIfPresent(adaptationBadges, forKey: .adaptationBadges)
+        try container.encodeIfPresent(restInterval, forKey: .restInterval)
         try container.encodeIfPresent(restOvertimeSeconds, forKey: .restOvertimeSeconds)
     }
 }

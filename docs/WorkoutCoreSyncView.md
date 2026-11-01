@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **lastRecordedAt** | **Date** | O instante do servidor do último fato aceito na sessão, ou o do início quando ainda não há fato. É dele que correm as 12 horas até a interrupção; a retomada o leva ao instante em que foi confirmada. Registrar um fato não muda a revisão pública da sessão. |
 **endedBy** | [**WorkoutSessionEndedBy**](WorkoutSessionEndedBy.md) |  | [optional]
 **sessionEffort** | [**WorkoutSessionEffort**](WorkoutSessionEffort.md) | A nota de esforço do treino inteiro, declarada pelo aluno ao terminar (&#x60;rateStudentWorkoutSessionEffort&#x60;). **Ausente** quando o aluno não a deu, e sempre ausente fora de &#x60;COMPLETED&#x60; com &#x60;endedBy: STUDENT&#x60;: a sessão aberta, a descartada e a encerrada pelo servidor não têm nota. Ausência nunca é zero. | [optional]
+**recordedLater** | **Bool** | true quando o treino foi marcado como feito depois (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §3.5). | [optional]
 **exerciseOrderPolicy** | [**ExerciseOrderPolicyView**](ExerciseOrderPolicyView.md) |  |
 **calculatedLoadTargets** | [CalculatedLoadTarget] | Um item por série **prescrita em percentual** do treino da sessão, na ordem da prescrição, cada &#x60;prescribedSetId&#x60; uma só vez; ausente quando nenhuma série do treino é em percentual. Fixado no início da sessão e nunca recalculado. O valor calculado vale para a **variante prescrita**: trocar de variante o tira, e a carga de referência não é transportada entre variantes. | [optional]
 **exerciseExecutionId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
@@ -27,6 +28,8 @@ Name | Type | Description | Notes
 **setIndex** | **Int** |  |
 **target** | [**ExecutionTargetValues**](ExecutionTargetValues.md) |  |
 **actual** | [**WorkoutSetValues**](WorkoutSetValues.md) |  |
+**repsPerSide** | **Bool** | Copiado pelo servidor da série prescrita ao persistir a execução (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §6.5). O cliente não o envia nem o edita. | [optional]
+**isAdditional** | **Bool** | true quando a série for adicional acrescentada durante a sessão ou após o término (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §2.5.1). | [optional]
 **measuredDurationSeconds** | **Int** | Duração medida pelo cronômetro da série por tempo, em segundos; nunca é sobrescrita. Ausente fora da série por tempo e na série pulada. | [optional]
 **adjustedDurationSeconds** | **Int** | Duração que o aluno corrigiu, em segundos; existe somente quando é **diferente** de &#x60;measuredDurationSeconds&#x60; e então é igual a &#x60;actual.durationSeconds&#x60;. Ausente quer dizer que o aluno não corrigiu, e nunca zero. | [optional]
 **observation** | **String** |  |

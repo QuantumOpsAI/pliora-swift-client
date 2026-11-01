@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **loadValue** | **Double** |  | [optional]
 **loadUnit** | [**PrescribedLoadUnit**](PrescribedLoadUnit.md) |  | [optional]
 **loadPercent** | **Double** | Percentual da carga de referência; exclui &#x60;loadValue&#x60; e &#x60;loadUnit&#x60;. | [optional]
+**repsPerSide** | **Bool** | true quando a contagem de repetições da série prescrita for por lado (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §6.5). | [optional]
 **restSeconds** | **Int** | Descanso prescrito depois desta série, em segundos; ausente quando não há. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

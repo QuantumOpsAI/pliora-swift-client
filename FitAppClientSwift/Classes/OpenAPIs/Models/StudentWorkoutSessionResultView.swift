@@ -42,8 +42,11 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
     public var startedAt: Date
     /** O instante do servidor em que a sessão terminou, em qualquer desfecho. No término pela decisão do treino e no encerramento automático é o instante do último registro. */
     public var endedAt: Date
-    /** A duração do início ao término, em segundos; igual a `endedAt` menos `startedAt`. */
-    public var durationSeconds: Int
+    /** A duração do início ao término, em segundos; igual a `endedAt` menos `startedAt`. Nulo quando `recordedLater = true` (treino marcado como feito depois). */
+    public var durationSeconds: Int?
+    /** Identifica treino marcado como feito depois (`DOC-STUDENT-WORKOUT` §6.7; `DOC-STUDENT-WORKOUT-TECH` §3.5). Quando `recordedLater = true`, `durationSeconds` é nulo. */
+    public var recordedLater: Bool?
+    public var whatChanged: StudentWorkoutSessionResultWhatChanged?
     /** `COMPLETED` ou `ABANDONED`; sessão aberta não tem resultado. `ABANDONED` é o treino descartado ou encerrado sem série executada, e o app o marca como não concluído. */
     public var status: Status
     public var endedBy: WorkoutSessionEndedBy
@@ -72,13 +75,15 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
     /** A ordem prescrita dos mesmos exercícios. Presente se e somente se `executedOrder` é. */
     public var prescribedOrder: [String]?
 
-    public init(sessionId: String, workoutName: String, localDate: Date, startedAt: Date, endedAt: Date, durationSeconds: Int, status: Status, endedBy: WorkoutSessionEndedBy, firstWorkoutRecorded: FirstWorkoutRecorded? = nil, exercisesDone: Int, exercisesPlanned: Int, setsDone: Int, setsPlanned: Int, volume: [WorkoutVolumePortion], records: [StudentWorkoutSessionRecord], sessionEffort: WorkoutSessionEffort? = nil, blocks: [StudentWorkoutSessionResultBlock]? = nil, exercises: [StudentWorkoutSessionResultExercise], executedOrder: [String]? = nil, prescribedOrder: [String]? = nil) {
+    public init(sessionId: String, workoutName: String, localDate: Date, startedAt: Date, endedAt: Date, durationSeconds: Int?, recordedLater: Bool? = nil, whatChanged: StudentWorkoutSessionResultWhatChanged? = nil, status: Status, endedBy: WorkoutSessionEndedBy, firstWorkoutRecorded: FirstWorkoutRecorded? = nil, exercisesDone: Int, exercisesPlanned: Int, setsDone: Int, setsPlanned: Int, volume: [WorkoutVolumePortion], records: [StudentWorkoutSessionRecord], sessionEffort: WorkoutSessionEffort? = nil, blocks: [StudentWorkoutSessionResultBlock]? = nil, exercises: [StudentWorkoutSessionResultExercise], executedOrder: [String]? = nil, prescribedOrder: [String]? = nil) {
         self.sessionId = sessionId
         self.workoutName = workoutName
         self.localDate = localDate
         self.startedAt = startedAt
         self.endedAt = endedAt
         self.durationSeconds = durationSeconds
+        self.recordedLater = recordedLater
+        self.whatChanged = whatChanged
         self.status = status
         self.endedBy = endedBy
         self.firstWorkoutRecorded = firstWorkoutRecorded
@@ -102,6 +107,8 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
         case startedAt
         case endedAt
         case durationSeconds
+        case recordedLater
+        case whatChanged
         case status
         case endedBy
         case firstWorkoutRecorded
@@ -128,6 +135,8 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
         try container.encode(startedAt, forKey: .startedAt)
         try container.encode(endedAt, forKey: .endedAt)
         try container.encode(durationSeconds, forKey: .durationSeconds)
+        try container.encodeIfPresent(recordedLater, forKey: .recordedLater)
+        try container.encodeIfPresent(whatChanged, forKey: .whatChanged)
         try container.encode(status, forKey: .status)
         try container.encode(endedBy, forKey: .endedBy)
         try container.encodeIfPresent(firstWorkoutRecorded, forKey: .firstWorkoutRecorded)

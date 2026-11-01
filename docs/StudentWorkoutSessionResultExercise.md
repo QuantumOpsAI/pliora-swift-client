@@ -11,6 +11,8 @@ Name | Type | Description | Notes
 **status** | **String** | O estado da execução do exercício quando a sessão terminou, o mesmo vocabulário de &#x60;ExerciseExecutionSyncView.status&#x60;. |
 **firstTime** | **Bool** | &#x60;true&#x60; quando a base de comparação da chave do exercício (variante + equipamento + unidade de carga) é vazia: é a primeira vez, que **não é recorde**, e nenhum recorde da sessão aponta para uma série deste exercício. |
 **blockKey** | **String** | O bloco combinado do exercício, quando ele consta em &#x60;blocks[]&#x60;; ausente fora de bloco. | [optional]
+**lastComparableExecution** | [**StudentWorkoutSessionResultLastComparableExecution**](StudentWorkoutSessionResultLastComparableExecution.md) |  | [optional]
+**exerciseRecords** | [StudentWorkoutSessionRecord] | Recordes históricos vigentes e recordes batidos nesta sessão para a variante (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §2.5.1, §5). | [optional]
 **volume** | [WorkoutVolumePortion] | O volume do exercício, uma parcela por unidade gravada, com a mesma regra de &#x60;WorkoutVolumePortion&#x60;. Vazia quando nenhuma série tem as duas grandezas. |
 **sets** | [StudentWorkoutSessionResultSet] | As séries do exercício, na ordem de &#x60;prescribed.setIndex&#x60;. Vazia quando o exercício não tem série registrada, como o pulado. |
 **substitution** | [**StudentWorkoutSessionResultSubstitution**](StudentWorkoutSessionResultSubstitution.md) |  | [optional]

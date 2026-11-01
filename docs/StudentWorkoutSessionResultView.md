@@ -8,7 +8,9 @@ Name | Type | Description | Notes
 **localDate** | **Date** | O dia civil gravado na sessão, fixado no início dela; não muda se o aluno trocar de personal ou de fuso. |
 **startedAt** | **Date** | O instante do servidor em que a sessão começou. |
 **endedAt** | **Date** | O instante do servidor em que a sessão terminou, em qualquer desfecho. No término pela decisão do treino e no encerramento automático é o instante do último registro. |
-**durationSeconds** | **Int** | A duração do início ao término, em segundos; igual a &#x60;endedAt&#x60; menos &#x60;startedAt&#x60;. |
+**durationSeconds** | **Int** | A duração do início ao término, em segundos; igual a &#x60;endedAt&#x60; menos &#x60;startedAt&#x60;. Nulo quando &#x60;recordedLater &#x3D; true&#x60; (treino marcado como feito depois). |
+**recordedLater** | **Bool** | Identifica treino marcado como feito depois (&#x60;DOC-STUDENT-WORKOUT&#x60; §6.7; &#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §3.5). Quando &#x60;recordedLater &#x3D; true&#x60;, &#x60;durationSeconds&#x60; é nulo. | [optional]
+**whatChanged** | [**StudentWorkoutSessionResultWhatChanged**](StudentWorkoutSessionResultWhatChanged.md) |  | [optional]
 **status** | **String** | &#x60;COMPLETED&#x60; ou &#x60;ABANDONED&#x60;; sessão aberta não tem resultado. &#x60;ABANDONED&#x60; é o treino descartado ou encerrado sem série executada, e o app o marca como não concluído. |
 **endedBy** | [**WorkoutSessionEndedBy**](WorkoutSessionEndedBy.md) |  |
 **firstWorkoutRecorded** | **Bool** | Marco factual NTF-04: presente somente com true quando esta é a primeira conclusão elegível da conta, considerando todo o histórico e sem reiniciar na troca de personal. Exige status COMPLETED, endedBy STUDENT e ao menos uma série COMPLETED/PARTIAL. Omitido nos demais resultados; ausência não autoriza o cliente a inferir o marco. Feedback dentro do resultado independe de permissão, consentimento ou opt-in de push e não gera envio nem novo ato. | [optional]

@@ -72,6 +72,70 @@ open class WorkoutExecutionAPI {
     }
 
     /**
+     Acrescentar série ao exercício após o término da sessão
+
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter exerciseExecutionId: (path) Identidade da execução do exercício dentro da sessão de treino endereçada.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter addStudentExerciseSetExecutionRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func addStudentExerciseSetExecution(sessionId: String, exerciseExecutionId: String, idempotencyKey: String, addStudentExerciseSetExecutionRequest: AddStudentExerciseSetExecutionRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentSetExecutionResponse?, _ error: Error?) -> Void)) -> RequestTask {
+        return addStudentExerciseSetExecutionWithRequestBuilder(sessionId: sessionId, exerciseExecutionId: exerciseExecutionId, idempotencyKey: idempotencyKey, addStudentExerciseSetExecutionRequest: addStudentExerciseSetExecutionRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Acrescentar série ao exercício após o término da sessão
+     - POST /student/workout-sessions/{sessionId}/exercises/{exerciseExecutionId}/sets
+     - Permite ao aluno acrescentar série a mais a um exercício mesmo com a sessão no estado terminal `COMPLETED` (`DOC-STUDENT-WORKOUT` §7.3; AL12 ações secundárias, §2.5.1). A série nasce como adicional (`isAdditional: true`), com os valores iniciais da série adicional (`DOC-UX-WORKOUT-CORE-SCREENS` §8). No resumo AL12 leva a marca `a mais` e, para o personal, `registrado depois` com o instante do registro na série. **Volume da sessão:** o volume é recalculado na leitura seguinte para incorporar carga × repetições da nova série (se informada em kg ou lb com repetições declaradas). **Recordes:** os recordes da sessão e da variante (§5) são reavaliados; superando a marca anterior, o recorde é consolidado com a data civil da sessão. **Consistência:** o dia já contava como treino concluído, mantendo o status do calendário e da consistência semanal inalterados; apenas a contagem de séries executadas (`setsDone`, `completedSetCount`) é incrementada. **Imutabilidade da sessão:** o instante de término (`endedAt`) e a nota de esforço do treino (`sessionEffort`) permanecem imutáveis (Q-15). Reenviar a mesma identidade (`setExecutionId`) com o mesmo corpo devolve a execução armazenada. Reenviar a mesma identidade com conteúdo diferente é `409 EXECUTION_IDENTITY_DIVERGENT`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String)]
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter exerciseExecutionId: (path) Identidade da execução do exercício dentro da sessão de treino endereçada.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter addStudentExerciseSetExecutionRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<StudentSetExecutionResponse>
+     */
+    open class func addStudentExerciseSetExecutionWithRequestBuilder(sessionId: String, exerciseExecutionId: String, idempotencyKey: String, addStudentExerciseSetExecutionRequest: AddStudentExerciseSetExecutionRequest, acceptLanguage: String? = nil) -> RequestBuilder<StudentSetExecutionResponse> {
+        var localVariablePath = "/student/workout-sessions/{sessionId}/exercises/{exerciseExecutionId}/sets"
+        let sessionIdPreEscape = "\(APIHelper.mapValueToPathItem(sessionId))"
+        let sessionIdPostEscape = sessionIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{sessionId}", with: sessionIdPostEscape, options: .literal, range: nil)
+        let exerciseExecutionIdPreEscape = "\(APIHelper.mapValueToPathItem(exerciseExecutionId))"
+        let exerciseExecutionIdPostEscape = exerciseExecutionIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{exerciseExecutionId}", with: exerciseExecutionIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: addStudentExerciseSetExecutionRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentSetExecutionResponse>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      Emendar os valores executados de uma série, preservando o valor anterior
 
      - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.

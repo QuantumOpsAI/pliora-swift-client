@@ -35,16 +35,19 @@ public struct StudentProgressRecord: Codable, JSONEncodable, Hashable {
     public var loadUnit: LoadUnit?
     /** As repetições do recorde `MAX_REPS_AT_LOAD`; ausente nos outros. */
     public var reps: Int?
+    /** true quando o recorde de repetições tiver sido obtido em série unilateral por lado (`DOC-STUDENT-WORKOUT-TECH` §6.5). */
+    public var repsPerSide: Bool?
     /** A duração do recorde `MAX_DURATION`, em segundos; ausente nos outros. */
     public var durationSeconds: Int?
 
-    public init(type: StudentWorkoutSessionRecordType, origin: String, exerciseLabel: String, loadValue: Double? = nil, loadUnit: LoadUnit? = nil, reps: Int? = nil, durationSeconds: Int? = nil) {
+    public init(type: StudentWorkoutSessionRecordType, origin: String, exerciseLabel: String, loadValue: Double? = nil, loadUnit: LoadUnit? = nil, reps: Int? = nil, repsPerSide: Bool? = nil, durationSeconds: Int? = nil) {
         self.type = type
         self.origin = origin
         self.exerciseLabel = exerciseLabel
         self.loadValue = loadValue
         self.loadUnit = loadUnit
         self.reps = reps
+        self.repsPerSide = repsPerSide
         self.durationSeconds = durationSeconds
     }
 
@@ -55,6 +58,7 @@ public struct StudentProgressRecord: Codable, JSONEncodable, Hashable {
         case loadValue
         case loadUnit
         case reps
+        case repsPerSide
         case durationSeconds
     }
 
@@ -68,6 +72,7 @@ public struct StudentProgressRecord: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(loadValue, forKey: .loadValue)
         try container.encodeIfPresent(loadUnit, forKey: .loadUnit)
         try container.encodeIfPresent(reps, forKey: .reps)
+        try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
         try container.encodeIfPresent(durationSeconds, forKey: .durationSeconds)
     }
 }
