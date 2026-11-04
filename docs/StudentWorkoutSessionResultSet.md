@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **target** | [**ExecutionTargetValues**](ExecutionTargetValues.md) |  |
 **actual** | [**WorkoutSetValues**](WorkoutSetValues.md) |  |
 **repsPerSide** | **Bool** | true quando a contagem de repetições da série for por lado (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §6.5). | [optional]
+**loadBasis** | [**LoadBasis**](LoadBasis.md) | Leitura do peso da série executada, gravada pelo servidor como cópia da prescrição; &#x60;null&#x60; é &#x60;leitura não informada&#x60;. | [optional]
 **isAdditional** | **Bool** | true quando a série for adicional acrescentada durante a sessão ou depois do término (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §2.5.1). | [optional]
 **adaptationBadges** | [StudentWorkoutSessionSetBadge] | Marcas curtas de adaptações ocorridas na série (AL12 item 2; &#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §2.5.1). | [optional]
 **restInterval** | [**StudentWorkoutSessionResultRestInterval**](StudentWorkoutSessionResultRestInterval.md) |  | [optional]

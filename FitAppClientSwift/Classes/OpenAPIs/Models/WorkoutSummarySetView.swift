@@ -33,6 +33,8 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
     public var durationSeconds: Int?
     public var loadValue: Double?
     public var loadUnit: PrescribedLoadUnit?
+    /** Leitura do peso do exercício prescrito, como publicada; `null` é `leitura não informada`. O aluno a vê colada à carga (`20 kg cada halter`). */
+    public var loadBasis: LoadBasis?
     /** Percentual da carga de referência; exclui `loadValue` e `loadUnit`. */
     public var loadPercent: Double?
     /** true quando a contagem de repetições da série prescrita for por lado (`DOC-STUDENT-WORKOUT-TECH` §6.5). */
@@ -40,7 +42,7 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
     /** Descanso prescrito depois desta série, em segundos; ausente quando não há. */
     public var restSeconds: Int?
 
-    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, repsMin: Int? = nil, repsMax: Int? = nil, repsExact: Int? = nil, durationSeconds: Int? = nil, loadValue: Double? = nil, loadUnit: PrescribedLoadUnit? = nil, loadPercent: Double? = nil, repsPerSide: Bool? = nil, restSeconds: Int? = nil) {
+    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, repsMin: Int? = nil, repsMax: Int? = nil, repsExact: Int? = nil, durationSeconds: Int? = nil, loadValue: Double? = nil, loadUnit: PrescribedLoadUnit? = nil, loadBasis: LoadBasis? = nil, loadPercent: Double? = nil, repsPerSide: Bool? = nil, restSeconds: Int? = nil) {
         self.prescribedSetId = prescribedSetId
         self.setIndex = setIndex
         self.setType = setType
@@ -50,6 +52,7 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
         self.durationSeconds = durationSeconds
         self.loadValue = loadValue
         self.loadUnit = loadUnit
+        self.loadBasis = loadBasis
         self.loadPercent = loadPercent
         self.repsPerSide = repsPerSide
         self.restSeconds = restSeconds
@@ -65,6 +68,7 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
         case durationSeconds
         case loadValue
         case loadUnit
+        case loadBasis
         case loadPercent
         case repsPerSide
         case restSeconds
@@ -83,6 +87,7 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(durationSeconds, forKey: .durationSeconds)
         try container.encodeIfPresent(loadValue, forKey: .loadValue)
         try container.encodeIfPresent(loadUnit, forKey: .loadUnit)
+        try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
         try container.encodeIfPresent(loadPercent, forKey: .loadPercent)
         try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
         try container.encodeIfPresent(restSeconds, forKey: .restSeconds)
@@ -94,6 +99,7 @@ extension WorkoutSummarySetView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if setType == .unknownDefaultOpenApi { return true }
         if loadUnit == .unknownDefaultOpenApi { return true }
+        if loadBasis == .unknownDefaultOpenApi { return true }
         return false
     }
 }

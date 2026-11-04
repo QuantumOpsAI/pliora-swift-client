@@ -27,6 +27,8 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
     public var actual: WorkoutSetValues?
     /** true quando a contagem de repetições da série for por lado (`DOC-STUDENT-WORKOUT-TECH` §6.5). */
     public var repsPerSide: Bool?
+    /** Leitura do peso da série executada, gravada pelo servidor como cópia da prescrição; `null` é `leitura não informada`. */
+    public var loadBasis: LoadBasis?
     /** true quando a série for adicional acrescentada durante a sessão ou depois do término (`DOC-STUDENT-WORKOUT-TECH` §2.5.1). */
     public var isAdditional: Bool?
     /** Marcas curtas de adaptações ocorridas na série (AL12 item 2; `DOC-STUDENT-WORKOUT-TECH` §2.5.1). */
@@ -35,7 +37,7 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
     /** O excedente do descanso depois da série: o medido menos o alvo efetivo (`adjustedTargetSeconds` quando presente, senão `targetSeconds`), nunca negativo. Derivado na leitura, nunca gravado. **Ausente** quando a série não tem descanso registrado ou o descanso não tinha alvo: sem alvo não há excedente, e a ausência nunca vira zero. */
     public var restOvertimeSeconds: Int?
 
-    public init(setExecutionId: String, status: ExecutedSetStatus, roundIndex: Int? = nil, prescribed: WorkoutSummarySetView, target: ExecutionTargetValues, actual: WorkoutSetValues?, repsPerSide: Bool? = nil, isAdditional: Bool? = nil, adaptationBadges: [StudentWorkoutSessionSetBadge]? = nil, restInterval: StudentWorkoutSessionResultRestInterval? = nil, restOvertimeSeconds: Int? = nil) {
+    public init(setExecutionId: String, status: ExecutedSetStatus, roundIndex: Int? = nil, prescribed: WorkoutSummarySetView, target: ExecutionTargetValues, actual: WorkoutSetValues?, repsPerSide: Bool? = nil, loadBasis: LoadBasis? = nil, isAdditional: Bool? = nil, adaptationBadges: [StudentWorkoutSessionSetBadge]? = nil, restInterval: StudentWorkoutSessionResultRestInterval? = nil, restOvertimeSeconds: Int? = nil) {
         self.setExecutionId = setExecutionId
         self.status = status
         self.roundIndex = roundIndex
@@ -43,6 +45,7 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
         self.target = target
         self.actual = actual
         self.repsPerSide = repsPerSide
+        self.loadBasis = loadBasis
         self.isAdditional = isAdditional
         self.adaptationBadges = adaptationBadges
         self.restInterval = restInterval
@@ -57,6 +60,7 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
         case target
         case actual
         case repsPerSide
+        case loadBasis
         case isAdditional
         case adaptationBadges
         case restInterval
@@ -74,6 +78,7 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
         try container.encode(target, forKey: .target)
         try container.encode(actual, forKey: .actual)
         try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
+        try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
         try container.encodeIfPresent(isAdditional, forKey: .isAdditional)
         try container.encodeIfPresent(adaptationBadges, forKey: .adaptationBadges)
         try container.encodeIfPresent(restInterval, forKey: .restInterval)
@@ -85,6 +90,7 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
 extension StudentWorkoutSessionResultSet: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if status == .unknownDefaultOpenApi { return true }
+        if loadBasis == .unknownDefaultOpenApi { return true }
         return false
     }
 }
