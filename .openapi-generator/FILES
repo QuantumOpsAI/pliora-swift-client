@@ -18,6 +18,7 @@ FitAppClientSwift/Classes/OpenAPIs/APIs/PersonalProfileAPI.swift
 FitAppClientSwift/Classes/OpenAPIs/APIs/PersonalRelationshipsAPI.swift
 FitAppClientSwift/Classes/OpenAPIs/APIs/PersonalStepUpAPI.swift
 FitAppClientSwift/Classes/OpenAPIs/APIs/PlatformAPI.swift
+FitAppClientSwift/Classes/OpenAPIs/APIs/PlatformLeadsAPI.swift
 FitAppClientSwift/Classes/OpenAPIs/APIs/RelationshipLifecycleAPI.swift
 FitAppClientSwift/Classes/OpenAPIs/APIs/SessionsAPI.swift
 FitAppClientSwift/Classes/OpenAPIs/APIs/StudentInvitationsAPI.swift
@@ -239,6 +240,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/InvitationPersonalView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/InvitationRateLimitProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/InvitationUnavailableProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/InvitationValidationProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/LoadBasis.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/Locale.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/MediaManifestSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/NoRecentRecordsDigestItem.swift
@@ -517,6 +519,14 @@ FitAppClientSwift/Classes/OpenAPIs/Models/PlanActivationView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlanRelationshipState.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlanWeekday.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlanWeekdaySlot.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactChannelGrant.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactProblem400.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactProblem409.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactProblem413.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactProblem429.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactProblem503.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactReceipt.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PreparePushRegistrationRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PrescribedAlternativeSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PrescribedAlternativeType.swift
@@ -851,6 +861,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionHistoryItem.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionHistoryPage.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionNotFoundProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionRecord.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionRecordLoadBasis.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionRecordType.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionResultBlock.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionResultConflictProblemDetails.swift
@@ -1185,6 +1196,7 @@ docs/InvitationPersonalView.md
 docs/InvitationRateLimitProblemDetails.md
 docs/InvitationUnavailableProblemDetails.md
 docs/InvitationValidationProblemDetails.md
+docs/LoadBasis.md
 docs/Locale.md
 docs/MediaManifestSyncView.md
 docs/NoRecentRecordsDigestItem.md
@@ -1473,6 +1485,15 @@ docs/PlanRelationshipState.md
 docs/PlanWeekday.md
 docs/PlanWeekdaySlot.md
 docs/PlatformAPI.md
+docs/PlatformContactChannelGrant.md
+docs/PlatformContactProblem400.md
+docs/PlatformContactProblem409.md
+docs/PlatformContactProblem413.md
+docs/PlatformContactProblem429.md
+docs/PlatformContactProblem503.md
+docs/PlatformContactReceipt.md
+docs/PlatformContactRequest.md
+docs/PlatformLeadsAPI.md
 docs/PreparePushRegistrationRequest.md
 docs/PrescribedAlternativeSyncView.md
 docs/PrescribedAlternativeType.md
@@ -1813,6 +1834,7 @@ docs/StudentWorkoutSessionHistoryItem.md
 docs/StudentWorkoutSessionHistoryPage.md
 docs/StudentWorkoutSessionNotFoundProblemDetails.md
 docs/StudentWorkoutSessionRecord.md
+docs/StudentWorkoutSessionRecordLoadBasis.md
 docs/StudentWorkoutSessionRecordType.md
 docs/StudentWorkoutSessionResultBlock.md
 docs/StudentWorkoutSessionResultConflictProblemDetails.md

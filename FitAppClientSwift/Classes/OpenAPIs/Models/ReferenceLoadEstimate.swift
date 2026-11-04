@@ -17,17 +17,21 @@ public struct ReferenceLoadEstimate: Codable, JSONEncodable, Hashable {
     /** Valor da carga, maior que zero; zero não é carga. */
     public var value: Double
     public var unit: PrescribedLoadUnit
+    /** Leitura do peso da estimativa: a do exercício no plano, em que a série de `basis` e todas as séries elegíveis do cálculo estavam. `null` é `leitura não informada`. */
+    public var loadBasis: LoadBasis?
     public var basis: ReferenceLoadBasis
 
-    public init(value: Double, unit: PrescribedLoadUnit, basis: ReferenceLoadBasis) {
+    public init(value: Double, unit: PrescribedLoadUnit, loadBasis: LoadBasis? = nil, basis: ReferenceLoadBasis) {
         self.value = value
         self.unit = unit
+        self.loadBasis = loadBasis
         self.basis = basis
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case value
         case unit
+        case loadBasis
         case basis
     }
 
@@ -37,6 +41,7 @@ public struct ReferenceLoadEstimate: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(value, forKey: .value)
         try container.encode(unit, forKey: .unit)
+        try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
         try container.encode(basis, forKey: .basis)
     }
 }
@@ -45,6 +50,7 @@ public struct ReferenceLoadEstimate: Codable, JSONEncodable, Hashable {
 extension ReferenceLoadEstimate: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if unit == .unknownDefaultOpenApi { return true }
+        if loadBasis == .unknownDefaultOpenApi { return true }
         return false
     }
 }

@@ -25,13 +25,16 @@ public struct StudentExerciseProgressExecuted: Codable, JSONEncodable, Hashable 
     public static let durationSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public var loadValue: Double?
     public var loadUnit: LoadUnit?
+    /** Leitura do peso da carga executada, como gravada; `null` é `leitura não informada`. Ausente quando a série não tem carga. */
+    public var loadBasis: LoadBasis?
     public var reps: Int?
     /** A duração da série por tempo, em segundos, o valor em vigor. */
     public var durationSeconds: Int?
 
-    public init(loadValue: Double?, loadUnit: LoadUnit?, reps: Int?, durationSeconds: Int? = nil) {
+    public init(loadValue: Double?, loadUnit: LoadUnit?, loadBasis: LoadBasis? = nil, reps: Int?, durationSeconds: Int? = nil) {
         self.loadValue = loadValue
         self.loadUnit = loadUnit
+        self.loadBasis = loadBasis
         self.reps = reps
         self.durationSeconds = durationSeconds
     }
@@ -39,6 +42,7 @@ public struct StudentExerciseProgressExecuted: Codable, JSONEncodable, Hashable 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case loadValue
         case loadUnit
+        case loadBasis
         case reps
         case durationSeconds
     }
@@ -49,6 +53,7 @@ public struct StudentExerciseProgressExecuted: Codable, JSONEncodable, Hashable 
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(loadValue, forKey: .loadValue)
         try container.encode(loadUnit, forKey: .loadUnit)
+        try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
         try container.encode(reps, forKey: .reps)
         try container.encodeIfPresent(durationSeconds, forKey: .durationSeconds)
     }
@@ -58,6 +63,7 @@ public struct StudentExerciseProgressExecuted: Codable, JSONEncodable, Hashable 
 extension StudentExerciseProgressExecuted: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if loadUnit == .unknownDefaultOpenApi { return true }
+        if loadBasis == .unknownDefaultOpenApi { return true }
         return false
     }
 }

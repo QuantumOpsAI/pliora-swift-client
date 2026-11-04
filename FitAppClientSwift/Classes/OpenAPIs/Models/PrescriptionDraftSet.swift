@@ -24,16 +24,13 @@ public struct PrescriptionDraftSet: Codable, JSONEncodable, Hashable {
     /** Série da versão de origem da qual esta foi copiada, **gravada pelo servidor** quando o rascunho é `REVISION`. É o vínculo que deixa a revisão dizer o que mudou. Ausente em série que o personal criou neste rascunho e em rascunho que não é revisão. O cliente nunca a declara: reenviá-la na edição é inócuo e um valor diferente do gravado nunca o substitui. */
     public var derivedFromPrescribedSetId: String?
     public var target: PrescribedTarget?
-    /** Indica contagem de repetições por lado em exercício unilateral (`DOC-STUDENT-WORKOUT-TECH` §6.5). Obrigatório não vir com série por tempo (`durationSeconds`) nem com `TO_FAILURE` sem repetições mínimas. Ausente equivale a false. */
-    public var repsPerSide: Bool?
 
-    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, derivedFromPrescribedSetId: String? = nil, target: PrescribedTarget? = nil, repsPerSide: Bool? = nil) {
+    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, derivedFromPrescribedSetId: String? = nil, target: PrescribedTarget? = nil) {
         self.prescribedSetId = prescribedSetId
         self.setIndex = setIndex
         self.setType = setType
         self.derivedFromPrescribedSetId = derivedFromPrescribedSetId
         self.target = target
-        self.repsPerSide = repsPerSide
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -42,7 +39,6 @@ public struct PrescriptionDraftSet: Codable, JSONEncodable, Hashable {
         case setType
         case derivedFromPrescribedSetId
         case target
-        case repsPerSide
     }
 
     // Encodable protocol methods
@@ -54,7 +50,6 @@ public struct PrescriptionDraftSet: Codable, JSONEncodable, Hashable {
         try container.encode(setType, forKey: .setType)
         try container.encodeIfPresent(derivedFromPrescribedSetId, forKey: .derivedFromPrescribedSetId)
         try container.encodeIfPresent(target, forKey: .target)
-        try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
     }
 }
 

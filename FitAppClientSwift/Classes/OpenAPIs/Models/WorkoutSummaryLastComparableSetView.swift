@@ -28,13 +28,16 @@ public struct WorkoutSummaryLastComparableSetView: Codable, JSONEncodable, Hasha
     public var durationSeconds: Int?
     public var loadValue: Double?
     public var loadUnit: LoadUnit?
+    /** Leitura do peso da série executada, como gravada; `null` é `leitura não informada`. */
+    public var loadBasis: LoadBasis?
 
-    public init(setType: PrescribedSetType, reps: Int? = nil, durationSeconds: Int? = nil, loadValue: Double? = nil, loadUnit: LoadUnit? = nil) {
+    public init(setType: PrescribedSetType, reps: Int? = nil, durationSeconds: Int? = nil, loadValue: Double? = nil, loadUnit: LoadUnit? = nil, loadBasis: LoadBasis? = nil) {
         self.setType = setType
         self.reps = reps
         self.durationSeconds = durationSeconds
         self.loadValue = loadValue
         self.loadUnit = loadUnit
+        self.loadBasis = loadBasis
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -43,6 +46,7 @@ public struct WorkoutSummaryLastComparableSetView: Codable, JSONEncodable, Hasha
         case durationSeconds
         case loadValue
         case loadUnit
+        case loadBasis
     }
 
     // Encodable protocol methods
@@ -54,6 +58,7 @@ public struct WorkoutSummaryLastComparableSetView: Codable, JSONEncodable, Hasha
         try container.encodeIfPresent(durationSeconds, forKey: .durationSeconds)
         try container.encodeIfPresent(loadValue, forKey: .loadValue)
         try container.encodeIfPresent(loadUnit, forKey: .loadUnit)
+        try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
     }
 }
 
@@ -62,6 +67,7 @@ extension WorkoutSummaryLastComparableSetView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if setType == .unknownDefaultOpenApi { return true }
         if loadUnit == .unknownDefaultOpenApi { return true }
+        if loadBasis == .unknownDefaultOpenApi { return true }
         return false
     }
 }

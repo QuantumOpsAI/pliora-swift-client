@@ -10,6 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
+/** Uma carga com a sua unidade e a sua leitura do peso. &#x60;basis&#x60; anulável é &#x60;leitura não informada&#x60;, que só se compara com &#x60;null&#x60; — nunca é leitura presumida, e o servidor nunca a preenche por inferência. */
 public struct WorkoutLoad: Codable, JSONEncodable, Hashable {
 
     public enum Unit: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -22,15 +23,19 @@ public struct WorkoutLoad: Codable, JSONEncodable, Hashable {
     public static let valueRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public var value: Double
     public var unit: Unit
+    /** Leitura do peso da carga; `null` é `leitura não informada`. */
+    public var basis: LoadBasis?
 
-    public init(value: Double, unit: Unit) {
+    public init(value: Double, unit: Unit, basis: LoadBasis? = nil) {
         self.value = value
         self.unit = unit
+        self.basis = basis
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case value
         case unit
+        case basis
     }
 
     // Encodable protocol methods
@@ -39,6 +44,7 @@ public struct WorkoutLoad: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(value, forKey: .value)
         try container.encode(unit, forKey: .unit)
+        try container.encodeIfPresent(basis, forKey: .basis)
     }
 }
 
@@ -46,6 +52,7 @@ public struct WorkoutLoad: Codable, JSONEncodable, Hashable {
 extension WorkoutLoad: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if unit == .unknownDefaultOpenApi { return true }
+        if basis == .unknownDefaultOpenApi { return true }
         return false
     }
 }

@@ -18,13 +18,16 @@ public struct PutStudentReferenceLoadRequest: Codable, JSONEncodable, Hashable {
     /** Valor da carga de referência, maior que zero; zero não é carga. */
     public var value: Double
     public var unit: PrescribedLoadUnit
+    /** Leitura do peso confirmada junto com o valor. O app a envia sempre, pré-preenchida com a leitura do exercício no plano; com `ACCEPTED_ESTIMATE` precisa ser a da estimativa vigente — diferente dela é `409 REFERENCE_LOAD_ESTIMATE_STALE`, como valor ou unidade diversos. Ausente, a confirmação grava `leitura não informada` (`null`), que não serve de base a alvo em percentual. */
+    public var loadBasis: LoadBasis?
     /** Dia civil que o valor informado representa; ausente, é o dia do servidor no fuso do vínculo. Só existe com `INFORMED` e não pode ser futuro. */
     public var confirmedOn: Date?
 
-    public init(source: ReferenceLoadConfirmationSource, value: Double, unit: PrescribedLoadUnit, confirmedOn: Date? = nil) {
+    public init(source: ReferenceLoadConfirmationSource, value: Double, unit: PrescribedLoadUnit, loadBasis: LoadBasis? = nil, confirmedOn: Date? = nil) {
         self.source = source
         self.value = value
         self.unit = unit
+        self.loadBasis = loadBasis
         self.confirmedOn = confirmedOn
     }
 
@@ -32,6 +35,7 @@ public struct PutStudentReferenceLoadRequest: Codable, JSONEncodable, Hashable {
         case source
         case value
         case unit
+        case loadBasis
         case confirmedOn
     }
 
@@ -42,6 +46,7 @@ public struct PutStudentReferenceLoadRequest: Codable, JSONEncodable, Hashable {
         try container.encode(source, forKey: .source)
         try container.encode(value, forKey: .value)
         try container.encode(unit, forKey: .unit)
+        try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
         try container.encodeIfPresent(confirmedOn, forKey: .confirmedOn)
     }
 }
@@ -51,6 +56,7 @@ extension PutStudentReferenceLoadRequest: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if source == .unknownDefaultOpenApi { return true }
         if unit == .unknownDefaultOpenApi { return true }
+        if loadBasis == .unknownDefaultOpenApi { return true }
         return false
     }
 }

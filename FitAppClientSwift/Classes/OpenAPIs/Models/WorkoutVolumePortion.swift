@@ -15,16 +15,20 @@ public struct WorkoutVolumePortion: Codable, JSONEncodable, Hashable {
 
     public static let valueRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public var loadUnit: PrescribedLoadUnit
-    /** A soma de carga × repetições, na unidade de `loadUnit`. */
+    /** Leitura do peso da parcela. Leituras diferentes viram **parcelas separadas** dentro da mesma unidade — o servidor nunca soma leituras diferentes —, e a `leitura não informada` (`null`) forma a sua própria parcela. */
+    public var loadBasis: LoadBasis?
+    /** A soma de carga × repetições, na unidade de `loadUnit` e na leitura de `loadBasis`. */
     public var value: Double
 
-    public init(loadUnit: PrescribedLoadUnit, value: Double) {
+    public init(loadUnit: PrescribedLoadUnit, loadBasis: LoadBasis? = nil, value: Double) {
         self.loadUnit = loadUnit
+        self.loadBasis = loadBasis
         self.value = value
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case loadUnit
+        case loadBasis
         case value
     }
 
@@ -33,6 +37,7 @@ public struct WorkoutVolumePortion: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(loadUnit, forKey: .loadUnit)
+        try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
         try container.encode(value, forKey: .value)
     }
 }
@@ -41,6 +46,7 @@ public struct WorkoutVolumePortion: Codable, JSONEncodable, Hashable {
 extension WorkoutVolumePortion: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if loadUnit == .unknownDefaultOpenApi { return true }
+        if loadBasis == .unknownDefaultOpenApi { return true }
         return false
     }
 }

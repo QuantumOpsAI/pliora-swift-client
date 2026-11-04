@@ -32,10 +32,12 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
     public var blockKey: String?
     public var cadence: PrescribedCadence?
     public var technique: PrescribedTechnique?
+    /** Leitura do peso do exercício, como o personal a publicou. `null` é `leitura não informada`, que só se compara com `null`. O cliente a mostra colada à carga de cada série (`20 kg cada halter`) e nunca a edita nem infere. */
+    public var loadBasis: LoadBasis?
     public var sets: [PrescribedSetSyncView]
     public var authorizedAlternativeIds: [String]
 
-    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, position: Int, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, sets: [PrescribedSetSyncView], authorizedAlternativeIds: [String]) {
+    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, position: Int, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, loadBasis: LoadBasis? = nil, sets: [PrescribedSetSyncView], authorizedAlternativeIds: [String]) {
         self.prescribedExerciseId = prescribedExerciseId
         self.exerciseId = exerciseId
         self.prescribedVariantId = prescribedVariantId
@@ -44,6 +46,7 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
         self.blockKey = blockKey
         self.cadence = cadence
         self.technique = technique
+        self.loadBasis = loadBasis
         self.sets = sets
         self.authorizedAlternativeIds = authorizedAlternativeIds
     }
@@ -57,6 +60,7 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
         case blockKey
         case cadence
         case technique
+        case loadBasis
         case sets
         case authorizedAlternativeIds
     }
@@ -73,6 +77,7 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(blockKey, forKey: .blockKey)
         try container.encodeIfPresent(cadence, forKey: .cadence)
         try container.encodeIfPresent(technique, forKey: .technique)
+        try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
         try container.encode(sets, forKey: .sets)
         try container.encode(authorizedAlternativeIds, forKey: .authorizedAlternativeIds)
     }
@@ -82,6 +87,7 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
 extension PrescribedExerciseSyncView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if technique == .unknownDefaultOpenApi { return true }
+        if loadBasis == .unknownDefaultOpenApi { return true }
         return false
     }
 }

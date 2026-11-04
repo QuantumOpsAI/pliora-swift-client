@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Carga de referência **confirmada pelo personal** (selo &#x60;DECLARADO&#x60;): a única que existe. &#x60;basis&#x60; só existe quando o valor veio de uma estimativa aceita, e é a série que a originou; valor informado não tem base. */
+/** Carga de referência **confirmada pelo personal** (selo &#x60;DECLARADO&#x60;): a única que existe. &#x60;basis&#x60; só existe quando o valor veio de uma estimativa aceita, e é a série que a originou; valor informado não tem base. &#x60;loadBasis&#x60; é a leitura do peso confirmada junto com o valor e mostrada ao lado dele (&#x60;100 kg total&#x60;); &#x60;null&#x60; é &#x60;leitura não informada&#x60;, a marca das confirmações anteriores a esta regra — e referência em outra leitura, ou sem leitura, não serve de base a alvo em percentual. */
 public struct ReferenceLoadConfirmed: Codable, JSONEncodable, Hashable {
 
     public static let valueRule = NumericRule<Double>(minimum: 0.01, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
@@ -18,15 +18,18 @@ public struct ReferenceLoadConfirmed: Codable, JSONEncodable, Hashable {
     /** Valor da carga, maior que zero; zero não é carga. */
     public var value: Double
     public var unit: PrescribedLoadUnit
+    /** Leitura do peso confirmada junto com o valor; `null` é `leitura não informada`. */
+    public var loadBasis: LoadBasis?
     /** Dia civil que a confirmação representa, no fuso do vínculo. */
     public var confirmedOn: Date
     /** Revisão opaca da confirmação, definida pelo servidor: o valor a ecoar em `If-Match` ao confirmar de novo ou remover, e o mesmo do `ETag` da resposta do `PUT`. Muda a cada confirmação; o cliente só a compara por igualdade. */
     public var revision: String
     public var basis: ReferenceLoadBasis?
 
-    public init(value: Double, unit: PrescribedLoadUnit, confirmedOn: Date, revision: String, basis: ReferenceLoadBasis? = nil) {
+    public init(value: Double, unit: PrescribedLoadUnit, loadBasis: LoadBasis? = nil, confirmedOn: Date, revision: String, basis: ReferenceLoadBasis? = nil) {
         self.value = value
         self.unit = unit
+        self.loadBasis = loadBasis
         self.confirmedOn = confirmedOn
         self.revision = revision
         self.basis = basis
@@ -35,6 +38,7 @@ public struct ReferenceLoadConfirmed: Codable, JSONEncodable, Hashable {
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case value
         case unit
+        case loadBasis
         case confirmedOn
         case revision
         case basis
@@ -46,6 +50,7 @@ public struct ReferenceLoadConfirmed: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(value, forKey: .value)
         try container.encode(unit, forKey: .unit)
+        try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
         try container.encode(confirmedOn, forKey: .confirmedOn)
         try container.encode(revision, forKey: .revision)
         try container.encodeIfPresent(basis, forKey: .basis)
@@ -56,6 +61,7 @@ public struct ReferenceLoadConfirmed: Codable, JSONEncodable, Hashable {
 extension ReferenceLoadConfirmed: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if unit == .unknownDefaultOpenApi { return true }
+        if loadBasis == .unknownDefaultOpenApi { return true }
         return false
     }
 }

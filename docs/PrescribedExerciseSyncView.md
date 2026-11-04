@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **blockKey** | **String** | Bloco combinado do exercício quando consta em &#x60;blocks[]&#x60; do treino; fora disso, o agrupamento de ordem de antes. Identificador de máquina. | [optional]
 **cadence** | [**PrescribedCadence**](PrescribedCadence.md) |  | [optional]
 **technique** | [**PrescribedTechnique**](PrescribedTechnique.md) |  | [optional]
+**loadBasis** | [**LoadBasis**](LoadBasis.md) | Leitura do peso do exercício, como o personal a publicou. &#x60;null&#x60; é &#x60;leitura não informada&#x60;, que só se compara com &#x60;null&#x60;. O cliente a mostra colada à carga de cada série (&#x60;20 kg cada halter&#x60;) e nunca a edita nem infere. | [optional]
 **sets** | [PrescribedSetSyncView] |  |
 **authorizedAlternativeIds** | **[String]** |  |
 

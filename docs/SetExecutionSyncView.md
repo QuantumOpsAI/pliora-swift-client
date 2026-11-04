@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **target** | [**ExecutionTargetValues**](ExecutionTargetValues.md) |  |
 **actual** | [**WorkoutSetValues**](WorkoutSetValues.md) |  |
 **repsPerSide** | **Bool** | Copiado pelo servidor da série prescrita ao persistir a execução (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §6.5). O cliente não o envia nem o edita. | [optional]
+**loadBasis** | [**LoadBasis**](LoadBasis.md) | Copiado pelo servidor da prescrição ao persistir a execução (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §6.4). O cliente não o envia nem o edita. &#x60;null&#x60; é &#x60;leitura não informada&#x60;, que só se compara com &#x60;null&#x60;. Na alternativa executada sem orientação própria, é a leitura sugerida pelo equipamento dela, nunca a do exercício original. | [optional]
 **isAdditional** | **Bool** | true quando a série for adicional acrescentada durante a sessão ou após o término (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §2.5.1). | [optional]
 **measuredDurationSeconds** | **Int** | Duração medida pelo cronômetro da série por tempo, em segundos; nunca é sobrescrita. Ausente fora da série por tempo e na série pulada. | [optional]
 **adjustedDurationSeconds** | **Int** | Duração que o aluno corrigiu, em segundos; existe somente quando é **diferente** de &#x60;measuredDurationSeconds&#x60; e então é igual a &#x60;actual.durationSeconds&#x60;. Ausente quer dizer que o aluno não corrigiu, e nunca zero. | [optional]

@@ -42,6 +42,10 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
     public var cadence: PrescribedCadence?
     /** Etiqueta informativa da técnica (pirâmide); ausente quando não há. */
     public var technique: PrescribedTechnique?
+    /** Leitura do peso de **todas** as séries do exercício (`DOC-PRESCRIPTION-AUTHORING-TECH` §5.4, `PRE-02 = A`): um mesmo exercício não mistura leituras. O cliente a pré-preenche pela sugestão do equipamento e o personal a confirma. **Obrigatória para publicar** quando alguma série tem `loadValue` ou `loadPercent` — a publicação recusa a ausência com `422 DRAFT_INCOMPLETE` e `fieldErrors` de código `LOAD_BASIS_REQUIRED` apontando este campo — e **recusada ao salvar** quando nenhuma série tem carga (`422 VALIDATION_FAILED`): leitura sem carga é ruído, nunca antecipação. Ausente equivale a `leitura não informada`, que só se compara com ela mesma. O servidor nunca infere, nunca converte e nunca multiplica carga. */
+    public var loadBasis: LoadBasis?
+    /** Etiqueta `por lado` da contagem de repetições do exercício, válida para todas as séries (`DOC-PRESCRIPTION-AUTHORING-TECH` §5.4, `PRE-06 = A`): um mesmo exercício não mistura séries por lado com séries somando os dois lados. Só é permitida com repetições em todas as séries — recusada ao salvar quando alguma série tem `durationSeconds` ou é `TO_FAILURE` sem repetições mínimas (`422 VALIDATION_FAILED`). Ausente equivale a `false`. As cópias por série nas leituras e no fato (`PrescribedSetSyncView`, `SetExecutionSyncView`) seguem por série, gravadas pelo servidor. */
+    public var repsPerSide: Bool?
     /** Exercício que precisa estar concluído antes deste, quando o personal declara dependência. */
     public var dependsOnPrescribedExerciseId: String?
     /** Nota do personal para o exercício. Conteúdo autorado, preservado verbatim UTF-8, nunca traduzido, normalizado, reescrito ou truncado em silêncio. */
@@ -51,7 +55,7 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
     public var sets: [PrescriptionDraftSet]
     public var alternatives: [PrescriptionDraftAlternative]?
 
-    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, derivedFromPrescribedExerciseId: String? = nil, position: Int, orderPolicy: PrescribedOrderPolicy, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, dependsOnPrescribedExerciseId: String? = nil, notes: String? = nil, restRange: PrescribedRestRange? = nil, sets: [PrescriptionDraftSet], alternatives: [PrescriptionDraftAlternative]? = nil) {
+    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, derivedFromPrescribedExerciseId: String? = nil, position: Int, orderPolicy: PrescribedOrderPolicy, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, loadBasis: LoadBasis? = nil, repsPerSide: Bool? = nil, dependsOnPrescribedExerciseId: String? = nil, notes: String? = nil, restRange: PrescribedRestRange? = nil, sets: [PrescriptionDraftSet], alternatives: [PrescriptionDraftAlternative]? = nil) {
         self.prescribedExerciseId = prescribedExerciseId
         self.exerciseId = exerciseId
         self.prescribedVariantId = prescribedVariantId
@@ -62,6 +66,8 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
         self.blockKey = blockKey
         self.cadence = cadence
         self.technique = technique
+        self.loadBasis = loadBasis
+        self.repsPerSide = repsPerSide
         self.dependsOnPrescribedExerciseId = dependsOnPrescribedExerciseId
         self.notes = notes
         self.restRange = restRange
@@ -80,6 +86,8 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
         case blockKey
         case cadence
         case technique
+        case loadBasis
+        case repsPerSide
         case dependsOnPrescribedExerciseId
         case notes
         case restRange
@@ -101,6 +109,8 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(blockKey, forKey: .blockKey)
         try container.encodeIfPresent(cadence, forKey: .cadence)
         try container.encodeIfPresent(technique, forKey: .technique)
+        try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
+        try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
         try container.encodeIfPresent(dependsOnPrescribedExerciseId, forKey: .dependsOnPrescribedExerciseId)
         try container.encodeIfPresent(notes, forKey: .notes)
         try container.encodeIfPresent(restRange, forKey: .restRange)
@@ -114,6 +124,7 @@ extension PrescriptionDraftExercise: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if orderPolicy == .unknownDefaultOpenApi { return true }
         if technique == .unknownDefaultOpenApi { return true }
+        if loadBasis == .unknownDefaultOpenApi { return true }
         return false
     }
 }

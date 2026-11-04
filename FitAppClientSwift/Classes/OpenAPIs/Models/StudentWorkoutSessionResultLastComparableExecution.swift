@@ -20,12 +20,6 @@ public struct StudentWorkoutSessionResultLastComparableExecution: Codable, JSONE
         case level = "LEVEL"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
-    public enum LoadBasis: String, Codable, CaseIterable, CaseIterableDefaultsLast {
-        case total = "TOTAL"
-        case eachSide = "EACH_SIDE"
-        case eachDumbbell = "EACH_DUMBBELL"
-        case unknownDefaultOpenApi = "unknown_default_open_api"
-    }
     public static let loadValueRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let repsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     /** Data civil da última execução comparável. */
@@ -33,7 +27,7 @@ public struct StudentWorkoutSessionResultLastComparableExecution: Codable, JSONE
     /** Carga anotada na última execução. */
     public var loadValue: Double?
     public var loadUnit: LoadUnit?
-    /** Leitura do peso da série (ex.: cada halter, cada lado, total). */
+    /** Leitura do peso da série, no enum canônico compartilhado. `null` é `leitura não informada`, que só se compara com `null`. */
     public var loadBasis: LoadBasis?
     /** Quantidade de repetições anotadas. */
     public var reps: Int?

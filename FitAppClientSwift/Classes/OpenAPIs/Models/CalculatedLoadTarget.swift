@@ -25,13 +25,16 @@ public struct CalculatedLoadTarget: Codable, JSONEncodable, Hashable {
     public var loadValue: Double?
     /** Unidade da carga calculada, a da referência; presente somente em `CALCULATED`. */
     public var loadUnit: PrescribedLoadUnit?
+    /** Leitura do peso do alvo calculado, **herdada do exercício prescrito**; é a mesma leitura em que a referência precisa estar confirmada para o cálculo existir. Presente somente em `CALCULATED`. */
+    public var loadBasis: LoadBasis?
 
-    public init(prescribedSetId: String, loadPercent: Double, state: CalculatedLoadTargetState, loadValue: Double? = nil, loadUnit: PrescribedLoadUnit? = nil) {
+    public init(prescribedSetId: String, loadPercent: Double, state: CalculatedLoadTargetState, loadValue: Double? = nil, loadUnit: PrescribedLoadUnit? = nil, loadBasis: LoadBasis? = nil) {
         self.prescribedSetId = prescribedSetId
         self.loadPercent = loadPercent
         self.state = state
         self.loadValue = loadValue
         self.loadUnit = loadUnit
+        self.loadBasis = loadBasis
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -40,6 +43,7 @@ public struct CalculatedLoadTarget: Codable, JSONEncodable, Hashable {
         case state
         case loadValue
         case loadUnit
+        case loadBasis
     }
 
     // Encodable protocol methods
@@ -51,6 +55,7 @@ public struct CalculatedLoadTarget: Codable, JSONEncodable, Hashable {
         try container.encode(state, forKey: .state)
         try container.encodeIfPresent(loadValue, forKey: .loadValue)
         try container.encodeIfPresent(loadUnit, forKey: .loadUnit)
+        try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
     }
 }
 
@@ -59,6 +64,7 @@ extension CalculatedLoadTarget: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if state == .unknownDefaultOpenApi { return true }
         if loadUnit == .unknownDefaultOpenApi { return true }
+        if loadBasis == .unknownDefaultOpenApi { return true }
         return false
     }
 }

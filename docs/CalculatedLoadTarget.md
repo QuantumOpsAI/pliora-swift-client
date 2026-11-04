@@ -8,5 +8,6 @@ Name | Type | Description | Notes
 **state** | [**CalculatedLoadTargetState**](CalculatedLoadTargetState.md) |  |
 **loadValue** | **Double** | Carga calculada; presente somente em &#x60;CALCULATED&#x60;, e nunca zero. | [optional]
 **loadUnit** | [**PrescribedLoadUnit**](PrescribedLoadUnit.md) | Unidade da carga calculada, a da referência; presente somente em &#x60;CALCULATED&#x60;. | [optional]
+**loadBasis** | [**LoadBasis**](LoadBasis.md) | Leitura do peso do alvo calculado, **herdada do exercício prescrito**; é a mesma leitura em que a referência precisa estar confirmada para o cálculo existir. Presente somente em &#x60;CALCULATED&#x60;. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
