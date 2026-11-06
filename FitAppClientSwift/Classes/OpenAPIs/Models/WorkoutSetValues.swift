@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Valores prescritos ou realizados de uma série. O realizado pode incluir RPE; o alvo operacional usa &#x60;ExecutionTargetValues&#x60; para preservar também origem e RPE esperado. Campos de carga permanecem explícitos e anuláveis para exercícios sem carga, sem inventar zero. **Série por tempo:** &#x60;durationSeconds&#x60; é a duração em segundos — a alvo ou a realizada, conforme o bloco em que aparece — e, quando presente, &#x60;reps&#x60; é **nulo**: a série por tempo não tem repetição, e a ausência dela nunca vira zero repetição. &#x60;durationSeconds&#x60; ausente é série que não é por tempo. */
+/** Valores prescritos ou realizados de uma série. O realizado pode incluir RPE; o alvo operacional usa &#x60;ExecutionTargetValues&#x60; para preservar também origem e RPE esperado. Campos de carga permanecem explícitos e anuláveis para exercícios sem carga, sem inventar zero. **Série por tempo:** &#x60;durationSeconds&#x60; é a duração em segundos — a alvo ou a realizada, conforme o bloco em que aparece — e, quando presente, &#x60;reps&#x60; é **nulo**: a série por tempo não tem repetição, e a ausência dela nunca vira zero repetição. No request que fecha OPEN timed controlada, durationSeconds fica ausente e o servidor deriva o valor no commit; ausência nesse contexto não significa série sem tempo. No registro terminal direto e na emenda por tempo, preserva a duração declarada em vigor. */
 public struct WorkoutSetValues: Codable, JSONEncodable, Hashable {
 
     public enum LoadUnit: String, Codable, CaseIterable, CaseIterableDefaultsLast {

@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Fato do descanso realmente medido. &#x60;targetSeconds&#x60; é o descanso **prescrito** e é anulável: **ausente** quando não há descanso prescrito para a série, e a ausência nunca é zero (&#x60;targetSeconds: 0&#x60; diz um descanso prescrito de zero segundo). &#x60;adjustedTargetSeconds&#x60; é o ajuste do aluno sobre um alvo que existe, e por isso só aparece junto de &#x60;targetSeconds&#x60;. O **alvo efetivo** é &#x60;adjustedTargetSeconds&#x60; quando presente, senão &#x60;targetSeconds&#x60;. */
+/** Fato do descanso realmente medido. &#x60;targetSeconds&#x60; é o descanso **prescrito** e é opcional: **ausente** quando não há descanso prescrito para a série, e a ausência nunca é zero (&#x60;targetSeconds: 0&#x60; diz um descanso prescrito de zero segundo). &#x60;adjustedTargetSeconds&#x60; é o ajuste do aluno sobre um alvo que existe, e por isso só aparece junto de &#x60;targetSeconds&#x60;. O **alvo efetivo** é &#x60;adjustedTargetSeconds&#x60; quando presente, senão &#x60;targetSeconds&#x60;. Consolida todos os intervalos reais de pausa confirmada, ordenados, sem sobreposição e dentro de startedAt/endedAt; não trunca histórico nem fabrica retomada. Preserva a regra append-only do fato de descanso, sua identidade e o início real. */
 public struct ExecutionRestRecordPayload: Codable, JSONEncodable, Hashable {
 
     public static let restPeriodIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -18,7 +18,6 @@ public struct ExecutionRestRecordPayload: Codable, JSONEncodable, Hashable {
     public static let afterSetExecutionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let targetSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let adjustedTargetSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
-    public static let pausesRule = ArrayRule(minItems: nil, maxItems: 100, uniqueItems: false)
     public static let observationRule = StringRule(minLength: nil, maxLength: 500, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var restPeriodId: String

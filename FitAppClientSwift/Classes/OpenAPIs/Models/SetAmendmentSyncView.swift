@@ -10,6 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
+/** Emenda com anterior e substituto preservados. reason é sempre publicado; null significa não informado, sem fabricar motivo. A medida e a duração ativa da série não são substituídas pela emenda. */
 public struct SetAmendmentSyncView: Codable, JSONEncodable, Hashable {
 
     public enum ViewType: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -31,11 +32,11 @@ public struct SetAmendmentSyncView: Codable, JSONEncodable, Hashable {
     public var setExecutionId: String
     public var previous: WorkoutSetValues
     public var replacement: WorkoutSetValues
-    public var reason: Reason
+    public var reason: Reason?
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var amendedAt: Date
 
-    public init(viewType: ViewType, amendmentId: String, setExecutionId: String, previous: WorkoutSetValues, replacement: WorkoutSetValues, reason: Reason, amendedAt: Date) {
+    public init(viewType: ViewType, amendmentId: String, setExecutionId: String, previous: WorkoutSetValues, replacement: WorkoutSetValues, reason: Reason?, amendedAt: Date) {
         self.viewType = viewType
         self.amendmentId = amendmentId
         self.setExecutionId = setExecutionId

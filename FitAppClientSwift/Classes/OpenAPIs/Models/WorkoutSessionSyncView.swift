@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** A sessão do aluno, fixada na versão que a originou. &#x60;calculatedLoadTargets&#x60; é o alvo de carga de cada série prescrita em percentual, calculado **uma vez, no início da sessão**: é fato da sessão e não muda enquanto ela dura, ainda que o personal confirme outra carga de referência — a nova vale a partir da próxima sessão. A sessão é **interrompida pelo servidor após 12 horas sem registro** e **encerrada por ele sete dias depois da interrupção**, sem decisão do aluno; nos dois casos a regra é do servidor e não do aparelho. &#x60;endedBy&#x60; existe **se e somente se** &#x60;status&#x60; é &#x60;COMPLETED&#x60; ou &#x60;ABANDONED&#x60;, e &#x60;sessionEffort&#x60; só em &#x60;COMPLETED&#x60; com &#x60;endedBy: STUDENT&#x60;. */
+/** A sessão do aluno, fixada na versão que a originou. &#x60;calculatedLoadTargets&#x60; é o alvo de carga de cada série prescrita em percentual, calculado **uma vez, no início da sessão**: é fato da sessão e não muda enquanto ela dura, ainda que o personal confirme outra carga de referência — a nova vale a partir da próxima sessão. A sessão é **interrompida pelo servidor após 12 horas de inatividade efetiva** e **encerrada por ele sete dias depois da interrupção**, sem decisão do aluno; nos dois casos a regra é do servidor e não do aparelho. &#x60;endedBy&#x60; existe **se e somente se** &#x60;status&#x60; é &#x60;COMPLETED&#x60; ou &#x60;ABANDONED&#x60;, e &#x60;sessionEffort&#x60; só em &#x60;COMPLETED&#x60; com &#x60;endedBy: STUDENT&#x60;. */
 public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
 
     public enum ViewType: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -38,13 +38,13 @@ public struct WorkoutSessionSyncView: Codable, JSONEncodable, Hashable {
     public var workoutId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var prescriptionVersionId: String
-    /** `INTERRUPTED`: sem registro há 12 horas ou mais; só `resumeStudentWorkoutSession`, `completeStudentWorkoutSession` e `abandonStudentWorkoutSession` agem sobre ela, e toda escrita de fato é `409 SESSION_INTERRUPTED`. `COMPLETED` e `ABANDONED` são terminais. */
+    /** `INTERRUPTED`: inatividade efetiva de 12 h, com exclusão limitada por pausa; só `resumeStudentWorkoutSession`, `completeStudentWorkoutSession` e `abandonStudentWorkoutSession` agem sobre ela, e toda escrita de fato é `409 SESSION_INTERRUPTED`. `COMPLETED` e `ABANDONED` são terminais. */
     public var status: Status
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var startedAt: Date
     /** O instante de conclusão, presente só em `COMPLETED`. No término pela decisão do treino e na conclusão automática é o instante do último registro, e não o do pedido nem o da detecção. */
     public var completedAt: Date?
-    /** O instante do servidor do último fato aceito na sessão, ou o do início quando ainda não há fato. É dele que correm as 12 horas até a interrupção; a retomada o leva ao instante em que foi confirmada. Registrar um fato não muda a revisão pública da sessão. */
+    /** Última atividade confirmada do servidor, ou início antes de qualquer atividade: inclui PAUSE/RESUME/APPLY_VALUES e transições aceitas. Leituras, ticks, alertas, ACK, replay e cap não renovam atividade. Para 2 h/12 h, exclui apenas a interseção desde lastRecordedAt com os primeiros 3600 s de cada pausa confirmada não sobreposta (R5); pausas antigas não contam novamente. Não é lastRecordedAt cru mais 12 h. No cap o operacional continua pausado, sem aviso/revisão/atividade automáticos; inatividade volta a crescer. Retomada confirmada move a atividade. Registrar um fato não muda a revisão pública de ciclo de vida da sessão; controle tem sua revisão operacional. */
     public var lastRecordedAt: Date
     public var endedBy: WorkoutSessionEndedBy?
     /** A nota de esforço do treino inteiro, declarada pelo aluno ao terminar (`rateStudentWorkoutSessionEffort`). **Ausente** quando o aluno não a deu, e sempre ausente fora de `COMPLETED` com `endedBy: STUDENT`: a sessão aberta, a descartada e a encerrada pelo servidor não têm nota. Ausência nunca é zero. */
