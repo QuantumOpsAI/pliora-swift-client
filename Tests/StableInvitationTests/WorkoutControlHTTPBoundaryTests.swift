@@ -4,9 +4,11 @@ import Alamofire
 
 private final class WWCProtocol: URLProtocol {
     static var body=Data()
+    static var lastURLString:String?
     override class func canInit(with request:URLRequest)->Bool { request.url?.host == "wwc-codec.invalid" }
     override class func canonicalRequest(for request:URLRequest)->URLRequest { request }
     override func startLoading() {
+        Self.lastURLString=request.url?.absoluteString
         let response=HTTPURLResponse(url:request.url!,statusCode:200,httpVersion:nil,headerFields:["Content-Type":"application/json"] )!
         client?.urlProtocol(self,didReceive:response,cacheStoragePolicy:.notAllowed)
         client?.urlProtocol(self,didLoad:Self.body)
@@ -65,5 +67,18 @@ final class WorkoutControlHTTPBoundaryTests:XCTestCase {
             }
             wait(for:[done],timeout:10)
         }
+    }
+    /// UUID path segments must reach the wire in the canonical lowercase form the
+    /// contract's [0-9a-f] patterns require; Foundation interpolates them uppercase.
+    func testUUIDPathParameterSerializesCanonicalLowercase() {
+        let base=FitAppClientSwiftAPI.basePath,factory=FitAppClientSwiftAPI.requestBuilderFactory
+        defer {FitAppClientSwiftAPI.basePath=base;FitAppClientSwiftAPI.requestBuilderFactory=factory}
+        FitAppClientSwiftAPI.basePath="http://wwc-codec.invalid/api/v1"
+        FitAppClientSwiftAPI.requestBuilderFactory=WWCFactory()
+        WWCProtocol.body=Data()
+        let done=expectation(description:"receipt path")
+        WorkoutExecutionAPI.getStudentWorkoutControlOperation(sessionId:"019a4e10-7c21-7b3a-9c6d-4f0a2b8e1d01",operationId:UUID(uuidString:"019A4E10-7C21-7B3A-9C6D-4F0A2B8E1D0B")!,apiResponseQueue:.global()) { _,_ in done.fulfill() }
+        wait(for:[done],timeout:10)
+        XCTAssertEqual(WWCProtocol.lastURLString,"http://wwc-codec.invalid/api/v1/student/workout-sessions/019a4e10-7c21-7b3a-9c6d-4f0a2b8e1d01/control/operations/019a4e10-7c21-7b3a-9c6d-4f0a2b8e1d0b")
     }
 }
