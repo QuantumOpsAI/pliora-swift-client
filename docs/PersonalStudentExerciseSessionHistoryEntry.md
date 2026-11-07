@@ -4,6 +4,8 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **sessionId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
+**localDate** | **Date** | Dia civil do treino gravado na sessão — o mesmo &#x60;localDate&#x60; que o aluno vê no histórico dele. No treino marcado como feito depois, é o dia que o aluno declarou, e não o dia em que registrou; é por ele que a página ordena (§4.4 de &#x60;DOC-PERSONAL-HOME&#x60;). |
+**recordedLater** | **Bool** | &#x60;true&#x60; quando o treino foi marcado como feito depois (&#x60;DOC-STUDENT-WORKOUT&#x60; §6.7): &#x60;startedAt&#x60; e &#x60;endedAt&#x60; são então os instantes do registro, não do treino, e o dia do treino está em &#x60;localDate&#x60;. O aluno declara o dia sem hora, e nenhuma hora do treino é inventada para exibição. Ausente é sessão registrada enquanto acontecia. | [optional]
 **sessionStatus** | **String** | Estado da sessão, com os mesmos valores que a execução já publica em &#x60;WorkoutSessionSyncView.status&#x60;; o conjunto é reusado sem alteração. |
 **startedAt** | **Date** | Instante de início da sessão, do servidor. Existe em qualquer estado. |
 **endedAt** | **Date** | Instante de término da sessão, do servidor, presente **se e somente se** a sessão é terminal (&#x60;COMPLETED&#x60; ou &#x60;ABANDONED&#x60;) e &#x60;null&#x60; em &#x60;IN_PROGRESS&#x60; e &#x60;INTERRUPTED&#x60;. Na sessão encerrada pelo aluno pela decisão do treino ou pelo servidor, é o instante do último registro. |
