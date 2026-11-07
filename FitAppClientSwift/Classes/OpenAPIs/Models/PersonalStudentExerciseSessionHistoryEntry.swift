@@ -27,6 +27,10 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     public static let setsRule = ArrayRule(minItems: nil, maxItems: 100, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var sessionId: String
+    /** Dia civil do treino gravado na sessão — o mesmo `localDate` que o aluno vê no histórico dele. No treino marcado como feito depois, é o dia que o aluno declarou, e não o dia em que registrou; é por ele que a página ordena (§4.4 de `DOC-PERSONAL-HOME`). */
+    public var localDate: Date
+    /** `true` quando o treino foi marcado como feito depois (`DOC-STUDENT-WORKOUT` §6.7): `startedAt` e `endedAt` são então os instantes do registro, não do treino, e o dia do treino está em `localDate`. O aluno declara o dia sem hora, e nenhuma hora do treino é inventada para exibição. Ausente é sessão registrada enquanto acontecia. */
+    public var recordedLater: Bool?
     /** Estado da sessão, com os mesmos valores que a execução já publica em `WorkoutSessionSyncView.status`; o conjunto é reusado sem alteração. */
     public var sessionStatus: SessionStatus
     /** Instante de início da sessão, do servidor. Existe em qualquer estado. */
@@ -47,8 +51,10 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     /** Substituição daquele exercício naquela sessão, quando houve, com o motivo estruturado. Ausente quando não houve. */
     public var substitution: PersonalStudentExerciseSubstitutionView?
 
-    public init(sessionId: String, sessionStatus: SessionStatus, startedAt: Date, endedAt: Date?, endedBy: WorkoutSessionEndedBy? = nil, sessionEffort: WorkoutSessionEffort? = nil, executedVariantId: String, executedVariantLabel: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil) {
+    public init(sessionId: String, localDate: Date, recordedLater: Bool? = nil, sessionStatus: SessionStatus, startedAt: Date, endedAt: Date?, endedBy: WorkoutSessionEndedBy? = nil, sessionEffort: WorkoutSessionEffort? = nil, executedVariantId: String, executedVariantLabel: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil) {
         self.sessionId = sessionId
+        self.localDate = localDate
+        self.recordedLater = recordedLater
         self.sessionStatus = sessionStatus
         self.startedAt = startedAt
         self.endedAt = endedAt
@@ -63,6 +69,8 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case sessionId
+        case localDate
+        case recordedLater
         case sessionStatus
         case startedAt
         case endedAt
@@ -80,6 +88,8 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(sessionId, forKey: .sessionId)
+        try container.encode(localDate, forKey: .localDate)
+        try container.encodeIfPresent(recordedLater, forKey: .recordedLater)
         try container.encode(sessionStatus, forKey: .sessionStatus)
         try container.encode(startedAt, forKey: .startedAt)
         try container.encode(endedAt, forKey: .endedAt)

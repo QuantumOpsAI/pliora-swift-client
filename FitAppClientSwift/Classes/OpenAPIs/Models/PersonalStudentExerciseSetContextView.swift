@@ -17,6 +17,7 @@ public struct PersonalStudentExerciseSetContextView: Codable, JSONEncodable, Has
     public static let loadPercentRule = NumericRule<Double>(minimum: 1, exclusiveMinimum: false, maximum: 150, exclusiveMaximum: false, multipleOf: nil)
     public static let measuredDurationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let adjustedDurationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let adaptationBadgesRule = ArrayRule(minItems: nil, maxItems: 10, uniqueItems: true)
     public var setIndex: Int
     public var status: ExecutedSetStatus
     /** Tipo da série prescrita (`LE-16`): a comparação entre séries considera só as do mesmo tipo, e a de aquecimento não entra em maior carga nem em volume. Ausente quando não houve prescrição registrada. */
@@ -33,8 +34,20 @@ public struct PersonalStudentExerciseSetContextView: Codable, JSONEncodable, Has
     public var measuredDurationSeconds: Int?
     /** Duração que o aluno corrigiu; existe somente quando difere da medida, e então é a que consta em `actual.durationSeconds`. */
     public var adjustedDurationSeconds: Int?
+    /** Leitura do peso da série executada, a mesma cópia da prescrição que o aluno vê no resultado (`StudentWorkoutSessionResultSet.loadBasis`); `null` é `leitura não informada`, que só se compara com `null`. Vale para a carga de `prescribed`, de `target` e de `actual`, que nunca é convertida de uma leitura para outra: `20 kg cada halter` nunca vira `40 kg total`. Na série sem carga é `null`, e não há leitura a mostrar. */
+    public var loadBasis: LoadBasis?
+    /** `true` quando as repetições da série contam por lado (`DOC-STUDENT-WORKOUT-TECH` §6.5), a mesma etiqueta do resultado do aluno. Ausente é contagem comum. */
+    public var repsPerSide: Bool?
+    /** `true` quando a série não estava na prescrição e o aluno a acrescentou durante a sessão ou depois do término. Ausente é série prescrita. */
+    public var isAdditional: Bool?
+    /** Instante do servidor em que a série a mais foi registrada **depois do término** da sessão — o `registrado depois` da série (`addStudentExerciseSetExecution`). Presente somente com `isAdditional: true` e ausente na série registrada durante a sessão. O treino inteiro marcado como feito depois é dito por `recordedLater` da sessão, não por este campo. */
+    public var recordedLaterAt: Date?
+    /** As mesmas marcas curtas que o aluno vê no resultado da série (`StudentWorkoutSessionSetBadge`, `DOC-STUDENT-WORKOUT-TECH` §2.5.1): a mais, sem registro, não fiz, fiz sem anotar, corrigido, registrado por engano, ordem alterada, substituído, bloco separado e valores da prescrição. São fatos do registro, nunca juízo sobre a execução. A lista é do servidor, na ordem em que o enum as publica; vazia ou ausente é série sem marca. */
+    public var adaptationBadges: Set<StudentWorkoutSessionSetBadge>?
+    /** Instante do servidor da última correção da série, presente **se e somente se** `adaptationBadges` traz `AMENDED`. O valor em vigor está em `actual`; o valor anterior não trafega nesta leitura. */
+    public var amendedAt: Date?
 
-    public init(setIndex: Int, status: ExecutedSetStatus, setType: PrescribedSetType? = nil, loadPercent: Double? = nil, prescribed: WorkoutSetValues?, target: ExecutionTargetValues?, actual: WorkoutSetValues?, measuredDurationSeconds: Int? = nil, adjustedDurationSeconds: Int? = nil) {
+    public init(setIndex: Int, status: ExecutedSetStatus, setType: PrescribedSetType? = nil, loadPercent: Double? = nil, prescribed: WorkoutSetValues?, target: ExecutionTargetValues?, actual: WorkoutSetValues?, measuredDurationSeconds: Int? = nil, adjustedDurationSeconds: Int? = nil, loadBasis: LoadBasis? = nil, repsPerSide: Bool? = nil, isAdditional: Bool? = nil, recordedLaterAt: Date? = nil, adaptationBadges: Set<StudentWorkoutSessionSetBadge>? = nil, amendedAt: Date? = nil) {
         self.setIndex = setIndex
         self.status = status
         self.setType = setType
@@ -44,6 +57,12 @@ public struct PersonalStudentExerciseSetContextView: Codable, JSONEncodable, Has
         self.actual = actual
         self.measuredDurationSeconds = measuredDurationSeconds
         self.adjustedDurationSeconds = adjustedDurationSeconds
+        self.loadBasis = loadBasis
+        self.repsPerSide = repsPerSide
+        self.isAdditional = isAdditional
+        self.recordedLaterAt = recordedLaterAt
+        self.adaptationBadges = adaptationBadges
+        self.amendedAt = amendedAt
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -56,6 +75,12 @@ public struct PersonalStudentExerciseSetContextView: Codable, JSONEncodable, Has
         case actual
         case measuredDurationSeconds
         case adjustedDurationSeconds
+        case loadBasis
+        case repsPerSide
+        case isAdditional
+        case recordedLaterAt
+        case adaptationBadges
+        case amendedAt
     }
 
     // Encodable protocol methods
@@ -71,6 +96,12 @@ public struct PersonalStudentExerciseSetContextView: Codable, JSONEncodable, Has
         try container.encode(actual, forKey: .actual)
         try container.encodeIfPresent(measuredDurationSeconds, forKey: .measuredDurationSeconds)
         try container.encodeIfPresent(adjustedDurationSeconds, forKey: .adjustedDurationSeconds)
+        try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
+        try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
+        try container.encodeIfPresent(isAdditional, forKey: .isAdditional)
+        try container.encodeIfPresent(recordedLaterAt, forKey: .recordedLaterAt)
+        try container.encodeIfPresent(adaptationBadges, forKey: .adaptationBadges)
+        try container.encodeIfPresent(amendedAt, forKey: .amendedAt)
     }
 }
 
@@ -79,6 +110,7 @@ extension PersonalStudentExerciseSetContextView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if status == .unknownDefaultOpenApi { return true }
         if setType == .unknownDefaultOpenApi { return true }
+        if loadBasis == .unknownDefaultOpenApi { return true }
         return false
     }
 }

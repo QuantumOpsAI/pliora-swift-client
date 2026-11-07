@@ -20,6 +20,7 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
     public static let derivedFromPrescribedExerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let positionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let blockKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
+    public static let preferredAlternativesRevisionRule = StringRule(minLength: 1, maxLength: 64, pattern: "/^[A-Za-z0-9._-]+$/")
     public static let dependsOnPrescribedExerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let notesRule = StringRule(minLength: 1, maxLength: 2000, pattern: nil)
     public static let setsRule = ArrayRule(minItems: nil, maxItems: 50, uniqueItems: false)
@@ -46,6 +47,8 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
     public var loadBasis: LoadBasis?
     /** Etiqueta `por lado` da contagem de repetições do exercício, válida para todas as séries (`DOC-PRESCRIPTION-AUTHORING-TECH` §5.4, `PRE-06 = A`): um mesmo exercício não mistura séries por lado com séries somando os dois lados. Só é permitida com repetições em todas as séries — recusada ao salvar quando alguma série tem `durationSeconds` ou é `TO_FAILURE` sem repetições mínimas (`422 VALIDATION_FAILED`). Ausente equivale a `false`. As cópias por série nas leituras e no fato (`PrescribedSetSyncView`, `SetExecutionSyncView`) seguem por série, gravadas pelo servidor. */
     public var repsPerSide: Bool?
+    /** A `revision` das trocas preferidas do exercício (`getPersonalPreferredAlternatives`) que o app usou ao materializar as alternativas `PERSONAL_DEFAULT` deste exercício (`DOC-PRESCRIPTION-AUTHORING-TECH` §8.1, `PRE-01 = A`). **Gravada pelo cliente**: o servidor só valida a forma e a guarda como veio, sem compará-la com a biblioteca, sem preenchê-la e sem reescrevê-la. Ao abrir o rascunho o app a compara com a revisão atual da biblioteca e, se mudou, mostra a faixa \"Suas trocas preferidas de … mudaram\" (PR3). Ausente quando o exercício não recebeu trocas da biblioteca. Acompanha o conteúdo como o resto: revisão, clonagem, modelo e versão publicada a copiam. É dado de autoria do personal e **nunca chega ao aluno**: as leituras do aluno não a publicam. */
+    public var preferredAlternativesRevision: String?
     /** Exercício que precisa estar concluído antes deste, quando o personal declara dependência. */
     public var dependsOnPrescribedExerciseId: String?
     /** Nota do personal para o exercício. Conteúdo autorado, preservado verbatim UTF-8, nunca traduzido, normalizado, reescrito ou truncado em silêncio. */
@@ -55,7 +58,7 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
     public var sets: [PrescriptionDraftSet]
     public var alternatives: [PrescriptionDraftAlternative]?
 
-    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, derivedFromPrescribedExerciseId: String? = nil, position: Int, orderPolicy: PrescribedOrderPolicy, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, loadBasis: LoadBasis? = nil, repsPerSide: Bool? = nil, dependsOnPrescribedExerciseId: String? = nil, notes: String? = nil, restRange: PrescribedRestRange? = nil, sets: [PrescriptionDraftSet], alternatives: [PrescriptionDraftAlternative]? = nil) {
+    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, derivedFromPrescribedExerciseId: String? = nil, position: Int, orderPolicy: PrescribedOrderPolicy, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, loadBasis: LoadBasis? = nil, repsPerSide: Bool? = nil, preferredAlternativesRevision: String? = nil, dependsOnPrescribedExerciseId: String? = nil, notes: String? = nil, restRange: PrescribedRestRange? = nil, sets: [PrescriptionDraftSet], alternatives: [PrescriptionDraftAlternative]? = nil) {
         self.prescribedExerciseId = prescribedExerciseId
         self.exerciseId = exerciseId
         self.prescribedVariantId = prescribedVariantId
@@ -68,6 +71,7 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
         self.technique = technique
         self.loadBasis = loadBasis
         self.repsPerSide = repsPerSide
+        self.preferredAlternativesRevision = preferredAlternativesRevision
         self.dependsOnPrescribedExerciseId = dependsOnPrescribedExerciseId
         self.notes = notes
         self.restRange = restRange
@@ -88,6 +92,7 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
         case technique
         case loadBasis
         case repsPerSide
+        case preferredAlternativesRevision
         case dependsOnPrescribedExerciseId
         case notes
         case restRange
@@ -111,6 +116,7 @@ public struct PrescriptionDraftExercise: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(technique, forKey: .technique)
         try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
         try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
+        try container.encodeIfPresent(preferredAlternativesRevision, forKey: .preferredAlternativesRevision)
         try container.encodeIfPresent(dependsOnPrescribedExerciseId, forKey: .dependsOnPrescribedExerciseId)
         try container.encodeIfPresent(notes, forKey: .notes)
         try container.encodeIfPresent(restRange, forKey: .restRange)

@@ -15,11 +15,13 @@ Method | HTTP request | Description
 [**getPersonalExercise**](ExerciseCatalogAPI.md#getpersonalexercise) | **GET** /personal/exercises/{exerciseId} | Ler um exercício próprio do personal, com o vídeo e as revisões
 [**getPersonalExerciseMediaPreference**](ExerciseCatalogAPI.md#getpersonalexercisemediapreference) | **GET** /personal/exercise-media-preference | Ler a preferência de vídeo do personal
 [**getPersonalExerciseVideo**](ExerciseCatalogAPI.md#getpersonalexercisevideo) | **GET** /personal/exercises/{exerciseId}/video | Ler o estado do vídeo de um exercício próprio
+[**getPersonalPreferredAlternatives**](ExerciseCatalogAPI.md#getpersonalpreferredalternatives) | **GET** /personal/preferred-alternatives | Ler as trocas preferidas de um exercício
 [**listExerciseCatalog**](ExerciseCatalogAPI.md#listexercisecatalog) | **GET** /exercises | Buscar exercícios, com filtros, para a autoria do personal
 [**listPersonalExerciseFavorites**](ExerciseCatalogAPI.md#listpersonalexercisefavorites) | **GET** /personal/exercise-favorites | Listar os exercícios favoritos do personal
 [**listPersonalRecentExercises**](ExerciseCatalogAPI.md#listpersonalrecentexercises) | **GET** /personal/recent-exercises | Listar os exercícios que o personal já prescreveu
 [**putPersonalExerciseFavorite**](ExerciseCatalogAPI.md#putpersonalexercisefavorite) | **PUT** /personal/exercise-favorites/{ref} | Favoritar um exercício
 [**putPersonalExerciseMediaPreference**](ExerciseCatalogAPI.md#putpersonalexercisemediapreference) | **PUT** /personal/exercise-media-preference | Salvar a preferência de vídeo do personal
+[**putPersonalPreferredAlternatives**](ExerciseCatalogAPI.md#putpersonalpreferredalternatives) | **PUT** /personal/preferred-alternatives/{exerciseRef} | Substituir as trocas preferidas de um exercício
 [**reportExerciseVideo**](ExerciseCatalogAPI.md#reportexercisevideo) | **POST** /student/exercises/{exerciseId}/video/reports | Denunciar o vídeo de um exercício próprio do personal
 [**resolveExerciseReferences**](ExerciseCatalogAPI.md#resolveexercisereferences) | **POST** /exercises/references | Resolver referências opacas de catálogo em exercício e variante prescritíveis
 [**updatePersonalExercise**](ExerciseCatalogAPI.md#updatepersonalexercise) | **PUT** /personal/exercises/{exerciseId} | Editar o conteúdo de um exercício próprio com revisão esperada
@@ -619,6 +621,58 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getPersonalPreferredAlternatives**
+```swift
+    open class func getPersonalPreferredAlternatives(exerciseRef: String, acceptLanguage: String? = nil, completion: @escaping (_ data: PreferredAlternativesView?, _ error: Error?) -> Void)
+```
+
+Ler as trocas preferidas de um exercício
+
+As **trocas preferidas** do personal para um exercício de origem (`DOC-PRESCRIPTION-AUTHORING-TECH` §8.1, `PRE-01 = A`, tela PR18): a lista que ele guarda uma vez para que entre já ligada em todo plano novo, **na ordem** em que ele a deixou — a posição é a ordem do array. `exerciseRef` é o `exerciseId` do exercício de origem, na mesma forma de `PrescriptionDraftExercise.exerciseId`: um exercício do catálogo que já tem identidade no Pliora (`resolveExerciseReferences`) ou um exercício próprio do personal. **Lista vazia é resposta válida**: quem nunca guardou trocas para o exercício recebe `items: []` com a revisão inicial, que é o valor a ecoar em `If-Match` na primeira escrita. A biblioteca é **do personal**, online-only e sem command de sync, e **nunca é lida pelo aluno**: nenhuma leitura do aluno a expõe. Do catálogo só se guarda a referência (`ADR-0014` §2): nenhum nome, atributo ou mídia do exercício vem nesta resposta, e o app lê o nome do jeito de sempre (`getExerciseCatalogItem`). Exercício inexistente, exercício próprio de outro personal e exercício próprio arquivado respondem igual, `404 EXERCISE_NOT_FOUND`: arquivar um exercício próprio remove as trocas que o têm como origem ou destino, na mesma transação do arquivamento.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let exerciseRef = "exerciseRef_example" // String | `exerciseId` do exercício de origem. Ausente é `422 VALIDATION_FAILED`; um valor que não nomeia exercício que o personal possa usar é `404 EXERCISE_NOT_FOUND`.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Ler as trocas preferidas de um exercício
+ExerciseCatalogAPI.getPersonalPreferredAlternatives(exerciseRef: exerciseRef, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **exerciseRef** | **String** | &#x60;exerciseId&#x60; do exercício de origem. Ausente é &#x60;422 VALIDATION_FAILED&#x60;; um valor que não nomeia exercício que o personal possa usar é &#x60;404 EXERCISE_NOT_FOUND&#x60;. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PreferredAlternativesView**](PreferredAlternativesView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **listExerciseCatalog**
 ```swift
     open class func listExerciseCatalog(acceptLanguage: String? = nil, query: String? = nil, muscle: String? = nil, equipment: String? = nil, grip: String? = nil, difficulty: String? = nil, mechanic: String? = nil, force: String? = nil, origin: Origin_listExerciseCatalog? = nil, cursor: String? = nil, limit: Int? = nil, completion: @escaping (_ data: ExerciseCatalogPage?, _ error: Error?) -> Void)
@@ -895,6 +949,64 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**ExerciseMediaPreferenceView**](ExerciseMediaPreferenceView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **putPersonalPreferredAlternatives**
+```swift
+    open class func putPersonalPreferredAlternatives(idempotencyKey: String, ifMatch: String, exerciseRef: String, putPreferredAlternativesRequest: PutPreferredAlternativesRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: PreferredAlternativesView?, _ error: Error?) -> Void)
+```
+
+Substituir as trocas preferidas de um exercício
+
+Substitui **a lista inteira** de trocas preferidas do exercício de origem, na ordem do array, por compare-and-set: `If-Match` com a `revision` lida é obrigatório — na primeira escrita, a revisão inicial que a leitura devolve para a lista vazia —, e uma escrita sobre revisão velha é `412 PRECONDITION_FAILED`, sem gravar nada. Lista vazia limpa a biblioteca do exercício. A resposta traz a revisão nova, que muda a cada escrita aceita; é ela que o app grava no rascunho em `PrescriptionDraftExercise.preferredAlternativesRevision` ao materializar as trocas, e é a comparação com ela que acende a faixa \"Suas trocas preferidas de … mudaram\" (PR3). Mudar a biblioteca **não altera rascunho, modelo nem versão publicada**: as trocas materializadas são conteúdo do plano. **Recusas**, todas `422 VALIDATION_FAILED` sem gravar, com o caminho em `fieldErrors`: mais de 50 itens (`items`, `TOO_MANY_ITEMS`); a mesma troca repetida (`items[i].alternativeExerciseRef`, `DUPLICATE`); a troca igual à origem (`SAME_AS_ORIGIN`); uma troca que não nomeia exercício que o personal possa usar — inexistente, exercício próprio de outro personal ou exercício próprio arquivado, todos com o mesmo `EXERCISE_UNAVAILABLE`, para a recusa não virar oráculo de existência; e `VARIANT` (`items[i].alternativeType`, `ALTERNATIVE_TYPE_MISMATCH`): `VARIANT` é outra variante **do próprio exercício de origem**, a biblioteca identifica a troca pelo exercício, e todo exercício do catálogo e todo exercício próprio tem uma única variante (`ADR-0014` §3, `ADR-0015`) — por isso toda troca da biblioteca é `ALTERNATIVE_EXERCISE`, e a regra é a mesma da alternativa no rascunho. Do catálogo só se guarda a referência (`ADR-0014` §2). Repetir a mesma `Idempotency-Key` com o mesmo corpo sobre a mesma revisão devolve o resultado guardado, sem reaplicar.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let ifMatch = "ifMatch_example" // String | ETag exata da revisão lida pelo cliente; impede last-write-wins.
+let exerciseRef = "exerciseRef_example" // String | `exerciseId` do exercício de origem, na mesma forma de `PrescriptionDraftExercise.exerciseId`. Um valor que não nomeia exercício que o personal possa usar é `404 EXERCISE_NOT_FOUND`.
+let putPreferredAlternativesRequest = PutPreferredAlternativesRequest(items: [PreferredAlternativeItem(alternativeExerciseRef: "alternativeExerciseRef_example", alternativeType: PrescribedAlternativeType())]) // PutPreferredAlternativesRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Substituir as trocas preferidas de um exercício
+ExerciseCatalogAPI.putPersonalPreferredAlternatives(idempotencyKey: idempotencyKey, ifMatch: ifMatch, exerciseRef: exerciseRef, putPreferredAlternativesRequest: putPreferredAlternativesRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **ifMatch** | **String** | ETag exata da revisão lida pelo cliente; impede last-write-wins. |
+ **exerciseRef** | **String** | &#x60;exerciseId&#x60; do exercício de origem, na mesma forma de &#x60;PrescriptionDraftExercise.exerciseId&#x60;. Um valor que não nomeia exercício que o personal possa usar é &#x60;404 EXERCISE_NOT_FOUND&#x60;. |
+ **putPreferredAlternativesRequest** | [**PutPreferredAlternativesRequest**](PutPreferredAlternativesRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**PreferredAlternativesView**](PreferredAlternativesView.md)
 
 ### Authorization
 
