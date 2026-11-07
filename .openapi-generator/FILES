@@ -527,6 +527,8 @@ FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactProblem429.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactProblem503.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactReceipt.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactRequest.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PreferredAlternativeItem.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PreferredAlternativesView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PreparePushRegistrationRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PrescribedAlternativeSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PrescribedAlternativeType.swift
@@ -592,6 +594,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/PushPlatform.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PushProvider.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PushRegistrationContextView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PutExerciseMediaPreferenceRequest.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PutPreferredAlternativesRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PutStudentReferenceLoadRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RateLimitProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RateWorkoutSessionEffortRequest.swift
@@ -1494,6 +1497,8 @@ docs/PlatformContactProblem503.md
 docs/PlatformContactReceipt.md
 docs/PlatformContactRequest.md
 docs/PlatformLeadsAPI.md
+docs/PreferredAlternativeItem.md
+docs/PreferredAlternativesView.md
 docs/PreparePushRegistrationRequest.md
 docs/PrescribedAlternativeSyncView.md
 docs/PrescribedAlternativeType.md
@@ -1559,6 +1564,7 @@ docs/PushPlatform.md
 docs/PushProvider.md
 docs/PushRegistrationContextView.md
 docs/PutExerciseMediaPreferenceRequest.md
+docs/PutPreferredAlternativesRequest.md
 docs/PutStudentReferenceLoadRequest.md
 docs/RateLimitProblemDetails.md
 docs/RateWorkoutSessionEffortRequest.md

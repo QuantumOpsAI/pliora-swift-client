@@ -625,6 +625,59 @@ open class ExerciseCatalogAPI {
     }
 
     /**
+     Ler as trocas preferidas de um exercício
+
+     - parameter exerciseRef: (query) &#x60;exerciseId&#x60; do exercício de origem. Ausente é &#x60;422 VALIDATION_FAILED&#x60;; um valor que não nomeia exercício que o personal possa usar é &#x60;404 EXERCISE_NOT_FOUND&#x60;.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func getPersonalPreferredAlternatives(exerciseRef: String, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PreferredAlternativesView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getPersonalPreferredAlternativesWithRequestBuilder(exerciseRef: exerciseRef, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Ler as trocas preferidas de um exercício
+     - GET /personal/preferred-alternatives
+     - As **trocas preferidas** do personal para um exercício de origem (`DOC-PRESCRIPTION-AUTHORING-TECH` §8.1, `PRE-01 = A`, tela PR18): a lista que ele guarda uma vez para que entre já ligada em todo plano novo, **na ordem** em que ele a deixou — a posição é a ordem do array. `exerciseRef` é o `exerciseId` do exercício de origem, na mesma forma de `PrescriptionDraftExercise.exerciseId`: um exercício do catálogo que já tem identidade no Pliora (`resolveExerciseReferences`) ou um exercício próprio do personal. **Lista vazia é resposta válida**: quem nunca guardou trocas para o exercício recebe `items: []` com a revisão inicial, que é o valor a ecoar em `If-Match` na primeira escrita. A biblioteca é **do personal**, online-only e sem command de sync, e **nunca é lida pelo aluno**: nenhuma leitura do aluno a expõe. Do catálogo só se guarda a referência (`ADR-0014` §2): nenhum nome, atributo ou mídia do exercício vem nesta resposta, e o app lê o nome do jeito de sempre (`getExerciseCatalogItem`). Exercício inexistente, exercício próprio de outro personal e exercício próprio arquivado respondem igual, `404 EXERCISE_NOT_FOUND`: arquivar um exercício próprio remove as trocas que o têm como origem ou destino, na mesma transação do arquivamento.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String)]
+     - parameter exerciseRef: (query) &#x60;exerciseId&#x60; do exercício de origem. Ausente é &#x60;422 VALIDATION_FAILED&#x60;; um valor que não nomeia exercício que o personal possa usar é &#x60;404 EXERCISE_NOT_FOUND&#x60;.
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<PreferredAlternativesView>
+     */
+    open class func getPersonalPreferredAlternativesWithRequestBuilder(exerciseRef: String, acceptLanguage: String? = nil) -> RequestBuilder<PreferredAlternativesView> {
+        let localVariablePath = "/personal/preferred-alternatives"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters: [String: Any]? = nil
+
+        var localVariableUrlComponents = URLComponents(string: localVariableURLString)
+        localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
+            "exerciseRef": (wrappedValue: exerciseRef.encodeToJSON(), isExplode: true),
+        ])
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PreferredAlternativesView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      * enum for parameter origin
      */
     public enum Origin_listExerciseCatalog: String, CaseIterable {
@@ -933,6 +986,68 @@ open class ExerciseCatalogAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<ExerciseMediaPreferenceView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Substituir as trocas preferidas de um exercício
+
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) ETag exata da revisão lida pelo cliente; impede last-write-wins.
+     - parameter exerciseRef: (path) &#x60;exerciseId&#x60; do exercício de origem, na mesma forma de &#x60;PrescriptionDraftExercise.exerciseId&#x60;. Um valor que não nomeia exercício que o personal possa usar é &#x60;404 EXERCISE_NOT_FOUND&#x60;.
+     - parameter putPreferredAlternativesRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func putPersonalPreferredAlternatives(idempotencyKey: String, ifMatch: String, exerciseRef: String, putPreferredAlternativesRequest: PutPreferredAlternativesRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PreferredAlternativesView?, _ error: Error?) -> Void)) -> RequestTask {
+        return putPersonalPreferredAlternativesWithRequestBuilder(idempotencyKey: idempotencyKey, ifMatch: ifMatch, exerciseRef: exerciseRef, putPreferredAlternativesRequest: putPreferredAlternativesRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Substituir as trocas preferidas de um exercício
+     - PUT /personal/preferred-alternatives/{exerciseRef}
+     - Substitui **a lista inteira** de trocas preferidas do exercício de origem, na ordem do array, por compare-and-set: `If-Match` com a `revision` lida é obrigatório — na primeira escrita, a revisão inicial que a leitura devolve para a lista vazia —, e uma escrita sobre revisão velha é `412 PRECONDITION_FAILED`, sem gravar nada. Lista vazia limpa a biblioteca do exercício. A resposta traz a revisão nova, que muda a cada escrita aceita; é ela que o app grava no rascunho em `PrescriptionDraftExercise.preferredAlternativesRevision` ao materializar as trocas, e é a comparação com ela que acende a faixa \"Suas trocas preferidas de … mudaram\" (PR3). Mudar a biblioteca **não altera rascunho, modelo nem versão publicada**: as trocas materializadas são conteúdo do plano. **Recusas**, todas `422 VALIDATION_FAILED` sem gravar, com o caminho em `fieldErrors`: mais de 50 itens (`items`, `TOO_MANY_ITEMS`); a mesma troca repetida (`items[i].alternativeExerciseRef`, `DUPLICATE`); a troca igual à origem (`SAME_AS_ORIGIN`); uma troca que não nomeia exercício que o personal possa usar — inexistente, exercício próprio de outro personal ou exercício próprio arquivado, todos com o mesmo `EXERCISE_UNAVAILABLE`, para a recusa não virar oráculo de existência; e `VARIANT` (`items[i].alternativeType`, `ALTERNATIVE_TYPE_MISMATCH`): `VARIANT` é outra variante **do próprio exercício de origem**, a biblioteca identifica a troca pelo exercício, e todo exercício do catálogo e todo exercício próprio tem uma única variante (`ADR-0014` §3, `ADR-0015`) — por isso toda troca da biblioteca é `ALTERNATIVE_EXERCISE`, e a regra é a mesma da alternativa no rascunho. Do catálogo só se guarda a referência (`ADR-0014` §2). Repetir a mesma `Idempotency-Key` com o mesmo corpo sobre a mesma revisão devolve o resultado guardado, sem reaplicar.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [ETag(String), Content-Language(Locale), Vary(String)]
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter ifMatch: (header) ETag exata da revisão lida pelo cliente; impede last-write-wins.
+     - parameter exerciseRef: (path) &#x60;exerciseId&#x60; do exercício de origem, na mesma forma de &#x60;PrescriptionDraftExercise.exerciseId&#x60;. Um valor que não nomeia exercício que o personal possa usar é &#x60;404 EXERCISE_NOT_FOUND&#x60;.
+     - parameter putPreferredAlternativesRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<PreferredAlternativesView>
+     */
+    open class func putPersonalPreferredAlternativesWithRequestBuilder(idempotencyKey: String, ifMatch: String, exerciseRef: String, putPreferredAlternativesRequest: PutPreferredAlternativesRequest, acceptLanguage: String? = nil) -> RequestBuilder<PreferredAlternativesView> {
+        var localVariablePath = "/personal/preferred-alternatives/{exerciseRef}"
+        let exerciseRefPreEscape = "\(APIHelper.mapValueToPathItem(exerciseRef))"
+        let exerciseRefPostEscape = exerciseRefPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{exerciseRef}", with: exerciseRefPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: putPreferredAlternativesRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+            "If-Match": ifMatch.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<PreferredAlternativesView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
