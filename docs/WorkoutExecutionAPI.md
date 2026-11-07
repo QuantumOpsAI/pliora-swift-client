@@ -316,7 +316,7 @@ Name | Type | Description  | Notes
 
 Adiar um exercício, preservando-o como pendência aberta
 
-Caminho HTTP autoritativo do fato `execution.exercise.defer`. `deferralId` é criado no device e adotado pelo servidor. **Adiar não é pular.** O exercício permanece como pendência aberta, visível e recuperável, e o encerramento da sessão recusa qualquer pendência não declarada. `EQUIPMENT_BUSY` (aparelho em uso, que volta a ficar livre) e `EQUIPMENT_UNAVAILABLE` (aparelho quebrado ou ausente, que não volta) são motivos distintos e não se substituem. Posição prescrita e posição executada coexistem: juntas formam a fila dinâmica e nenhuma sobrescreve a outra.
+Caminho HTTP autoritativo do fato `execution.exercise.defer`. `deferralId` é criado no device e adotado pelo servidor. **Adiar não é pular.** O exercício permanece como pendência aberta, visível e recuperável, e o encerramento da sessão recusa qualquer pendência não declarada. `EQUIPMENT_BUSY` (aparelho em uso, que volta a ficar livre) e `EQUIPMENT_UNAVAILABLE` (aparelho quebrado ou ausente, que não volta) são motivos distintos e não se substituem. Posição prescrita e posição executada coexistem: juntas formam a fila dinâmica e nenhuma sobrescreve a outra. A marca **Manter nesta posição** não impede o adiamento; o exercício de bloco combinado não é adiado sozinho.
 
 ### Example
 ```swift
@@ -648,7 +648,7 @@ Name | Type | Description  | Notes
 
 Reordenar a fila executada da sessão dentro da política do personal
 
-Caminho HTTP autoritativo do fato `execution.exercise.reorder`. `reorderId` é criado no device e adotado pelo servidor. **A `ExerciseOrderPolicy` publicada pelo personal é o teto**, e o servidor é quem a aplica: uma reordenação que a viole é `409 EXERCISE_ORDER_NOT_ALLOWED`, e a ordem no servidor permanece exatamente como estava. Reordenação sem registro não é reordenação: a ordem prescrita permanece íntegra ao lado da executada. A resposta devolve a **fila executada resultante inteira**, porque mover um exercício desloca os demais: o cliente adota a ordem do servidor em vez de recalculá-la localmente.
+Caminho HTTP autoritativo do fato `execution.exercise.reorder`. `reorderId` é criado no device e adotado pelo servidor. A marca **Manter nesta posição** (`orderPolicy: LOCKED` fora de bloco) é orientação e nunca recusa a reordenação. O servidor recusa com `409 EXERCISE_ORDER_NOT_ALLOWED`, e a ordem permanece exatamente como estava, só o que a estrutura do treino impede: mover sozinho um exercício de bloco combinado, tirá-lo do bloco ou passá-lo à frente do exercício de que ele depende. Reordenação sem registro não é reordenação: a ordem prescrita permanece íntegra ao lado da executada. A resposta devolve a **fila executada resultante inteira**, porque mover um exercício desloca os demais: o cliente adota a ordem do servidor em vez de recalculá-la localmente.
 
 ### Example
 ```swift

@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Política de ordem declarada pelo personal na prescrição, consumida pela sessão do aluno. &#x60;LOCKED&#x60; fixa a posição; &#x60;FLEXIBLE&#x60; libera adiamento e antecipação; &#x60;FLEXIBLE_WITHIN_GROUP&#x60; permite troca apenas dentro do mesmo &#x60;blockKey&#x60;. A flexibilidade é concedida pelo personal e o app nunca a ultrapassa; prescrição sem política declarada é tratada pelo cliente como &#x60;LOCKED&#x60;, nunca como permissão inventada. */
+/** Orientação de ordem declarada pelo personal para o exercício, **nunca trava** (decisão do owner &#x60;COORD-03 &#x3D; A&#x60;). Fora de bloco combinado, &#x60;LOCKED&#x60; é a marca **Manter nesta posição**: o aluno vê &#x60;O personal sugere manter nesta posição&#x60; e pode mover e adiar o exercício mesmo assim, e o movimento fica registrado na ordem executada. &#x60;FLEXIBLE&#x60; é a ausência da marca, e o rascunho nasce assim. Dentro de bloco combinado o exercício é sempre &#x60;LOCKED&#x60;, e ali o valor não é marca: o bloco se move inteiro e nenhum membro sai dele sozinho. &#x60;FLEXIBLE_WITHIN_GROUP&#x60; permanece aceito na escrita e é lido como &#x60;FLEXIBLE&#x60;. */
 public enum PrescribedOrderPolicy: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case locked = "LOCKED"
     case flexible = "FLEXIBLE"

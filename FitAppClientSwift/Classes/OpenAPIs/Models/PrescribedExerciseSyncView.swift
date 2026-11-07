@@ -12,6 +12,11 @@ import AnyCodable
 
 public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
 
+    public enum OrderPolicy: String, Codable, CaseIterable, CaseIterableDefaultsLast {
+        case locked = "LOCKED"
+        case flexible = "FLEXIBLE"
+        case unknownDefaultOpenApi = "unknown_default_open_api"
+    }
     public static let prescribedExerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescribedVariantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -28,6 +33,8 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
     /** Rótulo do exercício na prescrição, o mesmo de `PrescriptionDraftExercise`, preservado verbatim. É o nome que o aluno vê e que o histórico guarda, independentemente de o exercício continuar na origem do catálogo. */
     public var displayName: String
     public var position: Int
+    /** Orientação de ordem que o personal publicou para o exercício (`PrescribedOrderPolicy`). Fora de bloco combinado, `LOCKED` é a marca **Manter nesta posição**, que o app mostra só nesse exercício como `O personal sugere manter nesta posição` e que nunca impede mover nem adiar; `FLEXIBLE` é sem marca. Em exercício com `blockKey` de bloco combinado o valor é sempre `LOCKED` e não é marca: o app não a mostra. `FLEXIBLE_WITHIN_GROUP` da escrita chega aqui como `FLEXIBLE`. */
+    public var orderPolicy: OrderPolicy
     /** Bloco combinado do exercício quando consta em `blocks[]` do treino; fora disso, o agrupamento de ordem de antes. Identificador de máquina. */
     public var blockKey: String?
     public var cadence: PrescribedCadence?
@@ -37,12 +44,13 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
     public var sets: [PrescribedSetSyncView]
     public var authorizedAlternativeIds: [String]
 
-    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, position: Int, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, loadBasis: LoadBasis? = nil, sets: [PrescribedSetSyncView], authorizedAlternativeIds: [String]) {
+    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, position: Int, orderPolicy: OrderPolicy, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, loadBasis: LoadBasis? = nil, sets: [PrescribedSetSyncView], authorizedAlternativeIds: [String]) {
         self.prescribedExerciseId = prescribedExerciseId
         self.exerciseId = exerciseId
         self.prescribedVariantId = prescribedVariantId
         self.displayName = displayName
         self.position = position
+        self.orderPolicy = orderPolicy
         self.blockKey = blockKey
         self.cadence = cadence
         self.technique = technique
@@ -57,6 +65,7 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
         case prescribedVariantId
         case displayName
         case position
+        case orderPolicy
         case blockKey
         case cadence
         case technique
@@ -74,6 +83,7 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(prescribedVariantId, forKey: .prescribedVariantId)
         try container.encode(displayName, forKey: .displayName)
         try container.encode(position, forKey: .position)
+        try container.encode(orderPolicy, forKey: .orderPolicy)
         try container.encodeIfPresent(blockKey, forKey: .blockKey)
         try container.encodeIfPresent(cadence, forKey: .cadence)
         try container.encodeIfPresent(technique, forKey: .technique)
@@ -86,6 +96,7 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
 
 extension PrescribedExerciseSyncView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
+        if orderPolicy == .unknownDefaultOpenApi { return true }
         if technique == .unknownDefaultOpenApi { return true }
         if loadBasis == .unknownDefaultOpenApi { return true }
         return false
