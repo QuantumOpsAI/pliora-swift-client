@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 **status** | [**ExecutedSetStatus**](ExecutedSetStatus.md) |  |
 **target** | [**ExecutionTargetValues**](ExecutionTargetValues.md) |  |
 **actual** | [**WorkoutSetValues**](WorkoutSetValues.md) |  | [optional]
-**measuredDurationSeconds** | **Int** | Duração da série por tempo **medida pelo cronômetro da série**, em segundos. Obrigatória em série por tempo concluída ou parcial e proibida nas demais. Nunca é sobrescrita: se &#x60;actual.durationSeconds&#x60; for diferente dela, o aluno a corrigiu, e o servidor publica o valor corrigido em &#x60;adjustedDurationSeconds&#x60;. | [optional]
+**measuredDurationSeconds** | **Int** | Duração da série por tempo **medida pelo cronômetro da série**, em segundos. No request terminal direto, obrigatória em série por tempo concluída ou parcial e proibida nas demais. Na OPEN timed controlada é omitida pelo chamador, e o servidor a deriva junto de actual.durationSeconds no commit. Nunca é sobrescrita: se &#x60;actual.durationSeconds&#x60; for diferente dela, o aluno a corrigiu, e o servidor publica o valor corrigido em &#x60;adjustedDurationSeconds&#x60;. | [optional]
 **executedVariantId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **equipmentInstanceId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. | [optional]
 **startedAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. |

@@ -10,7 +10,10 @@ Method | HTTP request | Description
 [**completeStudentWorkoutSession**](WorkoutExecutionAPI.md#completestudentworkoutsession) | **POST** /student/workout-sessions/{sessionId}/completion | Encerrar a sessão declarando todas as pendências de orquestração
 [**confirmStudentExerciseSkip**](WorkoutExecutionAPI.md#confirmstudentexerciseskip) | **POST** /student/workout-sessions/{sessionId}/skips | Confirmar explicitamente que um exercício não será realizado
 [**deferStudentExerciseExecution**](WorkoutExecutionAPI.md#deferstudentexerciseexecution) | **POST** /student/workout-sessions/{sessionId}/deferrals | Adiar um exercício, preservando-o como pendência aberta
+[**executeStudentWorkoutControlAction**](WorkoutExecutionAPI.md#executestudentworkoutcontrolaction) | **POST** /student/workout-sessions/{sessionId}/control/actions | Aplicar uma intenção de controle e recuperar seu recibo confirmado
 [**getStudentSetExecution**](WorkoutExecutionAPI.md#getstudentsetexecution) | **GET** /student/workout-sessions/{sessionId}/set-executions/{setExecutionId} | Ler a série executada e a revisão que as escritas revisionais exigem
+[**getStudentWorkoutControl**](WorkoutExecutionAPI.md#getstudentworkoutcontrol) | **GET** /student/workout-sessions/{sessionId}/control | Ler o controle consistente da sessão e seus checkpoints
+[**getStudentWorkoutControlOperation**](WorkoutExecutionAPI.md#getstudentworkoutcontroloperation) | **GET** /student/workout-sessions/{sessionId}/control/operations/{operationId} | Recuperar recibo confirmado com autorização atual
 [**rateStudentWorkoutSessionEffort**](WorkoutExecutionAPI.md#ratestudentworkoutsessioneffort) | **PUT** /student/workout-sessions/{sessionId}/effort | Dar a nota de esforço do treino terminado
 [**recordStudentRestPeriod**](WorkoutExecutionAPI.md#recordstudentrestperiod) | **POST** /student/workout-sessions/{sessionId}/rest-periods | Registrar o descanso realmente medido entre séries
 [**recordStudentSetExecution**](WorkoutExecutionAPI.md#recordstudentsetexecution) | **POST** /student/workout-sessions/{sessionId}/set-executions | Registrar a série executada
@@ -365,6 +368,64 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **executeStudentWorkoutControlAction**
+```swift
+    open class func executeStudentWorkoutControlAction(sessionId: String, idempotencyKey: UUID, ifMatch: String, workoutControlActionRequest: WorkoutControlActionRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: WorkoutControlReceipt?, _ error: Error?) -> Void)
+```
+
+Aplicar uma intenção de controle e recuperar seu recibo confirmado
+
+Publica uma única intenção conforme DOC-WEARABLE-WORKOUT-CONTROL-TECH §§7.1–7.4/11 e binding D05 (R1–R5). Bearer do telefone atual determina o ator; revalidar STUDENT, dono da sessão e vínculo ativo em toda tentativa, inclusive replay. Sessão inexistente ou alheia: SESSION_NOT_FOUND uniforme, sem expor recibos. Acesso é consultado sem settlement antecipado. O interceptor de escrita do treino admite POST antes do caso de uso/replay; 429 não grava efeito/chave nesta tentativa e não prova ausência de commit anterior. JSON limitado a 32768 bytes UTF-8, sem chaves duplicadas, campos extras ou null fora do schema C02. operationId e Idempotency-Key são o mesmo UUIDv7 canônico lowercase. If-Match exige um ETag forte literal; header ausente/malformado e envelope inválido são 422 VALIDATION_FAILED com fieldErrors, nunca 428. IDs corpo/path ou chave divergentes: 422 EXECUTION_IDENTITY_MISMATCH. Fingerprint inclui ator, sessão, prescrição fixada, operationId, If-Match original literal, action, expiresAt, phaseId, occurrence e payload completo. Instantes são normalizados; preservar strings opacas e ausência/null permitidos. Reusar HttpIdempotency/execution.idempotency_record. Operation interna fixa execution.workout.control.action (32 bytes); key UUID(actor):UUID(session):UUIDv7(operationId) (110 bytes), sem action no namespace. Chave interna nunca vai ao cliente/log. messageId/associação/RTT não entram no fingerprint. Após validar envelope, serializar pela operação idempotente e reautorizar acesso atual antes de lookup. Recibo idêntico retorna antes de lifecycle/settlement, CAS e validade de efeito novo, mesmo com If-Match antigo, expiresAt vencido ou sessão terminal. Mesma chave com action/corpo/contexto/ETag/prazo diferente: 409 IDEMPOTENCY_CONFLICT sem escrita. Consulta/recuperação nunca executa outra intenção. Mesmo resultado e ETag originais são preservados; replay não incrementa revisão/atividade. Para efeito novo, locks sessão → controle → fatos em ordem estável. Reconciliar pausa/inatividade/settlement sob lock. Antes da primeira escrita revalidar autorização e serverNow < expiresAt <= serverNow+30s, CAS do controle, fase/ocorrência, CAS da série e domínio. Espera por locks não renova prazo; INTENT_EXPIRED/INTENT_WINDOW_EXCEEDED são 422. Controle ou revisão da série divergentes: 412, sem atingir outra série. Fatos, controle, atividade, change log e recibo são atômicos na ExecutionTransaction; falha tipada/exceção faz rollback total. Efeito novo incrementa controlRevision uma vez. Resposta e invalidação best effort só depois do commit; ACK/timeout não confirmam negócio. Reapresentação explícita em memória preserva bytes, chave, corpo, ETag e expiresAt enquanto válida; sem retry automático/fila. Depois do prazo só GET recibo; retenção expirada não torna intenção antiga nova. 5xx/timeout permanecem UNKNOWN até recuperação. Este contrato não implementa storage/locks/backend nem prova execução transacional.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let sessionId = "sessionId_example" // String | Sessão do aluno autenticado, com a mesma identidade adotada em `POST /student/workout-sessions`. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+let idempotencyKey = 987 // UUID | UUIDv7 canônico lowercase, idêntico byte a byte a operationId do corpo. Ausente/malformado: 422 VALIDATION_FAILED com fieldErrors; divergência corpo/header: 422 EXECUTION_IDENTITY_MISMATCH. A mesma chave não separa actions.
+let ifMatch = "ifMatch_example" // String | Um único ETag forte literal do par control/ETag confirmado atual, preservando aspas e caixa. Sem weak tag, lista, *, vazio ou whitespace. Ausente/malformado: 422 VALIDATION_FAILED com fieldErrors, nunca 428. CAS divergente para efeito novo: 412 PRECONDITION_FAILED. Recibo idêntico conhecido é recuperado antes de CAS/validade. expectedSetRevision é revisão independente da série.
+let workoutControlActionRequest = WorkoutControlActionRequest(operationId: 123, action: "action_example", expiresAt: Date(), phaseId: "phaseId_example", occurrence: WorkoutControlOccurrenceRef(occurrenceId: "occurrenceId_example", prescribedExerciseId: "prescribedExerciseId_example", prescribedSetId: "prescribedSetId_example"), payload: WorkoutControlAmendLastSetPayload(amendmentId: 123, setExecutionId: "setExecutionId_example", expectedSetRevision: "expectedSetRevision_example", replacement: WorkoutControlValues(loadValue: 123, loadUnit: "loadUnit_example", reps: WorkoutControlValues_reps(), durationSeconds: 123))) // WorkoutControlActionRequest | Envelope C02 fechado das nove ações; no máximo 32768 bytes UTF-8. expiresAt é obrigatório e nunca renovado no retry.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Aplicar uma intenção de controle e recuperar seu recibo confirmado
+WorkoutExecutionAPI.executeStudentWorkoutControlAction(sessionId: sessionId, idempotencyKey: idempotencyKey, ifMatch: ifMatch, workoutControlActionRequest: workoutControlActionRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **sessionId** | **String** | Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível. |
+ **idempotencyKey** | **UUID** | UUIDv7 canônico lowercase, idêntico byte a byte a operationId do corpo. Ausente/malformado: 422 VALIDATION_FAILED com fieldErrors; divergência corpo/header: 422 EXECUTION_IDENTITY_MISMATCH. A mesma chave não separa actions. |
+ **ifMatch** | **String** | Um único ETag forte literal do par control/ETag confirmado atual, preservando aspas e caixa. Sem weak tag, lista, *, vazio ou whitespace. Ausente/malformado: 422 VALIDATION_FAILED com fieldErrors, nunca 428. CAS divergente para efeito novo: 412 PRECONDITION_FAILED. Recibo idêntico conhecido é recuperado antes de CAS/validade. expectedSetRevision é revisão independente da série. |
+ **workoutControlActionRequest** | [**WorkoutControlActionRequest**](WorkoutControlActionRequest.md) | Envelope C02 fechado das nove ações; no máximo 32768 bytes UTF-8. expiresAt é obrigatório e nunca renovado no retry. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**WorkoutControlReceipt**](WorkoutControlReceipt.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getStudentSetExecution**
 ```swift
     open class func getStudentSetExecution(sessionId: String, setExecutionId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: StudentSetExecutionResponse?, _ error: Error?) -> Void)
@@ -407,6 +468,112 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**StudentSetExecutionResponse**](StudentSetExecutionResponse.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStudentWorkoutControl**
+```swift
+    open class func getStudentWorkoutControl(sessionId: String, acceptLanguage: String? = nil, completion: @escaping (_ data: WorkoutControlView?, _ error: Error?) -> Void)
+```
+
+Ler o controle consistente da sessão e seus checkpoints
+
+Leitura autoritativa segundo DOC-WEARABLE-WORKOUT-CONTROL-TECH §§5–9 e binding D05. Reautoriza em toda leitura papel STUDENT, conta dona, vínculo ativo e sessão; sessão inexistente ou de outra conta responde SESSION_NOT_FOUND uniforme. allowedActions é projeção para apresentação e não concede autorização. Backend confirma todas as transições. Snapshot, fatos, revisões e checkpoints vêm de uma única transação consistente. GET não cria fato, recibo, revisão ou atividade por tick; eventual settlement usa o mesmo algoritmo autoritativo de inatividade. A sessão/prescrição fixada e a ocorrência real não são inferidas pelo consumidor. ETag forte entre aspas é o validador opaco literal dessa projeção; copiar o header intacto. controlRevision ordena somente o mesmo contexto, sessionRevision acompanha lifecycle, revisão da série protege o fato e bundleRevision só admite igualdade. Sem If-None-Match, 304 ou rate limit de escrita. Todas as respostas usam private, no-store, locale resolvido e correlation ID. Ancorar tempo no monotônico ao receber e registrar RTT como incerteza; processo reiniciado exige nova leitura. Tick e alvo atingido nunca concluem série/treino, renovam atividade nem escrevem. Pausa preserva fase e intervalo e congela o tempo operacional, inclusive depois do limite de 60 min da exclusão de inatividade. Sem alvo conta para cima; zero é alvo real. Este contrato parcial não libera consumidor produtivo, relay, outbox ou coleta de saúde.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let sessionId = "sessionId_example" // String | Sessão do aluno autenticado, com a mesma identidade adotada em `POST /student/workout-sessions`. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Ler o controle consistente da sessão e seus checkpoints
+WorkoutExecutionAPI.getStudentWorkoutControl(sessionId: sessionId, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **sessionId** | **String** | Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**WorkoutControlView**](WorkoutControlView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStudentWorkoutControlOperation**
+```swift
+    open class func getStudentWorkoutControlOperation(sessionId: String, operationId: UUID, acceptLanguage: String? = nil, completion: @escaping (_ data: WorkoutControlReceipt?, _ error: Error?) -> Void)
+```
+
+Recuperar recibo confirmado com autorização atual
+
+Recupera somente recibo confirmado já persistido, conforme DOC-WEARABLE-WORKOUT-CONTROL-TECH §§7.4/11 e binding D05. Reautoriza sessão atual do telefone, STUDENT, conta dona e vínculo ativo ANTES do lookup. Sessão ausente/alheia recebe SESSION_NOT_FOUND uniforme; revogação/pausa/inatividade impedem exposição mesmo com operação conhecida. Sessão terminal do dono permite lookup enquanto vínculo ativo. Leitura não bloqueante de recibo confirmado: operação em voo, nunca registrada ou expurgada são indistinguíveis como 404 OPERATION_NOT_RECOVERED, outcome UNKNOWN. Isso não prova nunca enviado/ausência de commit e não autoriza reapresentação automática nem outra chave. GET não executa intenção, cria recibo, incrementa revisão/atividade ou faz bootstrap/settlement de retenção. Não exige Idempotency-Key/If-Match, não usa If-None-Match/304 nem rate limit de escrita. operationId malformado: 422 VALIDATION_FAILED com fieldErrors. 200 devolve o mesmo recibo e ETag forte original do commit. control pode ser anterior ao estado atual; registrar CONFIRMED sem substituir estado/ETag de controlRevision superior. Nunca usar o ETag latest para recibo antigo. 5xx mantêm UNKNOWN até recuperação. Reter enquanto sessão aberta e, após terminal, pelo menos até max(receipt.committedAt,terminalRetentionAnchorAt)+604800s. Âncora interna persistida e imutável usa Clock do servidor na primeira transição terminal (TERMINAL_TRANSITION), ou observação real de legado terminal (FIRST_TERMINAL_OBSERVATION); nunca inferir de endedAt/updatedAt/lastRecordedAt. Sem âncora/proveniência conhecida, reter; GET não a cria nem renova. A retenção é mínimo, não SLA de expurgo, e expurgo não renova expiresAt. Todas as respostas são private, no-store, variam por Authorization/Accept-Language e usam locale resolvido/correlation ID.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let sessionId = "sessionId_example" // String | Sessão do aluno autenticado, com a mesma identidade adotada em `POST /student/workout-sessions`. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+let operationId = 987 // UUID | Identidade UUIDv7 canônica lowercase da intenção original. Consultar não executa nem reenvia a ação.
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Recuperar recibo confirmado com autorização atual
+WorkoutExecutionAPI.getStudentWorkoutControlOperation(sessionId: sessionId, operationId: operationId, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **sessionId** | **String** | Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível. |
+ **operationId** | **UUID** | Identidade UUIDv7 canônica lowercase da intenção original. Consultar não executa nem reenvia a ação. |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**WorkoutControlReceipt**](WorkoutControlReceipt.md)
 
 ### Authorization
 
@@ -531,12 +698,12 @@ Name | Type | Description  | Notes
 
 # **recordStudentSetExecution**
 ```swift
-    open class func recordStudentSetExecution(sessionId: String, idempotencyKey: String, executionSetRecordPayload: ExecutionSetRecordPayload, acceptLanguage: String? = nil, completion: @escaping (_ data: StudentSetExecutionResponse?, _ error: Error?) -> Void)
+    open class func recordStudentSetExecution(sessionId: String, idempotencyKey: String, executionSetRecordPayload: ExecutionSetRecordPayload, acceptLanguage: String? = nil, ifMatch: String? = nil, completion: @escaping (_ data: StudentSetExecutionResponse?, _ error: Error?) -> Void)
 ```
 
 Registrar a série executada
 
-Caminho HTTP autoritativo do fato `execution.set.record`. `setExecutionId` é **criado no device** e adotado pelo servidor; o corpo é exatamente `ExecutionSetRecordPayload`. `target` preserva o alvo operacional apresentado, com origem e `expectedRpe`; `actual` é o realizado e fica ausente somente em `SKIPPED`. Prescrito, alvo e realizado permanecem fatos distintos e o servidor nunca reescreve o prescrito. A resposta publica `revision`, a revisão opaca desta série — o **mesmo** valor do `ETag`, sem tradução — porque `SET_EXECUTION` é o único agregado revisional da execução: a observação e a emenda desta série exigem exatamente essa revisão em `If-Match`. Reenviar a mesma identidade com conteúdo diferente é `409 EXECUTION_IDENTITY_DIVERGENT`, nunca sobrescrita silenciosa. **Uma execução por série prescrita por sessão.** Cada `prescribedSetId` admite uma única execução na sessão. Registrar **outra identidade** (`setExecutionId` diferente) para uma série prescrita que já tem execução é `409 SET_ALREADY_EXECUTED`, e nenhuma segunda execução nasce: o app recarrega o bundle da sessão e segue na série seguinte. **Corrigir é emenda**, nunca um segundo registro: `amendStudentSetExecution`. O replay da mesma identidade com o mesmo corpo devolve a execução armazenada. **Alvo × executado.** `target` é o **alvo de partida**, fixado quando a tela da série abriu, e **o servidor o grava**, junto do `actual`, para o resultado mostrar prescrito × alvo × executado. `target.source` é `PRESCRIPTION`, `PREVIOUS_COMPARABLE_EXECUTION` (primeira série do tipo, a partir do histórico comparável), `PERCENT_OF_REFERENCE` ou `STUDENT_ADJUSTMENT`: a série seguinte da **mesma sessão** nasce do **executado** na série anterior do mesmo tipo, com a origem `STUDENT_ADJUSTMENT`. `actual` são os números da tela no toque em **Concluir série**; mudar um número antes disso muda só o `actual`. Exemplo canônico (`canonicalFirstSet` e `canonicalSecondSet`): a série 1 tem alvo 20×12 (`PRESCRIPTION`) e executado 25×12; a série 2 tem alvo 25×12 (`STUDENT_ADJUSTMENT`) e executado 25×10. **Série por tempo.** `durationSeconds` só existe numa série cuja prescrição é por tempo (`PrescribedSetSyncView.target.durationSeconds`), e nela as `reps` são **nulas** no `target` e no `actual`: a série por tempo não tem repetição, e a ausência dela nunca vira zero. No `target`, `durationSeconds` é a duração alvo apresentada; no `actual`, é a duração realizada **em vigor**. A duração **medida pelo cronômetro da série** vai em `measuredDurationSeconds`, é obrigatória em série por tempo concluída ou parcial e **nunca é sobrescrita**: quando `actual.durationSeconds` difere dela o aluno a corrigiu, e a série passa a publicar `adjustedDurationSeconds` com o valor corrigido. Medido e ajustado são dois fatos, e o excedente sobre a duração alvo é fato, não erro. Série pulada não tem duração realizada nem medida. **Alvo em percentual.** `target.source: PERCENT_OF_REFERENCE` só vale numa série prescrita em percentual cujo alvo calculado da sessão (`WorkoutSessionSyncView.calculatedLoadTargets`) está `CALCULATED`, e então `target.loadValue` e `target.loadUnit` são exatamente os dele; o aluno que muda o valor registra `STUDENT_ADJUSTMENT`, e o prescrito em percentual nunca é reescrito. Cada violação é `422 VALIDATION_FAILED` com o caminho em `fieldErrors` e um destes códigos: `DURATION_NOT_APPLICABLE` (duração em série que não é por tempo), `DURATION_REQUIRED` (série por tempo sem duração alvo, ou concluída sem duração realizada), `REPS_NOT_APPLICABLE` (repetições numa série por tempo), `MEASURED_DURATION_REQUIRED`, `MEASURED_DURATION_NOT_APPLICABLE`, `PERCENT_TARGET_NOT_CALCULATED` e `PERCENT_TARGET_VALUE_MISMATCH`. Nada é gravado.
+Caminho HTTP autoritativo do fato `execution.set.record`. `setExecutionId` é **criado no device** e adotado pelo servidor; o corpo é exatamente `ExecutionSetRecordPayload`. `target` preserva o alvo operacional apresentado, com origem e `expectedRpe`; `actual` é o realizado e fica ausente somente em `SKIPPED`. Prescrito, alvo e realizado permanecem fatos distintos e o servidor nunca reescreve o prescrito. A resposta publica `revision`, a revisão opaca desta série — o **mesmo** valor do `ETag`, sem tradução. O fechamento de uma OPEN, a observação e a emenda desta série exigem exatamente essa revisão em `If-Match`. Ela não é `controlRevision` (inteiro operacional por sessão), `sessionRevision` (ciclo de vida) nem `bundleRevision` (token opaco de igualdade do pacote). Reenviar a mesma identidade com conteúdo diferente é `409 EXECUTION_IDENTITY_DIVERGENT`, nunca sobrescrita silenciosa. **Uma execução por série prescrita por sessão.** Cada `prescribedSetId` admite uma única execução na sessão. Registrar **outra identidade** (`setExecutionId` diferente) para uma série prescrita que já tem execução é `409 SET_ALREADY_EXECUTED`, e nenhuma segunda execução nasce: o app recarrega o bundle da sessão e segue na série seguinte. **Corrigir é emenda**, nunca um segundo registro: `amendStudentSetExecution`. O replay da mesma identidade com o mesmo corpo devolve a execução armazenada. **Fechar a mesma OPEN.** Quando o fato canônico já está OPEN, esta rota exige `If-Match` com a revisão pública exata **da série**, pela convenção existente de `ExecutionRevisionHeader`. Ausência ou header malformado é `422 VALIDATION_FAILED`; revisão apresentada divergente é `412 PRECONDITION_FAILED`, sem efeito. O replay idêntico autorizado é resolvido antes da precondição. O servidor fecha a mesma `setExecutionId`, preserva o alvo capturado e reconcilia o controle na mesma transação; não cria outra série nem incrementa contagem no replay. Criar o primeiro fato terminal sem OPEN continua sem exigir esse header. O estado OPEN é canônico: não há flag no corpo, e o schema JSON não consulta o banco para decidir essa condição. Todo chamador HTTP/online/sync respeita essa política. Um chamador interno sem precondição pública só fecha OPEN pelo coordenador após CAS e ocorrência do controle validados sob os mesmos locks de sessão/controle/fato, passando `expectedRevision` não nulo ao `RecordSet`. Nunca preencher a versão atual cegamente para contornar uma intenção antiga; `RecordSet(null)` não autoriza ignorar CAS. `BEGIN_SET` abre a série e não equivale ao início de exercício (`startStudentExerciseExecution`) nem à conclusão. **Alvo × executado.** `target` é o **alvo de partida**, fixado quando a tela da série abriu, e **o servidor o grava**, junto do `actual`, para o resultado mostrar prescrito × alvo × executado. `target.source` é `PRESCRIPTION`, `PREVIOUS_COMPARABLE_EXECUTION` (primeira série do tipo, a partir do histórico comparável), `PERCENT_OF_REFERENCE` ou `STUDENT_ADJUSTMENT`: a série seguinte da **mesma sessão** nasce do **executado** na série anterior do mesmo tipo, com a origem `STUDENT_ADJUSTMENT`. `actual` são os números da tela no toque em **Concluir série**; mudar um número antes disso muda só o `actual`. Exemplo canônico (`canonicalFirstSet` e `canonicalSecondSet`): a série 1 tem alvo 20×12 (`PRESCRIPTION`) e executado 25×12; a série 2 tem alvo 25×12 (`STUDENT_ADJUSTMENT`) e executado 25×10. **Série por tempo.** `durationSeconds` só existe numa série cuja prescrição é por tempo (`PrescribedSetSyncView.target.durationSeconds`), e nela as `reps` são **nulas** no `target` e no `actual`: a série por tempo não tem repetição, e a ausência dela nunca vira zero. No `target`, `durationSeconds` é a duração alvo apresentada; no `actual`, é a duração realizada **em vigor**. No registro terminal direto sem OPEN, a duração **medida pelo cronômetro da série** vai em `measuredDurationSeconds`, é obrigatória em série por tempo concluída ou parcial e **nunca é sobrescrita**: quando `actual.durationSeconds` difere dela o aluno a corrigiu, e a série passa a publicar `adjustedDurationSeconds` com o valor corrigido. Medido e ajustado são dois fatos, e o excedente sobre a duração alvo é fato, não erro. Série pulada não tem duração realizada nem medida. **OPEN por tempo controlada.** Neste contexto, o request omite tanto `actual.durationSeconds` quanto `measuredDurationSeconds`; `actual` mantém carga/unidade e `reps: null`. O servidor deriva medida e duração realizada iguais, positivas (>= 1), de floor(checkpoint ativo no commit/1000), preservando o alvo capturado e sem `adjustedDurationSeconds`. Duração explícita nesse caminho é `422 VALIDATION_FAILED`, com `fieldErrors[].code` igual a `DURATION_FROM_CONTROL_REQUIRED` associado a cada campo de duração fornecido. A mesma forma JSON pode ser legítima no registro terminal direto sem OPEN, que conserva a medida/realizada declaradas anteriores. A decisão depende do contexto canônico, não de uma união ou campo novo. Se a tela mostrava 10 s e o commit mede 11 s, a resposta traz medida/realizada/ativa 11 s; somente uma emenda deliberada pode corrigir a realizada para 12 s mantendo medida/ativa 11 s. `startedAt`/`completedAt` declarados não comandam a duração operacional. **Alvo em percentual.** `target.source: PERCENT_OF_REFERENCE` só vale numa série prescrita em percentual cujo alvo calculado da sessão (`WorkoutSessionSyncView.calculatedLoadTargets`) está `CALCULATED`, e então `target.loadValue` e `target.loadUnit` são exatamente os dele; o aluno que muda o valor registra `STUDENT_ADJUSTMENT`, e o prescrito em percentual nunca é reescrito. Cada violação é `422 VALIDATION_FAILED` com o caminho em `fieldErrors` e um destes códigos: `DURATION_NOT_APPLICABLE` (duração em série que não é por tempo), `DURATION_REQUIRED` (série por tempo sem duração alvo, ou concluída sem duração realizada), `REPS_NOT_APPLICABLE` (repetições numa série por tempo), `MEASURED_DURATION_REQUIRED`, `MEASURED_DURATION_NOT_APPLICABLE`, `PERCENT_TARGET_NOT_CALCULATED` e `PERCENT_TARGET_VALUE_MISMATCH`. Nada é gravado.
 
 ### Example
 ```swift
@@ -547,9 +714,10 @@ let sessionId = "sessionId_example" // String | Sessão do aluno autenticado, co
 let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
 let executionSetRecordPayload = ExecutionSetRecordPayload(setExecutionId: "setExecutionId_example", exerciseExecutionId: "exerciseExecutionId_example", prescribedSetId: "prescribedSetId_example", setIndex: 123, status: ExecutedSetStatus(), target: ExecutionTargetValues(loadValue: 123, loadUnit: "loadUnit_example", reps: 123, durationSeconds: 123, source: "source_example", expectedRpe: 123), actual: WorkoutSetValues(loadValue: 123, loadUnit: "loadUnit_example", reps: 123, durationSeconds: 123, rpe: 123), measuredDurationSeconds: 123, executedVariantId: "executedVariantId_example", equipmentInstanceId: "equipmentInstanceId_example", startedAt: Date(), completedAt: Date(), observation: "observation_example") // ExecutionSetRecordPayload |
 let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+let ifMatch = "ifMatch_example" // String | Condicionalmente obrigatório ao fechar fato canônico OPEN: revisão pública da série, ecoada da leitura pela convenção de ExecutionRevisionHeader. Ausente/malformado nesse contexto é 422 VALIDATION_FAILED; apresentado e divergente é 412 PRECONDITION_FAILED. O primeiro registro terminal sem OPEN não exige o header. Replay idêntico autorizado precede CAS; o schema do corpo não conhece o estado canônico. Nunca usar a revisão do controle/sessão/pacote. (optional)
 
 // Registrar a série executada
-WorkoutExecutionAPI.recordStudentSetExecution(sessionId: sessionId, idempotencyKey: idempotencyKey, executionSetRecordPayload: executionSetRecordPayload, acceptLanguage: acceptLanguage) { (response, error) in
+WorkoutExecutionAPI.recordStudentSetExecution(sessionId: sessionId, idempotencyKey: idempotencyKey, executionSetRecordPayload: executionSetRecordPayload, acceptLanguage: acceptLanguage, ifMatch: ifMatch) { (response, error) in
     guard error == nil else {
         print(error)
         return
@@ -569,6 +737,7 @@ Name | Type | Description  | Notes
  **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
  **executionSetRecordPayload** | [**ExecutionSetRecordPayload**](ExecutionSetRecordPayload.md) |  |
  **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+ **ifMatch** | **String** | Condicionalmente obrigatório ao fechar fato canônico OPEN: revisão pública da série, ecoada da leitura pela convenção de ExecutionRevisionHeader. Ausente/malformado nesse contexto é 422 VALIDATION_FAILED; apresentado e divergente é 412 PRECONDITION_FAILED. O primeiro registro terminal sem OPEN não exige o header. Replay idêntico autorizado precede CAS; o schema do corpo não conhece o estado canônico. Nunca usar a revisão do controle/sessão/pacote. | [optional]
 
 ### Return type
 
@@ -818,7 +987,7 @@ Name | Type | Description  | Notes
 
 Retomar a sessão interrompida, voltando a `IN_PROGRESS`
 
-Saída da decisão do treino que **continua** o treino. O servidor interrompe a sessão quando passam **12 horas sem registro** — `lastRecordedAt` mais 12 horas — e a encerra sozinho **sete dias depois da interrupção**, sem decisão do aluno (`endedBy: AUTO_AFTER_INTERRUPTION`). Entre as duas, esta operação leva a sessão de `INTERRUPTED` para `IN_PROGRESS` e `lastRecordedAt` passa a ser o instante do servidor que confirma a retomada. **Em sessão já `IN_PROGRESS` responde `200` sem efeito**: o app que abriu a decisão pelo aviso de treino parado, antes das 12 horas, não retoma nada, e se chamar não perde nem muda nada. **Em sessão terminal responde `409 SESSION_TERMINAL`.** A retomada não tem corpo: a identidade da sessão é a do path. Enquanto a sessão está `INTERRUPTED`, toda escrita de fato — série, descanso, início de exercício, substituição, desconforto, adiamento, pulo, reordenação — é recusada com `409 SESSION_INTERRUPTED`, e o app leva à decisão; só esta operação, `completeStudentWorkoutSession` e `abandonStudentWorkoutSession` agem sobre ela. O path **não** é o de `resumeStudentDeferredExercise` (`…/deferrals/{deferralId}/resumption`), que retoma um exercício adiado e não a sessão.
+Saída da decisão do treino que **continua** o treino. O servidor interrompe a sessão quando passam **12 horas de inatividade efetiva**, contadas de lastRecordedAt com exclusão dos primeiros 3600 s de cada pausa confirmada conforme R5, e a encerra sozinho **sete dias depois da interrupção**, sem decisão do aluno (`endedBy: AUTO_AFTER_INTERRUPTION`). Entre as duas, esta operação leva a sessão de `INTERRUPTED` para `IN_PROGRESS` e `lastRecordedAt` passa a ser o instante do servidor que confirma a retomada. **Em sessão já `IN_PROGRESS` responde `200` sem efeito**: o app que abriu a decisão pelo aviso de treino parado, antes das 12 horas, não retoma nada, e se chamar não perde nem muda nada. **Em sessão terminal responde `409 SESSION_TERMINAL`.** A retomada não tem corpo: a identidade da sessão é a do path. Enquanto a sessão está `INTERRUPTED`, toda escrita de fato — série, descanso, início de exercício, substituição, desconforto, adiamento, pulo, reordenação — é recusada com `409 SESSION_INTERRUPTED`, e o app leva à decisão; só esta operação, `completeStudentWorkoutSession` e `abandonStudentWorkoutSession` agem sobre ela. O path **não** é o de `resumeStudentDeferredExercise` (`…/deferrals/{deferralId}/resumption`), que retoma um exercício adiado e não a sessão.
 
 ### Example
 ```swift

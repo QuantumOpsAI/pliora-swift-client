@@ -1,5 +1,6 @@
 {
-  "bundleSha256": "c9e0afb5f2d2e0160b38e26426cc5d2694a440b7d7c05ffd237540465b6869ca",
+  "bundleSha256": "64ac3caa6fdcb6d60fd6ce4630c5f2e67f1e2d569d830609f6ebb444ff0b7b5c",
+  "cohort": "wwc-treino-no-pulso",
   "contractVersion": "0.109.0",
   "generator": {
     "kotlin": "library=jvm-okhttp4,artifactId=fitapp-client-kotlin,groupId=com.fitapp.client,packageName=com.fitapp.client,artifactVersion=0.109.0.1,enumUnknownDefaultCase=true",
@@ -8,9 +9,10 @@
     "version": "7.24.0"
   },
   "releaseVersion": "0.109.0",
-  "sourceCommit": "c3e84934e7a8c23f8b5dd8f9345da2cb58c5200e",
+  "sourceCommit": "688d6fdd004d805bea05e0d9b88757e60c4a4ed6",
+  "sourceRef": "epic/wearable-workout-control",
   "sourceRepository": "https://github.com/QuantumOpsAI/pliora-contracts",
   "specPath": "openapi/fitapp-experience-api-v1.yaml",
-  "specSha256": "4c72e45b5a5ea6d441e6c3f357ae3f3c972550fba6e32a3359640285b401f8db",
-  "swiftClientSha256": "c7e5015f40fce3dfbd5f0b6f77cd75867df2418bf12919b8bb633f75ebcd1299"
+  "specSha256": "4f8781de9fea0d60ffeb4728a800c1b33651736ed9661f164095383dd017a7f5",
+  "swiftClientSha256": "01811e7b764f2dfb068ae2f6383f83a63ff05542892688eae65e0a109ce00219"
 }

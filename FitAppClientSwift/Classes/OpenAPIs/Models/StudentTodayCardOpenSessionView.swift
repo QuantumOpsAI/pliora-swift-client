@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Sessão aberta do aluno, presente se e somente se &#x60;status&#x60; é &#x60;SESSION_IN_PROGRESS&#x60;, em andamento ou interrompida. Existe para que a tela leve à retomada, ou à decisão sobre o treino interrompido, em vez de oferecer um novo início. Traz as contagens que o cartão mostra, contadas pelo servidor, e nunca a execução série a série. **Descanso em curso.** Com a sessão &#x60;IN_PROGRESS&#x60; e um descanso correndo, traz também o início dele (&#x60;restStartedAt&#x60;) e, quando há descanso prescrito, o alvo (&#x60;restDurationSeconds&#x60;), para a barra de treino em andamento mostrar &#x60;Descanso · mm:ss&#x60; — o restante até o alvo e, passado o alvo, o decorrido, como a tela de descanso; sem alvo, o decorrido. O servidor os deriva dos fatos que já tem, sem fato novo, sem operação nova e sem relógio do cliente na conta; o app conta a partir de &#x60;restStartedAt&#x60; com o relógio do aparelho, sem contador próprio e sem nova leitura por segundo. Sem &#x60;restStartedAt&#x60; não há linha de descanso, e a barra mostra o tempo decorrido da sessão — nunca &#x60;Descanso · 00:00&#x60;. */
+/** Sessão aberta do cartão Hoje, presente se e somente se o cartão tem status SESSION_IN_PROGRESS, em andamento ou interrompida, com contagens do servidor. serverNow, controlRevision e paused vêm da mesma leitura consistente do controle. Descanso só aparece com RESTING e intervalo real: restStartedAt permanece o início original do servidor; restTimer é o mesmo checkpoint REST do controle. Ancorar serverNow/serverAnchor no monotônico ao receber e somar avanço só quando não pausado; reinício invalida a âncora. O tempo total da sessão continua durante pausa. Sem RESTING/intervalo ou com INTERRUPTED, restStartedAt/restTimer/restDurationSeconds/restPrescribedTargetSeconds ficam ausentes. Alvo efetivo ausente conta para cima; zero é alvo real. Não criar descanso, deslocar início ou ajustar localmente para simular pausa. */
 public struct StudentTodayCardOpenSessionView: Codable, JSONEncodable, Hashable {
 
     public static let sessionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -18,7 +18,9 @@ public struct StudentTodayCardOpenSessionView: Codable, JSONEncodable, Hashable 
     public static let prescriptionVersionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let completedSetCountRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let totalSetCountRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
-    public static let restDurationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let controlRevisionRule = NumericRule<Int64>(minimum: 0, exclusiveMinimum: false, maximum: 9007199254740991, exclusiveMaximum: false, multipleOf: nil)
+    public static let restPrescribedTargetSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let restDurationSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     /** A identidade da sessão, a mesma que o início adotou. */
     public var sessionId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -28,18 +30,25 @@ public struct StudentTodayCardOpenSessionView: Codable, JSONEncodable, Hashable 
     public var status: StudentTodayCardSessionStatus
     /** Instante do servidor em que o início da sessão foi confirmado. */
     public var startedAt: Date
-    /** Séries já registradas como feitas nesta sessão, contadas pelo servidor. */
+    /** Séries COMPLETED/PARTIAL contadas pelo servidor; nunca OPEN/SKIPPED ou emendas. */
     public var completedSetCount: Int
-    /** Séries prescritas do treino da sessão, contadas pelo servidor; o cliente não recalcula nenhuma das duas contagens. */
+    /** Séries prescritas fixadas na sessão, contadas pelo servidor. */
     public var totalSetCount: Int
-    /** Maior instante de servidor entre o início da sessão e qualquer fato aceito nela; é dele que se conta o prazo da interrupção. */
+    /** Última atividade confirmada do servidor, inclusive PAUSE/RESUME/APPLY_VALUES e transições aceitas. Leituras, ticks, alertas, ACK, replay e cap não são atividade. Inatividade de 2 h/12 h exclui a interseção desde essa atividade com os primeiros 3600 s de cada pausa confirmada, sem contar pausas antigas novamente; não é lastRecordedAt cru mais 12 h. Após o cap continua pausado, sem aviso de fase, revisão ou atividade automáticos; o contador volta a correr. */
     public var lastRecordedAt: Date
-    /** Início do descanso em curso. É o `completedAt` da **última série registrada** na sessão, quando ela é `COMPLETED` ou `PARTIAL` e ainda não tem descanso registrado (nenhum `REST_PERIOD` com `afterSetExecutionId` igual a ela) — o mesmo instante de que o pacote da sessão deriva o descanso em curso, para a barra e a tela de descanso concordarem. A emenda de uma série não muda o `completedAt` dela, e não cria nem desloca descanso. O fim do descanso só chega ao servidor quando o aparelho o registra (`recordStudentRestPeriod`); até lá ele segue correndo nesta leitura, como na tela de descanso. **Ausente**, e então `restDurationSeconds` também: com a sessão `INTERRUPTED`; sem série registrada; quando a última série registrada é `SKIPPED`, que vai direto à série seguinte e não volta à anterior para achar um descanso; quando a última série já tem descanso registrado; e quando a posição dela não tem tela de descanso — membro de bloco que não é o último da rodada, sem descanso entre estações. */
+    /** Instante RFC 3339 / ISO 8601 com offset explícito. */
+    public var serverNow: Date
+    public var controlRevision: Int64
+    public var paused: Bool
+    /** Início real original do descanso no servidor após COMPLETED/PARTIAL, respeitando a posição no bloco. Pausa, emenda e ajuste não o deslocam. Ausente sem descanso corrente, após SKIPPED, sem intervalo de descanso nessa posição, com descanso já consolidado ou com sessão INTERRUPTED. */
     public var restStartedAt: Date?
-    /** Alvo prescrito do descanso em curso, em segundos: o mesmo `restSeconds` que o pacote da sessão publica para aquela série (`PrescribedSetSyncView.restSeconds`), com a regra de bloco dele — o descanso entre estações depois de um membro que não é o último da rodada, e o do bloco depois do último. Só existe com `restStartedAt`. **Não inclui o ajuste** de `−15 s`/`+15 s` do aluno, que só existe no aparelho até o descanso ser registrado. **Ausente** quando não há descanso prescrito depois da série — depois da última rodada de um bloco, ou fora de bloco sem descanso —, e então a barra conta para cima, como a tela de descanso. A ausência nunca é zero: o campo nunca vale `0`, e o descanso prescrito de zero segundo também fica ausente, porque passado o alvo a barra já mostra o decorrido. */
+    public var restTimer: WorkoutControlTimer?
+    /** Alvo prescrito original do descanso corrente. Ausente quando não existe prescrição, inclusive no checkpoint; zero é alvo real, nunca ausência. */
+    public var restPrescribedTargetSeconds: Int?
+    /** Alvo efetivo do descanso corrente: adjustedTargetSeconds quando presente, senão targetSeconds, inclusive 0. Só aparece com descanso real e alvo prescrito existente; ausência não é 0. Ajuste exige alvo e preserva o prescrito, nunca afeta próximo descanso. Mesma origem de restTimer. */
     public var restDurationSeconds: Int?
 
-    public init(sessionId: String, workoutId: String, prescriptionVersionId: String, status: StudentTodayCardSessionStatus, startedAt: Date, completedSetCount: Int, totalSetCount: Int, lastRecordedAt: Date, restStartedAt: Date? = nil, restDurationSeconds: Int? = nil) {
+    public init(sessionId: String, workoutId: String, prescriptionVersionId: String, status: StudentTodayCardSessionStatus, startedAt: Date, completedSetCount: Int, totalSetCount: Int, lastRecordedAt: Date, serverNow: Date, controlRevision: Int64, paused: Bool, restStartedAt: Date? = nil, restTimer: WorkoutControlTimer? = nil, restPrescribedTargetSeconds: Int? = nil, restDurationSeconds: Int? = nil) {
         self.sessionId = sessionId
         self.workoutId = workoutId
         self.prescriptionVersionId = prescriptionVersionId
@@ -48,7 +57,12 @@ public struct StudentTodayCardOpenSessionView: Codable, JSONEncodable, Hashable 
         self.completedSetCount = completedSetCount
         self.totalSetCount = totalSetCount
         self.lastRecordedAt = lastRecordedAt
+        self.serverNow = serverNow
+        self.controlRevision = controlRevision
+        self.paused = paused
         self.restStartedAt = restStartedAt
+        self.restTimer = restTimer
+        self.restPrescribedTargetSeconds = restPrescribedTargetSeconds
         self.restDurationSeconds = restDurationSeconds
     }
 
@@ -61,7 +75,12 @@ public struct StudentTodayCardOpenSessionView: Codable, JSONEncodable, Hashable 
         case completedSetCount
         case totalSetCount
         case lastRecordedAt
+        case serverNow
+        case controlRevision
+        case paused
         case restStartedAt
+        case restTimer
+        case restPrescribedTargetSeconds
         case restDurationSeconds
     }
 
@@ -77,7 +96,12 @@ public struct StudentTodayCardOpenSessionView: Codable, JSONEncodable, Hashable 
         try container.encode(completedSetCount, forKey: .completedSetCount)
         try container.encode(totalSetCount, forKey: .totalSetCount)
         try container.encode(lastRecordedAt, forKey: .lastRecordedAt)
+        try container.encode(serverNow, forKey: .serverNow)
+        try container.encode(controlRevision, forKey: .controlRevision)
+        try container.encode(paused, forKey: .paused)
         try container.encodeIfPresent(restStartedAt, forKey: .restStartedAt)
+        try container.encodeIfPresent(restTimer, forKey: .restTimer)
+        try container.encodeIfPresent(restPrescribedTargetSeconds, forKey: .restPrescribedTargetSeconds)
         try container.encodeIfPresent(restDurationSeconds, forKey: .restDurationSeconds)
     }
 }

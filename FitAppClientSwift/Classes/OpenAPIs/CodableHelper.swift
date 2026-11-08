@@ -13,7 +13,7 @@ open class CodableHelper {
 
     private static var customJSONDecoder: JSONDecoder?
     private static var defaultJSONDecoder: JSONDecoder = {
-        let decoder = JSONDecoder()
+        let decoder = WorkoutControlJSONDecoder()
         decoder.dateDecodingStrategy = .formatted(CodableHelper.dateFormatter)
         return decoder
     }()
