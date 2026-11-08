@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Emenda de uma série. &#x60;replacement.durationSeconds&#x60; segue a regra de &#x60;amendStudentSetExecution&#x60;: só numa série por tempo, com &#x60;reps&#x60; nulas, e a duração medida da série nunca muda. Quem a viola é &#x60;FINAL_FAILURE&#x60; com &#x60;VALIDATION_ERROR&#x60; no &#x60;command&#x60; de sync e &#x60;422 VALIDATION_FAILED&#x60; na rota HTTP, nunca descarte silencioso. */
+/** Emenda de uma série. &#x60;replacement.durationSeconds&#x60; segue a regra de &#x60;amendStudentSetExecution&#x60;: só numa série por tempo, com &#x60;reps&#x60; nulas, e a duração medida da série nunca muda. Quem a viola é &#x60;FINAL_FAILURE&#x60; com &#x60;VALIDATION_ERROR&#x60; no &#x60;command&#x60; de sync e &#x60;422 VALIDATION_FAILED&#x60; na rota HTTP, nunca descarte silencioso. reason omitido ou null é não informado, persistido como null, sem default nem motivo inferido. Medida, activeDurationSeconds, alvo original, contagem e descanso são preservados; uma emenda não inicia outra série. */
 public struct ExecutionSetAmendPayload: Codable, JSONEncodable, Hashable {
 
     public enum Reason: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -26,11 +26,11 @@ public struct ExecutionSetAmendPayload: Codable, JSONEncodable, Hashable {
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var setExecutionId: String
     public var replacement: WorkoutSetValues
-    public var reason: Reason
+    public var reason: Reason?
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var amendedAt: Date
 
-    public init(amendmentId: String, setExecutionId: String, replacement: WorkoutSetValues, reason: Reason, amendedAt: Date) {
+    public init(amendmentId: String, setExecutionId: String, replacement: WorkoutSetValues, reason: Reason? = nil, amendedAt: Date) {
         self.amendmentId = amendmentId
         self.setExecutionId = setExecutionId
         self.replacement = replacement
@@ -53,7 +53,7 @@ public struct ExecutionSetAmendPayload: Codable, JSONEncodable, Hashable {
         try container.encode(amendmentId, forKey: .amendmentId)
         try container.encode(setExecutionId, forKey: .setExecutionId)
         try container.encode(replacement, forKey: .replacement)
-        try container.encode(reason, forKey: .reason)
+        try container.encodeIfPresent(reason, forKey: .reason)
         try container.encode(amendedAt, forKey: .amendedAt)
     }
 }

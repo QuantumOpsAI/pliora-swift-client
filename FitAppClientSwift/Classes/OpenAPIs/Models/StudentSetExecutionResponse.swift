@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Projeção autoritativa de uma série executada acompanhada da sua revisão. A &#x60;revision&#x60; publicada aqui é **exatamente** o valor do &#x60;ETag&#x60; da mesma resposta e **exatamente** o valor que &#x60;If-Match&#x60; exige nas escritas revisionais desta série: um recurso, uma revisão, sem tradução entre leitura e escrita. A projeção reusa, sem cópia nem variação, a mesma &#x60;SetExecutionSyncView&#x60; publicada para este fato, de modo que o caminho online e o transporte preservado nunca divirjam. */
+/** Projeção autoritativa de uma série executada acompanhada da sua revisão. A &#x60;revision&#x60; publicada aqui é **exatamente** o valor do &#x60;ETag&#x60; da mesma resposta e **exatamente** o valor que &#x60;If-Match&#x60; exige nas escritas revisionais desta série: um recurso, uma revisão, sem tradução entre leitura e escrita. A projeção reusa, sem cópia nem variação, a mesma &#x60;SetExecutionSyncView&#x60; publicada para este fato, de modo que o caminho online e o transporte preservado nunca divirjam. Fechar OPEN confirma a mesma identidade; no replay fato/revisão/contagem são preservados. A revisão da série não é controlRevision, sessionRevision ou bundleRevision. */
 public struct StudentSetExecutionResponse: Codable, JSONEncodable, Hashable {
 
     public static let revisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)

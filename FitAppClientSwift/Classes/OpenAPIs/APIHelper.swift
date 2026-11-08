@@ -49,7 +49,9 @@ public struct APIHelper {
 
     public static func convertAnyToString(_ value: Any?) -> String? {
         guard let value = value else { return nil }
-        if let value = value as? any RawRepresentable {
+        if let uuid = value as? UUID {
+            return uuid.uuidString.lowercased()
+        } else if let value = value as? any RawRepresentable {
             return "\(value.rawValue)"
         } else {
             return "\(value)"
@@ -61,6 +63,8 @@ public struct APIHelper {
             return collection
                 .compactMap { value in convertAnyToString(value) }
                 .joined(separator: ",")
+        } else if let uuid = source as? UUID {
+            return uuid.uuidString.lowercased()
         } else if let value = source as? any RawRepresentable {
             return "\(value.rawValue)"
         }
