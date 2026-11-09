@@ -15,13 +15,22 @@ public struct PrescribedSetSyncView: Codable, JSONEncodable, Hashable {
 
     public static let prescribedSetIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let setIndexRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let repsMinRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let repsMaxRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let loadPercentRule = NumericRule<Double>(minimum: 1, exclusiveMinimum: false, maximum: 150, exclusiveMaximum: false, multipleOf: nil)
     public static let effortValueRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let restSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let restMinSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let restMaxSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let noteRule = StringRule(minLength: 1, maxLength: 500, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var prescribedSetId: String
     public var setIndex: Int
     public var setType: PrescribedSetType
+    /** Mínimo da faixa de repetições prescrita para a série, quando prescrita em faixa; ausente em série por repetição exata ou por tempo. */
+    public var repsMin: Int?
+    /** Máximo da faixa de repetições prescrita para a série, quando prescrita em faixa; ausente em série por repetição exata ou por tempo. */
+    public var repsMax: Int?
     /** Percentual da carga de referência; ausente quando a carga não é prescrita em percentual. */
     public var loadPercent: Double?
     public var target: WorkoutSetValues
@@ -33,29 +42,45 @@ public struct PrescribedSetSyncView: Codable, JSONEncodable, Hashable {
     public var repsPerSide: Bool?
     /** Descanso prescrito **depois desta série**, em segundos, na forma achatada que o aluno consome. Fora de bloco é o do exercício; num bloco combinado é o do bloco, tomado uma vez por rodada (`LE-3`, `LE-12`): depois da série de um exercício que não é o último da rodada não há descanso — exceto o descanso entre estações do circuito, `stationRestSeconds` —, depois da série do último exercício vale o descanso do bloco, o máximo da faixa (`restRange.maxSeconds`), e depois da última rodada não há nenhum. **Ausente** quando não há descanso prescrito depois da série, e a ausência nunca é zero; presente, `0` é um descanso prescrito de zero segundo. O bloco, com a faixa, vai em `blocks`. */
     public var restSeconds: Int?
+    /** Mínimo da faixa de descanso prescrito depois desta série, em segundos, quando há descanso depois dela. Igual a `restMaxSeconds` quando o descanso é um valor único (ex. `stationRestSeconds` ou faixa de extremos iguais). Ausente quando não há descanso depois da série. */
+    public var restMinSeconds: Int?
+    /** Máximo da faixa de descanso prescrito depois desta série, em segundos (igual a `restSeconds`). Ausente quando não há descanso depois da série. */
+    public var restMaxSeconds: Int?
+    /** Nota curta do personal específica para esta série (ex. \"barra vazia\", \"~60% da carga de trabalho\"), preservada verbatim UTF-8. Ausente quando não há. */
+    public var note: String?
 
-    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, loadPercent: Double? = nil, target: WorkoutSetValues, effortType: PrescribedEffortType? = nil, effortValue: Double? = nil, repsPerSide: Bool? = nil, restSeconds: Int? = nil) {
+    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, repsMin: Int? = nil, repsMax: Int? = nil, loadPercent: Double? = nil, target: WorkoutSetValues, effortType: PrescribedEffortType? = nil, effortValue: Double? = nil, repsPerSide: Bool? = nil, restSeconds: Int? = nil, restMinSeconds: Int? = nil, restMaxSeconds: Int? = nil, note: String? = nil) {
         self.prescribedSetId = prescribedSetId
         self.setIndex = setIndex
         self.setType = setType
+        self.repsMin = repsMin
+        self.repsMax = repsMax
         self.loadPercent = loadPercent
         self.target = target
         self.effortType = effortType
         self.effortValue = effortValue
         self.repsPerSide = repsPerSide
         self.restSeconds = restSeconds
+        self.restMinSeconds = restMinSeconds
+        self.restMaxSeconds = restMaxSeconds
+        self.note = note
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case prescribedSetId
         case setIndex
         case setType
+        case repsMin
+        case repsMax
         case loadPercent
         case target
         case effortType
         case effortValue
         case repsPerSide
         case restSeconds
+        case restMinSeconds
+        case restMaxSeconds
+        case note
     }
 
     // Encodable protocol methods
@@ -65,12 +90,17 @@ public struct PrescribedSetSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(prescribedSetId, forKey: .prescribedSetId)
         try container.encode(setIndex, forKey: .setIndex)
         try container.encode(setType, forKey: .setType)
+        try container.encodeIfPresent(repsMin, forKey: .repsMin)
+        try container.encodeIfPresent(repsMax, forKey: .repsMax)
         try container.encodeIfPresent(loadPercent, forKey: .loadPercent)
         try container.encode(target, forKey: .target)
         try container.encodeIfPresent(effortType, forKey: .effortType)
         try container.encodeIfPresent(effortValue, forKey: .effortValue)
         try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
         try container.encodeIfPresent(restSeconds, forKey: .restSeconds)
+        try container.encodeIfPresent(restMinSeconds, forKey: .restMinSeconds)
+        try container.encodeIfPresent(restMaxSeconds, forKey: .restMaxSeconds)
+        try container.encodeIfPresent(note, forKey: .note)
     }
 }
 

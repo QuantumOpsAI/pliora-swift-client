@@ -72,6 +72,65 @@ open class PersonalProfileAPI {
     }
 
     /**
+     Confirmar o envio da cópia do CREF
+
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter uploadId: (path) Intenção de envio aberta por &#x60;POST /personal/verification/evidence/upload-intents&#x60; e pertencente ao personal autenticado.
+     - parameter completeProfessionalVerificationEvidenceUploadRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func completeProfessionalVerificationEvidenceUpload(idempotencyKey: String, uploadId: String, completeProfessionalVerificationEvidenceUploadRequest: CompleteProfessionalVerificationEvidenceUploadRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: ProfessionalVerificationView?, _ error: Error?) -> Void)) -> RequestTask {
+        return completeProfessionalVerificationEvidenceUploadWithRequestBuilder(idempotencyKey: idempotencyKey, uploadId: uploadId, completeProfessionalVerificationEvidenceUploadRequest: completeProfessionalVerificationEvidenceUploadRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Confirmar o envio da cópia do CREF
+     - POST /personal/verification/evidence/upload-intents/{uploadId}/complete
+     - Segundo passo. Confirma, de forma idempotente, que os bytes descritos pela intenção foram entregues, e é a única forma de a evidência passar a existir: sem esta confirmação o PUT não muda estado algum. O servidor reconfere tamanho, formato e checksum, registra a nova `evidenceRevision` — a equipe decide sempre sobre a revisão mais recente — e o estado passa a `EM_VERIFICACAO`. Um envio em `VERIFICADO` também cria revisão nova e devolve a verificação a `EM_VERIFICACAO`: a reconferência decide sobre a última cópia recebida. Confirmar a mesma intenção com a mesma `Idempotency-Key` e o mesmo corpo devolve a projeção original sem reprocessar; a mesma chave com corpo divergente responde `409 IDEMPOTENCY_CONFLICT`. Intenção vencida responde `410` e exige um novo ciclo; intenção inexistente ou de outra pessoa responde de forma indistinguível, para não revelar existência fora do escopo do ator. Os bytes nunca são devolvidos por esta API: a leitura do personal traz só metadados, e o acesso da equipe ao documento é superfície privada do Admin, fora deste contrato.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter uploadId: (path) Intenção de envio aberta por &#x60;POST /personal/verification/evidence/upload-intents&#x60; e pertencente ao personal autenticado.
+     - parameter completeProfessionalVerificationEvidenceUploadRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<ProfessionalVerificationView>
+     */
+    open class func completeProfessionalVerificationEvidenceUploadWithRequestBuilder(idempotencyKey: String, uploadId: String, completeProfessionalVerificationEvidenceUploadRequest: CompleteProfessionalVerificationEvidenceUploadRequest, acceptLanguage: String? = nil) -> RequestBuilder<ProfessionalVerificationView> {
+        var localVariablePath = "/personal/verification/evidence/upload-intents/{uploadId}/complete"
+        let uploadIdPreEscape = "\(APIHelper.mapValueToPathItem(uploadId))"
+        let uploadIdPostEscape = uploadIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{uploadId}", with: uploadIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: completeProfessionalVerificationEvidenceUploadRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<ProfessionalVerificationView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      Abrir uma intenção de envio do avatar profissional
 
      - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
@@ -121,6 +180,60 @@ open class PersonalProfileAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<PersonalAvatarUploadIntentView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Abrir uma intenção de envio da cópia do CREF
+
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter createProfessionalVerificationEvidenceUploadIntentRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func createProfessionalVerificationEvidenceUploadIntent(idempotencyKey: String, createProfessionalVerificationEvidenceUploadIntentRequest: CreateProfessionalVerificationEvidenceUploadIntentRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: ProfessionalVerificationEvidenceUploadIntentView?, _ error: Error?) -> Void)) -> RequestTask {
+        return createProfessionalVerificationEvidenceUploadIntentWithRequestBuilder(idempotencyKey: idempotencyKey, createProfessionalVerificationEvidenceUploadIntentRequest: createProfessionalVerificationEvidenceUploadIntentRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Abrir uma intenção de envio da cópia do CREF
+     - POST /personal/verification/evidence/upload-intents
+     - Primeiro passo do envio da evidência da verificação do CREF (`JUR-02 = A`). O cliente declara tipo, tamanho e checksum dos bytes — foto do documento ou PDF —, e o servidor devolve uma intenção de curta duração: `uploadId`, um PUT temporário, os cabeçalhos obrigatórios e o instante de expiração. O contrato é provider-neutral: a intenção nunca expõe bucket, chave de objeto, KMS, ARN, credencial ou topologia de armazenamento, e a URL é capacidade efêmera de escrita — nunca identidade da evidência, que nasce na confirmação como revisão versionada (`evidenceRevision`). A cópia é do **registro profissional**: o produto não pede CPF, selfie nem documento de identidade. Abrir intenção não altera o estado da verificação. O replay da mesma `Idempotency-Key` com o mesmo corpo devolve a intenção original; a mesma chave com corpo divergente responde `409 IDEMPOTENCY_CONFLICT`. Tratamento de bytes online-only: não existe outbox nem fila offline.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String), Cache-Control(String)]
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter createProfessionalVerificationEvidenceUploadIntentRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<ProfessionalVerificationEvidenceUploadIntentView>
+     */
+    open class func createProfessionalVerificationEvidenceUploadIntentWithRequestBuilder(idempotencyKey: String, createProfessionalVerificationEvidenceUploadIntentRequest: CreateProfessionalVerificationEvidenceUploadIntentRequest, acceptLanguage: String? = nil) -> RequestBuilder<ProfessionalVerificationEvidenceUploadIntentView> {
+        let localVariablePath = "/personal/verification/evidence/upload-intents"
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: createProfessionalVerificationEvidenceUploadIntentRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<ProfessionalVerificationEvidenceUploadIntentView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }

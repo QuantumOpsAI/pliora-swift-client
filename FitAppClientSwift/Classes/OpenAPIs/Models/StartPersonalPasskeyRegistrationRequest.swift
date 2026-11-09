@@ -10,16 +10,27 @@ import Foundation
 import AnyCodable
 #endif
 
+/** &#x60;stepUpProof&#x60; e &#x60;mutationIntentId&#x60; são **obrigatórios quando a conta já possui passkey registrada** (&#x60;getPersonalStepUpControl&#x60; responde &#x60;passkey.registered: true&#x60;): a prova precisa ter finalidade &#x60;PASSKEY_REGISTRATION&#x60;, ser de uso único e estar vinculada à conta, à sessão e à intenção canônica — ausente, divergente, expirada ou já consumida é &#x60;403 STEP_UP_PROOF_REQUIRED&#x60;, &#x60;STEP_UP_PROOF_MISMATCH&#x60;, &#x60;STEP_UP_PROOF_EXPIRED&#x60; ou &#x60;STEP_UP_PROOF_CONSUMED&#x60;. Sem passkey, os dois campos não se aplicam: a primeira credencial só abre com sessão nascida de login interativo recente — sessão velha é &#x60;403 PASSKEY_REGISTRATION_REAUTH_REQUIRED&#x60; e o cliente reautentica. */
 public struct StartPersonalPasskeyRegistrationRequest: Codable, JSONEncodable, Hashable {
 
+    public static let stepUpProofRule = StringRule(minLength: 1, maxLength: 512, pattern: nil)
+    public static let mutationIntentIdRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
     public var device: DeviceContext
+    /** Prova opaca de **uso único** emitida por `verifyPersonalStepUpChallenge`, vinculada pelo servidor à intenção inteira — conta + sessão + finalidade + alvo + versão + revisão + fingerprint — e com validade curta do relógio do servidor, nunca indefinida. O cliente a devolve **intacta** no campo `stepUpProof` do corpo do comando do ato (o contrato de decisão da análise, pliora-contracts#316, consumirá este schema por referência): não a interpreta, não a registra em log e nunca a transporta para outra finalidade — prova de um ato não serve a outro nem a revisão posterior. Não é JWT, não é token de sessão e não é flag `verified=true`: não carrega claim, dado de saúde nem autorização presumida. */
+    public var stepUpProof: String?
+    /** Identidade da intenção de mutação que o desafio do ato selou na prova apresentada — obrigatória junto com `stepUpProof`. */
+    public var mutationIntentId: String?
 
-    public init(device: DeviceContext) {
+    public init(device: DeviceContext, stepUpProof: String? = nil, mutationIntentId: String? = nil) {
         self.device = device
+        self.stepUpProof = stepUpProof
+        self.mutationIntentId = mutationIntentId
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case device
+        case stepUpProof
+        case mutationIntentId
     }
 
     // Encodable protocol methods
@@ -27,5 +38,7 @@ public struct StartPersonalPasskeyRegistrationRequest: Codable, JSONEncodable, H
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(device, forKey: .device)
+        try container.encodeIfPresent(stepUpProof, forKey: .stepUpProof)
+        try container.encodeIfPresent(mutationIntentId, forKey: .mutationIntentId)
     }
 }

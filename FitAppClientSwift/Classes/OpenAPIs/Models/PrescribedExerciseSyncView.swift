@@ -23,6 +23,7 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
     public static let displayNameRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let positionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let blockKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
+    public static let notesRule = StringRule(minLength: 1, maxLength: 2000, pattern: nil)
     public static let setsRule = ArrayRule(minItems: 1, maxItems: nil, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var prescribedExerciseId: String
@@ -41,10 +42,12 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
     public var technique: PrescribedTechnique?
     /** Leitura do peso do exercício, como o personal a publicou. `null` é `leitura não informada`, que só se compara com `null`. O cliente a mostra colada à carga de cada série (`20 kg cada halter`) e nunca a edita nem infere. */
     public var loadBasis: LoadBasis?
+    /** Observação do personal para este exercício, preservada verbatim UTF-8, nunca traduzida nem truncada. Ausente quando não há. */
+    public var notes: String?
     public var sets: [PrescribedSetSyncView]
     public var authorizedAlternativeIds: [String]
 
-    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, position: Int, orderPolicy: OrderPolicy, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, loadBasis: LoadBasis? = nil, sets: [PrescribedSetSyncView], authorizedAlternativeIds: [String]) {
+    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, position: Int, orderPolicy: OrderPolicy, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, loadBasis: LoadBasis? = nil, notes: String? = nil, sets: [PrescribedSetSyncView], authorizedAlternativeIds: [String]) {
         self.prescribedExerciseId = prescribedExerciseId
         self.exerciseId = exerciseId
         self.prescribedVariantId = prescribedVariantId
@@ -55,6 +58,7 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
         self.cadence = cadence
         self.technique = technique
         self.loadBasis = loadBasis
+        self.notes = notes
         self.sets = sets
         self.authorizedAlternativeIds = authorizedAlternativeIds
     }
@@ -70,6 +74,7 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
         case cadence
         case technique
         case loadBasis
+        case notes
         case sets
         case authorizedAlternativeIds
     }
@@ -88,6 +93,7 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(cadence, forKey: .cadence)
         try container.encodeIfPresent(technique, forKey: .technique)
         try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
+        try container.encodeIfPresent(notes, forKey: .notes)
         try container.encode(sets, forKey: .sets)
         try container.encode(authorizedAlternativeIds, forKey: .authorizedAlternativeIds)
     }

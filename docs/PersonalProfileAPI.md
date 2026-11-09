@@ -5,7 +5,9 @@ All URIs are relative to */api/v1*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**completePersonalAvatarUpload**](PersonalProfileAPI.md#completepersonalavatarupload) | **POST** /personal/profile/avatar/upload-intents/{uploadId}/complete | Confirmar o envio do avatar profissional
+[**completeProfessionalVerificationEvidenceUpload**](PersonalProfileAPI.md#completeprofessionalverificationevidenceupload) | **POST** /personal/verification/evidence/upload-intents/{uploadId}/complete | Confirmar o envio da cópia do CREF
 [**createPersonalAvatarUploadIntent**](PersonalProfileAPI.md#createpersonalavataruploadintent) | **POST** /personal/profile/avatar/upload-intents | Abrir uma intenção de envio do avatar profissional
+[**createProfessionalVerificationEvidenceUploadIntent**](PersonalProfileAPI.md#createprofessionalverificationevidenceuploadintent) | **POST** /personal/verification/evidence/upload-intents | Abrir uma intenção de envio da cópia do CREF
 [**deletePersonalAvatar**](PersonalProfileAPI.md#deletepersonalavatar) | **DELETE** /personal/profile/avatar | Remover o avatar profissional
 [**getPersonalProfile**](PersonalProfileAPI.md#getpersonalprofile) | **GET** /personal/profile | Obter o Perfil do Personal autenticado
 [**importPersonalAvatarFromGoogle**](PersonalProfileAPI.md#importpersonalavatarfromgoogle) | **POST** /personal/profile/avatar/import-google | Importar o avatar profissional da identidade Google autenticada
@@ -67,6 +69,62 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **completeProfessionalVerificationEvidenceUpload**
+```swift
+    open class func completeProfessionalVerificationEvidenceUpload(idempotencyKey: String, uploadId: String, completeProfessionalVerificationEvidenceUploadRequest: CompleteProfessionalVerificationEvidenceUploadRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: ProfessionalVerificationView?, _ error: Error?) -> Void)
+```
+
+Confirmar o envio da cópia do CREF
+
+Segundo passo. Confirma, de forma idempotente, que os bytes descritos pela intenção foram entregues, e é a única forma de a evidência passar a existir: sem esta confirmação o PUT não muda estado algum. O servidor reconfere tamanho, formato e checksum, registra a nova `evidenceRevision` — a equipe decide sempre sobre a revisão mais recente — e o estado passa a `EM_VERIFICACAO`. Um envio em `VERIFICADO` também cria revisão nova e devolve a verificação a `EM_VERIFICACAO`: a reconferência decide sobre a última cópia recebida. Confirmar a mesma intenção com a mesma `Idempotency-Key` e o mesmo corpo devolve a projeção original sem reprocessar; a mesma chave com corpo divergente responde `409 IDEMPOTENCY_CONFLICT`. Intenção vencida responde `410` e exige um novo ciclo; intenção inexistente ou de outra pessoa responde de forma indistinguível, para não revelar existência fora do escopo do ator. Os bytes nunca são devolvidos por esta API: a leitura do personal traz só metadados, e o acesso da equipe ao documento é superfície privada do Admin, fora deste contrato.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let uploadId = "uploadId_example" // String | Intenção de envio aberta por `POST /personal/verification/evidence/upload-intents` e pertencente ao personal autenticado.
+let completeProfessionalVerificationEvidenceUploadRequest = CompleteProfessionalVerificationEvidenceUploadRequest(sizeBytes: 123, checksumSha256: "checksumSha256_example") // CompleteProfessionalVerificationEvidenceUploadRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Confirmar o envio da cópia do CREF
+PersonalProfileAPI.completeProfessionalVerificationEvidenceUpload(idempotencyKey: idempotencyKey, uploadId: uploadId, completeProfessionalVerificationEvidenceUploadRequest: completeProfessionalVerificationEvidenceUploadRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **uploadId** | **String** | Intenção de envio aberta por &#x60;POST /personal/verification/evidence/upload-intents&#x60; e pertencente ao personal autenticado. |
+ **completeProfessionalVerificationEvidenceUploadRequest** | [**CompleteProfessionalVerificationEvidenceUploadRequest**](CompleteProfessionalVerificationEvidenceUploadRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**ProfessionalVerificationView**](ProfessionalVerificationView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **createPersonalAvatarUploadIntent**
 ```swift
     open class func createPersonalAvatarUploadIntent(idempotencyKey: String, createPersonalAvatarUploadIntentRequest: CreatePersonalAvatarUploadIntentRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: PersonalAvatarUploadIntentView?, _ error: Error?) -> Void)
@@ -109,6 +167,60 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**PersonalAvatarUploadIntentView**](PersonalAvatarUploadIntentView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **createProfessionalVerificationEvidenceUploadIntent**
+```swift
+    open class func createProfessionalVerificationEvidenceUploadIntent(idempotencyKey: String, createProfessionalVerificationEvidenceUploadIntentRequest: CreateProfessionalVerificationEvidenceUploadIntentRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: ProfessionalVerificationEvidenceUploadIntentView?, _ error: Error?) -> Void)
+```
+
+Abrir uma intenção de envio da cópia do CREF
+
+Primeiro passo do envio da evidência da verificação do CREF (`JUR-02 = A`). O cliente declara tipo, tamanho e checksum dos bytes — foto do documento ou PDF —, e o servidor devolve uma intenção de curta duração: `uploadId`, um PUT temporário, os cabeçalhos obrigatórios e o instante de expiração. O contrato é provider-neutral: a intenção nunca expõe bucket, chave de objeto, KMS, ARN, credencial ou topologia de armazenamento, e a URL é capacidade efêmera de escrita — nunca identidade da evidência, que nasce na confirmação como revisão versionada (`evidenceRevision`). A cópia é do **registro profissional**: o produto não pede CPF, selfie nem documento de identidade. Abrir intenção não altera o estado da verificação. O replay da mesma `Idempotency-Key` com o mesmo corpo devolve a intenção original; a mesma chave com corpo divergente responde `409 IDEMPOTENCY_CONFLICT`. Tratamento de bytes online-only: não existe outbox nem fila offline.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let createProfessionalVerificationEvidenceUploadIntentRequest = CreateProfessionalVerificationEvidenceUploadIntentRequest(contentType: ProfessionalVerificationEvidenceContentType(), sizeBytes: 123, checksumSha256: "checksumSha256_example") // CreateProfessionalVerificationEvidenceUploadIntentRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Abrir uma intenção de envio da cópia do CREF
+PersonalProfileAPI.createProfessionalVerificationEvidenceUploadIntent(idempotencyKey: idempotencyKey, createProfessionalVerificationEvidenceUploadIntentRequest: createProfessionalVerificationEvidenceUploadIntentRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **createProfessionalVerificationEvidenceUploadIntentRequest** | [**CreateProfessionalVerificationEvidenceUploadIntentRequest**](CreateProfessionalVerificationEvidenceUploadIntentRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**ProfessionalVerificationEvidenceUploadIntentView**](ProfessionalVerificationEvidenceUploadIntentView.md)
 
 ### Authorization
 
