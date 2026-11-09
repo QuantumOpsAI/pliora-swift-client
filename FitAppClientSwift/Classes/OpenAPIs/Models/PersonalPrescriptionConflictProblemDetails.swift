@@ -33,6 +33,7 @@ public struct PersonalPrescriptionConflictProblemDetails: Codable, JSONEncodable
         case templateLimitReached = "TEMPLATE_LIMIT_REACHED"
         case planActivationIdentityDivergent = "PLAN_ACTIVATION_IDENTITY_DIVERGENT"
         case planActivationNotActive = "PLAN_ACTIVATION_NOT_ACTIVE"
+        case personalCrefNotVerified = "PERSONAL_CREF_NOT_VERIFIED"
         case prescriptionVersionNotCurrent = "PRESCRIPTION_VERSION_NOT_CURRENT"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }

@@ -21,7 +21,11 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
     public static let durationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: 3600, exclusiveMaximum: false, multipleOf: nil)
     public static let loadValueRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let loadPercentRule = NumericRule<Double>(minimum: 1, exclusiveMinimum: false, maximum: 150, exclusiveMaximum: false, multipleOf: nil)
+    public static let effortValueRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let restSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let restMinSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let restMaxSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let noteRule = StringRule(minLength: 1, maxLength: 500, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var prescribedSetId: String
     public var setIndex: Int
@@ -37,12 +41,22 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
     public var loadBasis: LoadBasis?
     /** Percentual da carga de referência; exclui `loadValue` e `loadUnit`. */
     public var loadPercent: Double?
+    /** Tipo do esforço prescrito para esta série; presente sse `effortValue` está presente. */
+    public var effortType: PrescribedEffortType?
+    /** Valor do esforço prescrito na escala de `effortType`. */
+    public var effortValue: Double?
     /** true quando a contagem de repetições da série prescrita for por lado (`DOC-STUDENT-WORKOUT-TECH` §6.5). */
     public var repsPerSide: Bool?
     /** Descanso prescrito depois desta série, em segundos; ausente quando não há. */
     public var restSeconds: Int?
+    /** Mínimo da faixa de descanso prescrito depois desta série, em segundos; ausente quando não há. */
+    public var restMinSeconds: Int?
+    /** Máximo da faixa de descanso prescrito depois desta série, em segundos; ausente quando não há. */
+    public var restMaxSeconds: Int?
+    /** Nota curta do personal específica para esta série (ex. \"barra vazia\", \"~60% da carga de trabalho\"), preservada verbatim UTF-8. Ausente quando não há. */
+    public var note: String?
 
-    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, repsMin: Int? = nil, repsMax: Int? = nil, repsExact: Int? = nil, durationSeconds: Int? = nil, loadValue: Double? = nil, loadUnit: PrescribedLoadUnit? = nil, loadBasis: LoadBasis? = nil, loadPercent: Double? = nil, repsPerSide: Bool? = nil, restSeconds: Int? = nil) {
+    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, repsMin: Int? = nil, repsMax: Int? = nil, repsExact: Int? = nil, durationSeconds: Int? = nil, loadValue: Double? = nil, loadUnit: PrescribedLoadUnit? = nil, loadBasis: LoadBasis? = nil, loadPercent: Double? = nil, effortType: PrescribedEffortType? = nil, effortValue: Double? = nil, repsPerSide: Bool? = nil, restSeconds: Int? = nil, restMinSeconds: Int? = nil, restMaxSeconds: Int? = nil, note: String? = nil) {
         self.prescribedSetId = prescribedSetId
         self.setIndex = setIndex
         self.setType = setType
@@ -54,8 +68,13 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
         self.loadUnit = loadUnit
         self.loadBasis = loadBasis
         self.loadPercent = loadPercent
+        self.effortType = effortType
+        self.effortValue = effortValue
         self.repsPerSide = repsPerSide
         self.restSeconds = restSeconds
+        self.restMinSeconds = restMinSeconds
+        self.restMaxSeconds = restMaxSeconds
+        self.note = note
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -70,8 +89,13 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
         case loadUnit
         case loadBasis
         case loadPercent
+        case effortType
+        case effortValue
         case repsPerSide
         case restSeconds
+        case restMinSeconds
+        case restMaxSeconds
+        case note
     }
 
     // Encodable protocol methods
@@ -89,8 +113,13 @@ public struct WorkoutSummarySetView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(loadUnit, forKey: .loadUnit)
         try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
         try container.encodeIfPresent(loadPercent, forKey: .loadPercent)
+        try container.encodeIfPresent(effortType, forKey: .effortType)
+        try container.encodeIfPresent(effortValue, forKey: .effortValue)
         try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
         try container.encodeIfPresent(restSeconds, forKey: .restSeconds)
+        try container.encodeIfPresent(restMinSeconds, forKey: .restMinSeconds)
+        try container.encodeIfPresent(restMaxSeconds, forKey: .restMaxSeconds)
+        try container.encodeIfPresent(note, forKey: .note)
     }
 }
 
@@ -100,6 +129,7 @@ extension WorkoutSummarySetView: UnknownCaseCheckable {
         if setType == .unknownDefaultOpenApi { return true }
         if loadUnit == .unknownDefaultOpenApi { return true }
         if loadBasis == .unknownDefaultOpenApi { return true }
+        if effortType == .unknownDefaultOpenApi { return true }
         return false
     }
 }

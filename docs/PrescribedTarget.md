@@ -12,5 +12,6 @@ Name | Type | Description | Notes
 **loadPercent** | **Double** | Percentual da carga de referência confirmada pelo personal para o aluno naquela variante. Exclui &#x60;loadValue&#x60; e &#x60;loadUnit&#x60;. | [optional]
 **effortType** | [**PrescribedEffortType**](PrescribedEffortType.md) |  | [optional]
 **effortValue** | **Double** |  | [optional]
+**note** | **String** | Nota curta do personal específica para esta série (ex. \&quot;barra vazia\&quot;, \&quot;~60% da carga de trabalho\&quot;), preservada verbatim UTF-8. Ausente quando não há. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
