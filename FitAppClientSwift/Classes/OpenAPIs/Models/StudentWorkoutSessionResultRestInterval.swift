@@ -18,7 +18,7 @@ public struct StudentWorkoutSessionResultRestInterval: Codable, JSONEncodable, H
     public static let overtimeSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     /** Alvo efetivo de descanso (prescrito ou ajustado pelo aluno), em segundos. */
     public var targetSeconds: Int?
-    /** Duração informada pelas interações (do término da série até o início da seguinte ou encerramento da sessão), em segundos. Nulo ou ausente quando não houve interação. */
+    /** Duração informada pelas interações (do término da série até o início da seguinte ou encerramento da sessão), em segundos, sem o intervalo em que o treino ficou pausado (`DOC-STUDENT-WORKOUT` §6.8 e §7.4). Nulo ou ausente quando não houve interação. */
     public var durationSeconds: Int?
     /** Excedente contra o alvo efetivo (max(0, durationSeconds - targetSeconds)). */
     public var overtimeSeconds: Int?

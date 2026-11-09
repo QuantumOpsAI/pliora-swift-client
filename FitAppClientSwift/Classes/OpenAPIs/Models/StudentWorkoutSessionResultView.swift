@@ -22,6 +22,7 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
     public static let sessionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let workoutNameRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let durationSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let pausedDurationSecondsRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let exercisesDoneRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let exercisesPlannedRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let setsDoneRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
@@ -42,8 +43,10 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
     public var startedAt: Date
     /** O instante do servidor em que a sessão terminou, em qualquer desfecho. No término pela decisão do treino e no encerramento automático é o instante do último registro. */
     public var endedAt: Date
-    /** A duração do início ao término, em segundos; igual a `endedAt` menos `startedAt`. Nulo quando `recordedLater = true` (treino marcado como feito depois). */
+    /** A duração do início ao término, em segundos; igual a `endedAt` menos `startedAt`. **Inclui as pausas** do treino (`DOC-STUDENT-WORKOUT` §6.8): o tempo pausado não é descontado dela, e quanto dele houve é `pausedDurationSeconds`. Nulo quando `recordedLater = true` (treino marcado como feito depois). */
     public var durationSeconds: Int?
+    /** Quanto tempo o treino ficou **pausado** (`DOC-STUDENT-WORKOUT` §6.8 e §8.2), em segundos: a soma das pausas confirmadas pelo servidor (`PAUSE` e `RESUME` de `executeStudentWorkoutControlAction`), cada uma contada só dentro do intervalo de `startedAt` a `endedAt`, arredondada para baixo no total. Uma pausa conta do `PAUSE` confirmado até o primeiro destes: o `RESUME` confirmado, o registro que retoma o treino (§6.8: registrar com o treino pausado primeiro retoma) ou o término da sessão; a pausa ainda aberta no término conta até `endedAt`. Está **contida** em `durationSeconds`, que vai do início ao término e inclui as pausas: nunca é maior que ela e não é descontada dela. **Limite de 60 minutos** (`DOC-STUDENT-WORKOUT` §6.5): ele não corta esta soma. Passado o limite, o treino continua pausado, sem retomar sozinho, e o tempo continua sendo de pausa; o limite só decide até onde o tempo pausado fica fora da contagem da sessão esquecida e do aviso de treino parado. O intervalo pausado também **não entra no descanso informado** (`exercises[].sets[].restInterval`, §7.4). **Ausente** quando o treino não teve pausa dentro desse intervalo e quando `recordedLater = true`; a ausência nunca é escrita como zero. O app diz `Pausado por 12 min` no cabeçalho do resumo. */
+    public var pausedDurationSeconds: Int?
     /** Identifica treino marcado como feito depois (`DOC-STUDENT-WORKOUT` §6.7; `DOC-STUDENT-WORKOUT-TECH` §3.5). Quando `recordedLater = true`, `durationSeconds` é nulo. */
     public var recordedLater: Bool?
     public var whatChanged: StudentWorkoutSessionResultWhatChanged?
@@ -75,13 +78,14 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
     /** A ordem prescrita dos mesmos exercícios. Presente se e somente se `executedOrder` é. */
     public var prescribedOrder: [String]?
 
-    public init(sessionId: String, workoutName: String, localDate: Date, startedAt: Date, endedAt: Date, durationSeconds: Int?, recordedLater: Bool? = nil, whatChanged: StudentWorkoutSessionResultWhatChanged? = nil, status: Status, endedBy: WorkoutSessionEndedBy, firstWorkoutRecorded: FirstWorkoutRecorded? = nil, exercisesDone: Int, exercisesPlanned: Int, setsDone: Int, setsPlanned: Int, volume: [WorkoutVolumePortion], records: [StudentWorkoutSessionRecord], sessionEffort: WorkoutSessionEffort? = nil, blocks: [StudentWorkoutSessionResultBlock]? = nil, exercises: [StudentWorkoutSessionResultExercise], executedOrder: [String]? = nil, prescribedOrder: [String]? = nil) {
+    public init(sessionId: String, workoutName: String, localDate: Date, startedAt: Date, endedAt: Date, durationSeconds: Int?, pausedDurationSeconds: Int? = nil, recordedLater: Bool? = nil, whatChanged: StudentWorkoutSessionResultWhatChanged? = nil, status: Status, endedBy: WorkoutSessionEndedBy, firstWorkoutRecorded: FirstWorkoutRecorded? = nil, exercisesDone: Int, exercisesPlanned: Int, setsDone: Int, setsPlanned: Int, volume: [WorkoutVolumePortion], records: [StudentWorkoutSessionRecord], sessionEffort: WorkoutSessionEffort? = nil, blocks: [StudentWorkoutSessionResultBlock]? = nil, exercises: [StudentWorkoutSessionResultExercise], executedOrder: [String]? = nil, prescribedOrder: [String]? = nil) {
         self.sessionId = sessionId
         self.workoutName = workoutName
         self.localDate = localDate
         self.startedAt = startedAt
         self.endedAt = endedAt
         self.durationSeconds = durationSeconds
+        self.pausedDurationSeconds = pausedDurationSeconds
         self.recordedLater = recordedLater
         self.whatChanged = whatChanged
         self.status = status
@@ -107,6 +111,7 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
         case startedAt
         case endedAt
         case durationSeconds
+        case pausedDurationSeconds
         case recordedLater
         case whatChanged
         case status
@@ -135,6 +140,7 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
         try container.encode(startedAt, forKey: .startedAt)
         try container.encode(endedAt, forKey: .endedAt)
         try container.encode(durationSeconds, forKey: .durationSeconds)
+        try container.encodeIfPresent(pausedDurationSeconds, forKey: .pausedDurationSeconds)
         try container.encodeIfPresent(recordedLater, forKey: .recordedLater)
         try container.encodeIfPresent(whatChanged, forKey: .whatChanged)
         try container.encode(status, forKey: .status)
