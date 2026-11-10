@@ -328,7 +328,7 @@ import FitAppClientSwift
 
 let sessionId = "sessionId_example" // String | Sessão do aluno autenticado, com a mesma identidade adotada em `POST /student/workout-sessions`. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
 let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
-let executionExerciseDeferPayload = ExecutionExerciseDeferPayload(deferralId: "deferralId_example", exerciseExecutionId: "exerciseExecutionId_example", prescribedPosition: 123, executedPosition: 123, reason: "reason_example", deferredAt: Date()) // ExecutionExerciseDeferPayload |
+let executionExerciseDeferPayload = ExecutionExerciseDeferPayload(deferralId: "deferralId_example", exerciseExecutionId: "exerciseExecutionId_example", prescribedPosition: 123, executedPosition: 123, reason: DeferralReason(), deferredAt: Date()) // ExecutionExerciseDeferPayload |
 let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
 
 // Adiar um exercício, preservando-o como pendência aberta

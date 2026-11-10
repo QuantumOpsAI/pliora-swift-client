@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Uma sessão da série histórica daquela chave comparável: o início e, quando terminou, o fim e a causa do término, o estado da sessão, a variante e o contexto de equipamento efetivamente usados e as séries que preservam **prescrito**, **alvo** e **realizado** separadamente. Carga e repetições permanecem fatos por série; nenhuma das duas é resumida pelo cliente. **Nenhum campo aqui é projeção, juízo ou estatística.** Não há delta calculado, percentual, média, tendência, escore, classificação, aderência nem rótulo de melhor ou pior execução: &#x60;30 kg x 3&#x60; e &#x60;25 kg x 12&#x60; não são ordenáveis pelo produto, e ordenar seria interpretação, que o contrato não transporta. */
+/** Uma sessão da série histórica daquela chave comparável: o início e, quando terminou, o fim e a causa do término, o estado da sessão, a variante e o contexto de equipamento efetivamente usados e as séries que preservam **prescrito**, **alvo** e **realizado** separadamente. Carga e repetições permanecem fatos por série; nenhuma das duas é resumida pelo cliente. A ordem prescrita e a executada, o adiamento e a separação de bloco são fatos da sessão, preservados como registrados (lote-3 §9.3, regra 6, e §9.4): a leitura não conta reorganizações, não publica coluna de \&quot;ordem cumprida\&quot; e nunca as promove a motivo da fila (&#x60;DOC-PERSONAL-DESTINATIONS&#x60; §9.2 e §9.3). **Nenhum campo aqui é projeção, juízo ou estatística.** Não há delta calculado, percentual, média, tendência, escore, classificação, aderência nem rótulo de melhor ou pior execução: &#x60;30 kg x 3&#x60; e &#x60;25 kg x 12&#x60; não são ordenáveis pelo produto, e ordenar seria interpretação, que o contrato não transporta. */
 public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable, Hashable {
 
     public enum SessionStatus: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -25,6 +25,8 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     public static let executedVariantLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let equipmentContextKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
     public static let setsRule = ArrayRule(minItems: nil, maxItems: 100, uniqueItems: false)
+    public static let prescribedPositionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let executedPositionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var sessionId: String
     /** Dia civil do treino gravado na sessão — o mesmo `localDate` que o aluno vê no histórico dele. No treino marcado como feito depois, é o dia que o aluno declarou, e não o dia em que registrou; é por ele que a página ordena (§4.4 de `DOC-PERSONAL-HOME`). */
@@ -50,8 +52,16 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     public var sets: [PersonalStudentExerciseSetContextView]
     /** Substituição daquele exercício naquela sessão, quando houve, com o motivo estruturado. Ausente quando não houve. */
     public var substitution: PersonalStudentExerciseSubstitutionView?
+    /** Posição do exercício na ordem prescrita daquela sessão, contada de 1: a ordem que o personal montou, preservada da versão do plano que a sessão usou, e imutável — reorganizar a lista de hoje nunca a reescreve (lote-3 §9.4, item 2; `COORD-03`, a ordem prescrita é orientação, não trava). */
+    public var prescribedPosition: Int
+    /** Posição do exercício na ordem efetivamente executada daquela sessão, contada de 1 e derivada pelo servidor da sequência dos fatos de série — nunca da organização de hoje (lote-3 §9.4, item 5). **Ausente** quando o exercício não tem fato de série registrado na sessão, e a ausência nunca é posição presumida nem zero. Quando presente e diferente de `prescribedPosition`, a sessão exibe `feito em <n>º (prescrito em <m>º)`: a comparação dos dois fatos é determinística e esta leitura não publica uma marca derivada dela (`DOC-PERSONAL-DESTINATIONS` §9.2). */
+    public var executedPosition: Int?
+    /** `true` quando o exercício constava de um bloco combinado da prescrição e o aluno executou **Separar só hoje** nesta sessão — a separação é fato da sessão e a prescrição continua dizendo que é bloco (lote-3 §9.2; `DOC-PERSONAL-DESTINATIONS` §9.2, `bloco separado nesta sessão`). Ausente quando não houve separação, inclusive para exercício que não era de bloco. */
+    public var blockSeparated: Bool?
+    /** Adiamento daquele exercício naquela sessão, quando houve, com o motivo estruturado, o instante, as duas posições e o desfecho registrados. Ausente quando não houve. */
+    public var deferral: PersonalStudentExerciseDeferralView?
 
-    public init(sessionId: String, localDate: Date, recordedLater: Bool? = nil, sessionStatus: SessionStatus, startedAt: Date, endedAt: Date?, endedBy: WorkoutSessionEndedBy? = nil, sessionEffort: WorkoutSessionEffort? = nil, executedVariantId: String, executedVariantLabel: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil) {
+    public init(sessionId: String, localDate: Date, recordedLater: Bool? = nil, sessionStatus: SessionStatus, startedAt: Date, endedAt: Date?, endedBy: WorkoutSessionEndedBy? = nil, sessionEffort: WorkoutSessionEffort? = nil, executedVariantId: String, executedVariantLabel: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil, prescribedPosition: Int, executedPosition: Int? = nil, blockSeparated: Bool? = nil, deferral: PersonalStudentExerciseDeferralView? = nil) {
         self.sessionId = sessionId
         self.localDate = localDate
         self.recordedLater = recordedLater
@@ -65,6 +75,10 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
         self.equipmentContextKey = equipmentContextKey
         self.sets = sets
         self.substitution = substitution
+        self.prescribedPosition = prescribedPosition
+        self.executedPosition = executedPosition
+        self.blockSeparated = blockSeparated
+        self.deferral = deferral
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -81,6 +95,10 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
         case equipmentContextKey
         case sets
         case substitution
+        case prescribedPosition
+        case executedPosition
+        case blockSeparated
+        case deferral
     }
 
     // Encodable protocol methods
@@ -100,6 +118,10 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
         try container.encodeIfPresent(equipmentContextKey, forKey: .equipmentContextKey)
         try container.encode(sets, forKey: .sets)
         try container.encodeIfPresent(substitution, forKey: .substitution)
+        try container.encode(prescribedPosition, forKey: .prescribedPosition)
+        try container.encodeIfPresent(executedPosition, forKey: .executedPosition)
+        try container.encodeIfPresent(blockSeparated, forKey: .blockSeparated)
+        try container.encodeIfPresent(deferral, forKey: .deferral)
     }
 }
 
