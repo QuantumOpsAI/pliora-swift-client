@@ -10,9 +10,10 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Um treino terminado do histórico, o que a linha de treino feito e os recordes recentes mostram: o nome, o dia, a duração, as séries feitas de previstas e os recordes resumidos. Entra a sessão &#x60;COMPLETED&#x60; ou &#x60;ABANDONED&#x60; com **ao menos uma série executada** (&#x60;completedSetCount&#x60; começa em 1). Fato registrado: não muda quando o personal publica outra versão. &#x60;localDate&#x60; é o dia civil gravado na sessão, fixado no início dela, e não muda se o aluno trocar de personal ou de fuso. &#x60;completedSetCount&#x60; são as séries executadas, inteiras ou parciais, e &#x60;totalSetCount&#x60; as séries do treino na versão da sessão, as mesmas &#x60;setsDone&#x60; e &#x60;setsPlanned&#x60; do resultado. &#x60;recordCount&#x60; é o tamanho de &#x60;records&#x60; em &#x60;getStudentWorkoutSessionResult&#x60;, pela mesma projeção; é **nulo** quando a projeção não pôde ser lida nesta resposta, e então &#x60;records&#x60; vem vazio — nulo nunca é lido como zero. &#x60;records&#x60; resume até 3 recordes da sessão, os primeiros do resultado dela. Não há volume, nota de esforço, relato de desconforto, escore nem percentual de aderência: o resultado completo abre por &#x60;sessionId&#x60;. */
+/** Um treino terminado do histórico, o que a linha de treino feito e os recordes recentes mostram: o nome, o dia, a duração, as séries feitas de previstas e os recordes resumidos. Entra a sessão &#x60;COMPLETED&#x60; ou &#x60;ABANDONED&#x60; com **ao menos uma série executada** (&#x60;completedSetCount&#x60; começa em 1). Fato registrado: não muda quando o personal publica outra versão. &#x60;localDate&#x60; é o dia civil gravado na sessão, fixado no início dela, e não muda se o aluno trocar de personal ou de fuso. &#x60;completedSetCount&#x60; são as séries executadas, inteiras ou parciais, e &#x60;totalSetCount&#x60; as séries do treino na versão da sessão, as mesmas &#x60;setsDone&#x60; e &#x60;setsPlanned&#x60; do resultado. &#x60;recordCount&#x60; é o tamanho de &#x60;records&#x60; em &#x60;getStudentWorkoutSessionResult&#x60;, pela mesma projeção; é **nulo** quando a projeção não pôde ser lida nesta resposta, e então &#x60;records&#x60; vem vazio — nulo nunca é lido como zero. &#x60;records&#x60; resume até 3 recordes da sessão, os primeiros do resultado dela. Não há volume, nota de esforço, relato de desconforto, escore nem percentual de aderência: o resultado completo abre por &#x60;sessionId&#x60;. O treino marcado como feito depois (&#x60;DOC-STUDENT-WORKOUT&#x60; §6.7) entra com &#x60;recordedLater: true&#x60; e sem duração, para a lista do mês mostrar &#x60;Registrado depois&#x60; (AL13/AL14). */
 public struct StudentWorkoutSessionHistoryItem: Codable, JSONEncodable, Hashable {
 
+    public typealias RecordedLater = Bool
     public enum Status: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case completed = "COMPLETED"
         case abandoned = "ABANDONED"
@@ -35,8 +36,10 @@ public struct StudentWorkoutSessionHistoryItem: Codable, JSONEncodable, Hashable
     public var startedAt: Date
     /** O instante do servidor em que a sessão terminou, em qualquer desfecho. */
     public var endedAt: Date
-    /** A duração do início ao término, em segundos; igual a `endedAt` menos `startedAt`. */
-    public var durationSeconds: Int
+    /** A duração do início ao término, em segundos; igual a `endedAt` menos `startedAt`. **Nula se e somente se** `recordedLater = true`: o treino marcado como feito depois não tem duração, e nenhuma é inventada (`DOC-STUDENT-WORKOUT-TECH` §3.5). */
+    public var durationSeconds: Int?
+    /** Presente, e `true`, só no treino marcado como feito depois (`DOC-STUDENT-WORKOUT` §6.7; `DOC-STUDENT-WORKOUT-TECH` §3.5), o mesmo `recordedLater` do resultado: a linha leva a marca `Registrado depois` e não mostra duração. Ausente é treino registrado enquanto acontecia; nunca é escrito como `false`. */
+    public var recordedLater: RecordedLater?
     /** `COMPLETED` ou `ABANDONED`; a sessão aberta não entra no histórico. `ABANDONED` é o treino descartado com série executada, e o app o marca como não concluído. */
     public var status: Status
     public var endedBy: WorkoutSessionEndedBy
@@ -49,13 +52,14 @@ public struct StudentWorkoutSessionHistoryItem: Codable, JSONEncodable, Hashable
     /** Até 3 recordes da sessão, resumidos, os primeiros do `records` do resultado dela. Vazia quando a sessão não bateu recorde e quando `recordCount` é nulo. */
     public var records: [StudentProgressRecord]
 
-    public init(sessionId: String, workoutName: String, localDate: Date, startedAt: Date, endedAt: Date, durationSeconds: Int, status: Status, endedBy: WorkoutSessionEndedBy, completedSetCount: Int, totalSetCount: Int, recordCount: Int?, records: [StudentProgressRecord]) {
+    public init(sessionId: String, workoutName: String, localDate: Date, startedAt: Date, endedAt: Date, durationSeconds: Int?, recordedLater: RecordedLater? = nil, status: Status, endedBy: WorkoutSessionEndedBy, completedSetCount: Int, totalSetCount: Int, recordCount: Int?, records: [StudentProgressRecord]) {
         self.sessionId = sessionId
         self.workoutName = workoutName
         self.localDate = localDate
         self.startedAt = startedAt
         self.endedAt = endedAt
         self.durationSeconds = durationSeconds
+        self.recordedLater = recordedLater
         self.status = status
         self.endedBy = endedBy
         self.completedSetCount = completedSetCount
@@ -71,6 +75,7 @@ public struct StudentWorkoutSessionHistoryItem: Codable, JSONEncodable, Hashable
         case startedAt
         case endedAt
         case durationSeconds
+        case recordedLater
         case status
         case endedBy
         case completedSetCount
@@ -89,6 +94,7 @@ public struct StudentWorkoutSessionHistoryItem: Codable, JSONEncodable, Hashable
         try container.encode(startedAt, forKey: .startedAt)
         try container.encode(endedAt, forKey: .endedAt)
         try container.encode(durationSeconds, forKey: .durationSeconds)
+        try container.encodeIfPresent(recordedLater, forKey: .recordedLater)
         try container.encode(status, forKey: .status)
         try container.encode(endedBy, forKey: .endedBy)
         try container.encode(completedSetCount, forKey: .completedSetCount)

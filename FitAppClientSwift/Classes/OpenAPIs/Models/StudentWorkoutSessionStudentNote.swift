@@ -10,27 +10,29 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Observações do aluno marcadas com o selo Mostrado ao personal (DOC-STUDENT-WORKOUT §7.10). */
+/** Uma observação do aluno na sessão (&#x60;DOC-STUDENT-WORKOUT&#x60; §7.10 e §8.2), presa ao fato a que pertence: a série ou a adaptação. Todas as observações da sessão aparecem aqui, marcadas ou não; &#x60;sharedWithPersonal&#x60; é a escolha **em vigor** do aluno, e o app mostra o selo &#x60;Mostrado ao personal&#x60; só quando ela é &#x60;true&#x60;. O texto do desconforto nunca entra. */
 public struct StudentWorkoutSessionStudentNote: Codable, JSONEncodable, Hashable {
 
-    public typealias SharedWithPersonal = Bool
-    public static let setExecutionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
-    public static let noteRule = StringRule(minLength: nil, maxLength: 500, pattern: nil)
-    /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
-    public var setExecutionId: String
-    /** Observação do aluno. */
+    public static let exerciseExecutionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let noteRule = StringRule(minLength: 1, maxLength: 500, pattern: nil)
+    public var subject: StudentObservationSubject
+    /** O exercício a que o fato pertence. Ausente na observação da classificação em conjunto (`GAP_CLASSIFICATION`), que vale para a sessão. */
+    public var exerciseExecutionId: String?
+    /** Observação do aluno, como ele a escreveu. */
     public var note: String
-    /** Selo Mostrado ao personal (DOC-STUDENT-WORKOUT §7.10). */
-    public var sharedWithPersonal: SharedWithPersonal
+    /** `true` quando o aluno marcou `Mostrar ao personal` nesta observação e não desmarcou depois (`setStudentObservationSharing`). Nasce `false`: o interruptor fica desmarcado. */
+    public var sharedWithPersonal: Bool
 
-    public init(setExecutionId: String, note: String, sharedWithPersonal: SharedWithPersonal) {
-        self.setExecutionId = setExecutionId
+    public init(subject: StudentObservationSubject, exerciseExecutionId: String? = nil, note: String, sharedWithPersonal: Bool) {
+        self.subject = subject
+        self.exerciseExecutionId = exerciseExecutionId
         self.note = note
         self.sharedWithPersonal = sharedWithPersonal
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
-        case setExecutionId
+        case subject
+        case exerciseExecutionId
         case note
         case sharedWithPersonal
     }
@@ -39,7 +41,8 @@ public struct StudentWorkoutSessionStudentNote: Codable, JSONEncodable, Hashable
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(setExecutionId, forKey: .setExecutionId)
+        try container.encode(subject, forKey: .subject)
+        try container.encodeIfPresent(exerciseExecutionId, forKey: .exerciseExecutionId)
         try container.encode(note, forKey: .note)
         try container.encode(sharedWithPersonal, forKey: .sharedWithPersonal)
     }

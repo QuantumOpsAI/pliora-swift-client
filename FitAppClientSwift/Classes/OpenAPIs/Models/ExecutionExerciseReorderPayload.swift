@@ -17,6 +17,7 @@ public struct ExecutionExerciseReorderPayload: Codable, JSONEncodable, Hashable 
     public static let prescribedPositionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let fromExecutedPositionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let toExecutedPositionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let observationRule = StringRule(minLength: 1, maxLength: 500, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var reorderId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -26,14 +27,17 @@ public struct ExecutionExerciseReorderPayload: Codable, JSONEncodable, Hashable 
     public var toExecutedPosition: Int
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var reorderedAt: Date
+    /** Observação opcional desta adaptação (`REAL-05`, `DOC-STUDENT-WORKOUT` §7.10), texto curto do aluno, preso a ela. Nasce sem ser mostrada ao personal; a escolha é `setStudentObservationSharing`. */
+    public var observation: String?
 
-    public init(reorderId: String, exerciseExecutionId: String, prescribedPosition: Int, fromExecutedPosition: Int, toExecutedPosition: Int, reorderedAt: Date) {
+    public init(reorderId: String, exerciseExecutionId: String, prescribedPosition: Int, fromExecutedPosition: Int, toExecutedPosition: Int, reorderedAt: Date, observation: String? = nil) {
         self.reorderId = reorderId
         self.exerciseExecutionId = exerciseExecutionId
         self.prescribedPosition = prescribedPosition
         self.fromExecutedPosition = fromExecutedPosition
         self.toExecutedPosition = toExecutedPosition
         self.reorderedAt = reorderedAt
+        self.observation = observation
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -43,6 +47,7 @@ public struct ExecutionExerciseReorderPayload: Codable, JSONEncodable, Hashable 
         case fromExecutedPosition
         case toExecutedPosition
         case reorderedAt
+        case observation
     }
 
     // Encodable protocol methods
@@ -55,5 +60,6 @@ public struct ExecutionExerciseReorderPayload: Codable, JSONEncodable, Hashable 
         try container.encode(fromExecutedPosition, forKey: .fromExecutedPosition)
         try container.encode(toExecutedPosition, forKey: .toExecutedPosition)
         try container.encode(reorderedAt, forKey: .reorderedAt)
+        try container.encodeIfPresent(observation, forKey: .observation)
     }
 }

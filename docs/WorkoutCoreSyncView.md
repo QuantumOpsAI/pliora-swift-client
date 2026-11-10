@@ -8,7 +8,7 @@ Name | Type | Description | Notes
 **workoutAssignmentId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **workoutId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **prescriptionVersionId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
-**status** | [**DeferralStatus**](DeferralStatus.md) |  |
+**status** | **String** | O estado corrigido; &#x60;null&#x60; quando a emenda corrigiu os valores. |
 **startedAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. |
 **completedAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. |
 **lastRecordedAt** | **Date** | Última atividade confirmada do servidor, ou início antes de qualquer atividade: inclui PAUSE/RESUME/APPLY_VALUES e transições aceitas. Leituras, ticks, alertas, ACK, replay e cap não renovam atividade. Para 2 h/12 h, exclui apenas a interseção desde lastRecordedAt com os primeiros 3600 s de cada pausa confirmada não sobreposta (R5); pausas antigas não contam novamente. Não é lastRecordedAt cru mais 12 h. No cap o operacional continua pausado, sem aviso/revisão/atividade automáticos; inatividade volta a crescer. Retomada confirmada move a atividade. Registrar um fato não muda a revisão pública de ciclo de vida da sessão; controle tem sua revisão operacional. |
@@ -52,7 +52,7 @@ Name | Type | Description | Notes
 **deferralId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **amendmentId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **previous** | [**WorkoutSetValues**](WorkoutSetValues.md) |  |
-**replacement** | [**WorkoutSetValues**](WorkoutSetValues.md) |  |
+**replacement** | [**WorkoutSetValues**](WorkoutSetValues.md) | Os valores corrigidos; &#x60;null&#x60; quando a emenda corrigiu o estado. |
 **amendedAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. |
 **discomfortReportId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **area** | **String** |  |
@@ -69,6 +69,8 @@ Name | Type | Description | Notes
 **exerciseId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **variantId** | **String** | Variante a que este histórico pertence; o histórico da variante A nunca traz execução da variante B. |
 **displayName** | **String** | Rótulo da alternativa na prescrição, o mesmo de &#x60;PrescriptionDraftAlternative&#x60;, preservado verbatim. É o nome que o aluno vê na tela de troca e que o histórico guarda, independentemente de o exercício continuar na origem do catálogo. |
+**equipment** | **String** | Equipamento do exercício da alternativa em texto legível, como a origem o entrega — o mesmo de &#x60;ExerciseCatalogDetail.equipment&#x60;. Ausente quando a origem não o informa. | [optional]
+**primaryMuscles** | **[String]** | Músculos principais do exercício da alternativa em texto legível, como a origem os entrega — os mesmos de &#x60;ExerciseCatalogDetail.primaryMuscles&#x60;. Ausente quando a origem não os informa. | [optional]
 **name** | **String** |  |
 **variantIds** | **[String]** |  |
 **equipmentContextKey** | **String** | Contexto de equipamento que, junto com a variante, fecha a chave de comparabilidade. Código de máquina estável, nunca nome de aparelho exibível. |

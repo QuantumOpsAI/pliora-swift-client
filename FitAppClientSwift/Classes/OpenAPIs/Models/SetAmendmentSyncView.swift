@@ -17,6 +17,11 @@ public struct SetAmendmentSyncView: Codable, JSONEncodable, Hashable {
         case setAmendment = "SET_AMENDMENT"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
+    public enum Status: String, Codable, CaseIterable, CaseIterableDefaultsLast {
+        case skipped = "SKIPPED"
+        case recordedByMistake = "RECORDED_BY_MISTAKE"
+        case unknownDefaultOpenApi = "unknown_default_open_api"
+    }
     public enum Reason: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case dataEntryError = "DATA_ENTRY_ERROR"
         case deviceRecovery = "DEVICE_RECOVERY"
@@ -31,17 +36,21 @@ public struct SetAmendmentSyncView: Codable, JSONEncodable, Hashable {
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var setExecutionId: String
     public var previous: WorkoutSetValues
-    public var replacement: WorkoutSetValues
+    /** Os valores corrigidos; `null` quando a emenda corrigiu o estado. */
+    public var replacement: WorkoutSetValues?
+    /** O estado corrigido; `null` quando a emenda corrigiu os valores. */
+    public var status: Status?
     public var reason: Reason?
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var amendedAt: Date
 
-    public init(viewType: ViewType, amendmentId: String, setExecutionId: String, previous: WorkoutSetValues, replacement: WorkoutSetValues, reason: Reason?, amendedAt: Date) {
+    public init(viewType: ViewType, amendmentId: String, setExecutionId: String, previous: WorkoutSetValues, replacement: WorkoutSetValues?, status: Status?, reason: Reason?, amendedAt: Date) {
         self.viewType = viewType
         self.amendmentId = amendmentId
         self.setExecutionId = setExecutionId
         self.previous = previous
         self.replacement = replacement
+        self.status = status
         self.reason = reason
         self.amendedAt = amendedAt
     }
@@ -52,6 +61,7 @@ public struct SetAmendmentSyncView: Codable, JSONEncodable, Hashable {
         case setExecutionId
         case previous
         case replacement
+        case status
         case reason
         case amendedAt
     }
@@ -65,6 +75,7 @@ public struct SetAmendmentSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(setExecutionId, forKey: .setExecutionId)
         try container.encode(previous, forKey: .previous)
         try container.encode(replacement, forKey: .replacement)
+        try container.encode(status, forKey: .status)
         try container.encode(reason, forKey: .reason)
         try container.encode(amendedAt, forKey: .amendedAt)
     }
@@ -74,6 +85,7 @@ public struct SetAmendmentSyncView: Codable, JSONEncodable, Hashable {
 extension SetAmendmentSyncView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if viewType == .unknownDefaultOpenApi { return true }
+        if status == .unknownDefaultOpenApi { return true }
         if reason == .unknownDefaultOpenApi { return true }
         return false
     }

@@ -28,7 +28,7 @@ public struct StudentWorkoutSessionResultExercise: Codable, JSONEncodable, Hasha
     public static let executedVariantLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let blockKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
     public static let exerciseRecordsRule = ArrayRule(minItems: nil, maxItems: 50, uniqueItems: false)
-    public static let volumeRule = ArrayRule(minItems: nil, maxItems: 2, uniqueItems: false)
+    public static let volumeRule = ArrayRule(minItems: nil, maxItems: 14, uniqueItems: false)
     public static let setsRule = ArrayRule(minItems: nil, maxItems: 50, uniqueItems: false)
     public static let discomfortsRule = ArrayRule(minItems: 1, maxItems: 50, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -50,7 +50,7 @@ public struct StudentWorkoutSessionResultExercise: Codable, JSONEncodable, Hasha
     public var lastComparableExecution: StudentWorkoutSessionResultLastComparableExecution?
     /** Recordes históricos vigentes e recordes batidos nesta sessão para a variante (`DOC-STUDENT-WORKOUT-TECH` §2.5.1, §5). */
     public var exerciseRecords: [StudentWorkoutSessionRecord]?
-    /** O volume do exercício, uma parcela por unidade gravada, com a mesma regra de `WorkoutVolumePortion`. Vazia quando nenhuma série tem as duas grandezas. */
+    /** O volume do exercício, uma parcela por par (unidade gravada, leitura do peso), com a mesma regra e o mesmo teto de `WorkoutVolumePortion`: uma substituição com outra leitura do peso vira parcela própria. Vazia quando nenhuma série tem as duas grandezas. */
     public var volume: [WorkoutVolumePortion]
     /** As séries do exercício, na ordem de `prescribed.setIndex`. Vazia quando o exercício não tem série registrada, como o pulado. */
     public var sets: [StudentWorkoutSessionResultSet]

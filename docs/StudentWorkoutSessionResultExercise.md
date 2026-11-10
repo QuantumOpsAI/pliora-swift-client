@@ -13,7 +13,7 @@ Name | Type | Description | Notes
 **blockKey** | **String** | O bloco combinado do exercício, quando ele consta em &#x60;blocks[]&#x60;; ausente fora de bloco. | [optional]
 **lastComparableExecution** | [**StudentWorkoutSessionResultLastComparableExecution**](StudentWorkoutSessionResultLastComparableExecution.md) |  | [optional]
 **exerciseRecords** | [StudentWorkoutSessionRecord] | Recordes históricos vigentes e recordes batidos nesta sessão para a variante (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §2.5.1, §5). | [optional]
-**volume** | [WorkoutVolumePortion] | O volume do exercício, uma parcela por unidade gravada, com a mesma regra de &#x60;WorkoutVolumePortion&#x60;. Vazia quando nenhuma série tem as duas grandezas. |
+**volume** | [WorkoutVolumePortion] | O volume do exercício, uma parcela por par (unidade gravada, leitura do peso), com a mesma regra e o mesmo teto de &#x60;WorkoutVolumePortion&#x60;: uma substituição com outra leitura do peso vira parcela própria. Vazia quando nenhuma série tem as duas grandezas. |
 **sets** | [StudentWorkoutSessionResultSet] | As séries do exercício, na ordem de &#x60;prescribed.setIndex&#x60;. Vazia quando o exercício não tem série registrada, como o pulado. |
 **substitution** | [**StudentWorkoutSessionResultSubstitution**](StudentWorkoutSessionResultSubstitution.md) |  | [optional]
 **deferral** | [**StudentWorkoutSessionResultDeferral**](StudentWorkoutSessionResultDeferral.md) |  | [optional]

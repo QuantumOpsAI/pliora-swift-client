@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Uma série, com prescrito, alvo operacional e realizado preservados **separados**. Os três são fatos distintos e nenhum deles é derivado dos outros. Cada um é explicitamente anulável, porque ausência de registro é ausência e nunca vira zero. Nenhum campo carrega observação, texto livre ou juízo sobre a execução. */
+/** Uma série, com prescrito, alvo operacional e realizado preservados **separados**. Os três são fatos distintos e nenhum deles é derivado dos outros. Cada um é explicitamente anulável, porque ausência de registro é ausência e nunca vira zero. Nenhum campo carrega observação, texto livre ou juízo sobre a execução: a observação que o aluno marcou para o personal vive na sessão do relatório do exercício (&#x60;studentObservations&#x60; de &#x60;PersonalStudentExerciseSessionHistoryEntry&#x60;), e por isso esta forma, que o contexto do relato de desconforto reusa, não a transporta. A série anulada pelo aluno (&#x60;Registrado por engano&#x60;, &#x60;DOC-STUDENT-WORKOUT&#x60; §7.3 e §13) não aparece como fato: &#x60;status&#x60; nunca é &#x60;RECORDED_BY_MISTAKE&#x60; aqui. Se ela era o único fato da série prescrita, a linha **volta a sem registro**: &#x60;status&#x60; nulo, &#x60;actual&#x60; nulo, as marcas &#x60;NO_RECORD&#x60; e &#x60;AMENDED&#x60; e &#x60;amendedAt&#x60;, o instante da correção, sem o valor original (&#x60;ATT-03&#x60;). Uma série a mais anulada não deixa linha. */
 public struct PersonalStudentExerciseSetContextView: Codable, JSONEncodable, Hashable {
 
     public static let setIndexRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
@@ -19,7 +19,8 @@ public struct PersonalStudentExerciseSetContextView: Codable, JSONEncodable, Has
     public static let adjustedDurationSecondsRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let adaptationBadgesRule = ArrayRule(minItems: nil, maxItems: 10, uniqueItems: true)
     public var setIndex: Int
-    public var status: ExecutedSetStatus
+    /** O estado em vigor da série. Nulo **se e somente se** a linha é a série prescrita que voltou a sem registro porque o único fato dela foi anulado como registrado por engano; então `adaptationBadges` traz `NO_RECORD` e `AMENDED`. */
+    public var status: RecordedSetStatus?
     /** Tipo da série prescrita (`LE-16`): a comparação entre séries considera só as do mesmo tipo, e a de aquecimento não entra em maior carga nem em volume. Ausente quando não houve prescrição registrada. */
     public var setType: PrescribedSetType?
     /** Percentual da carga de referência com que a série foi prescrita; ausente quando a carga prescrita não era em percentual. É o prescrito e nunca vira carga: em `prescribed`, `loadValue` e `loadUnit` ficam nulos, e a carga **executada** está em `actual`. */
@@ -47,7 +48,7 @@ public struct PersonalStudentExerciseSetContextView: Codable, JSONEncodable, Has
     /** Instante do servidor da última correção da série, presente **se e somente se** `adaptationBadges` traz `AMENDED`. O valor em vigor está em `actual`; o valor anterior não trafega nesta leitura. */
     public var amendedAt: Date?
 
-    public init(setIndex: Int, status: ExecutedSetStatus, setType: PrescribedSetType? = nil, loadPercent: Double? = nil, prescribed: WorkoutSetValues?, target: ExecutionTargetValues?, actual: WorkoutSetValues?, measuredDurationSeconds: Int? = nil, adjustedDurationSeconds: Int? = nil, loadBasis: LoadBasis? = nil, repsPerSide: Bool? = nil, isAdditional: Bool? = nil, recordedLaterAt: Date? = nil, adaptationBadges: Set<StudentWorkoutSessionSetBadge>? = nil, amendedAt: Date? = nil) {
+    public init(setIndex: Int, status: RecordedSetStatus?, setType: PrescribedSetType? = nil, loadPercent: Double? = nil, prescribed: WorkoutSetValues?, target: ExecutionTargetValues?, actual: WorkoutSetValues?, measuredDurationSeconds: Int? = nil, adjustedDurationSeconds: Int? = nil, loadBasis: LoadBasis? = nil, repsPerSide: Bool? = nil, isAdditional: Bool? = nil, recordedLaterAt: Date? = nil, adaptationBadges: Set<StudentWorkoutSessionSetBadge>? = nil, amendedAt: Date? = nil) {
         self.setIndex = setIndex
         self.status = status
         self.setType = setType

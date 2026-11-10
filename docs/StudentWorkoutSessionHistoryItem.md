@@ -8,7 +8,8 @@ Name | Type | Description | Notes
 **localDate** | **Date** | O dia civil gravado na sessão, fixado no início dela; é com ele que &#x60;from&#x60; e &#x60;to&#x60; comparam. |
 **startedAt** | **Date** | O instante do servidor em que a sessão começou; a ordem do histórico. |
 **endedAt** | **Date** | O instante do servidor em que a sessão terminou, em qualquer desfecho. |
-**durationSeconds** | **Int** | A duração do início ao término, em segundos; igual a &#x60;endedAt&#x60; menos &#x60;startedAt&#x60;. |
+**durationSeconds** | **Int** | A duração do início ao término, em segundos; igual a &#x60;endedAt&#x60; menos &#x60;startedAt&#x60;. **Nula se e somente se** &#x60;recordedLater &#x3D; true&#x60;: o treino marcado como feito depois não tem duração, e nenhuma é inventada (&#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §3.5). |
+**recordedLater** | **Bool** | Presente, e &#x60;true&#x60;, só no treino marcado como feito depois (&#x60;DOC-STUDENT-WORKOUT&#x60; §6.7; &#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §3.5), o mesmo &#x60;recordedLater&#x60; do resultado: a linha leva a marca &#x60;Registrado depois&#x60; e não mostra duração. Ausente é treino registrado enquanto acontecia; nunca é escrito como &#x60;false&#x60;. | [optional]
 **status** | **String** | &#x60;COMPLETED&#x60; ou &#x60;ABANDONED&#x60;; a sessão aberta não entra no histórico. &#x60;ABANDONED&#x60; é o treino descartado com série executada, e o app o marca como não concluído. |
 **endedBy** | [**WorkoutSessionEndedBy**](WorkoutSessionEndedBy.md) |  |
 **completedSetCount** | **Int** | As séries executadas, inteiras ou parciais; ao menos uma, ou a sessão não entra no histórico. |
