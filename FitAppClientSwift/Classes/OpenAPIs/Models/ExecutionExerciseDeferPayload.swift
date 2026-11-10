@@ -12,14 +12,6 @@ import AnyCodable
 
 public struct ExecutionExerciseDeferPayload: Codable, JSONEncodable, Hashable {
 
-    public enum Reason: String, Codable, CaseIterable, CaseIterableDefaultsLast {
-        case equipmentBusy = "EQUIPMENT_BUSY"
-        case equipmentUnavailable = "EQUIPMENT_UNAVAILABLE"
-        case userChoice = "USER_CHOICE"
-        case discomfort = "DISCOMFORT"
-        case other = "OTHER"
-        case unknownDefaultOpenApi = "unknown_default_open_api"
-    }
     public static let deferralIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let exerciseExecutionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescribedPositionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
@@ -30,12 +22,11 @@ public struct ExecutionExerciseDeferPayload: Codable, JSONEncodable, Hashable {
     public var exerciseExecutionId: String
     public var prescribedPosition: Int
     public var executedPosition: Int
-    /** Motivo estruturado do adiamento. **Fonte:** `pliora-docs`, `product/wireframes/workout-core/lote-3-workout-core-v2.2-spec.md` §9.4 (\"Dados que o adiamento precisa preservar — lista fechada\"), que nomeia `EQUIPMENT_BUSY` como o motivo inicial relevante do adiamento. `EQUIPMENT_BUSY` e `EQUIPMENT_UNAVAILABLE` são semanticamente distintos e não se substituem: **ocupado** é aparelho em uso por outra pessoa, que volta a ficar livre e permite o exercício retornar na fila dinâmica (tela F1, `STUDENT_WORKOUT_EQUIPMENT_BUSY`, §11.6); **indisponível** é aparelho quebrado ou ausente, que não retorna. Colapsar os dois destruiria o dado que o personal lê depois. O conjunto é fechado porque o motivo é fato de domínio auditável, não texto livre. Crescer o conjunto depois é **aditivo** (request-side: o servidor passa a aceitar mais); renomear ou remover um valor já publicado é **breaking** e exige MAJOR com plano de migração. */
-    public var reason: Reason
+    public var reason: DeferralReason
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var deferredAt: Date
 
-    public init(deferralId: String, exerciseExecutionId: String, prescribedPosition: Int, executedPosition: Int, reason: Reason, deferredAt: Date) {
+    public init(deferralId: String, exerciseExecutionId: String, prescribedPosition: Int, executedPosition: Int, reason: DeferralReason, deferredAt: Date) {
         self.deferralId = deferralId
         self.exerciseExecutionId = exerciseExecutionId
         self.prescribedPosition = prescribedPosition
