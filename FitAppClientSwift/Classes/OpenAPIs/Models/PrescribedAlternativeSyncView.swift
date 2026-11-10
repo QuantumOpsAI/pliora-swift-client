@@ -27,6 +27,8 @@ public struct PrescribedAlternativeSyncView: Codable, JSONEncodable, Hashable {
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let variantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let displayNameRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let equipmentRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let primaryMusclesRule = ArrayRule(minItems: 1, maxItems: 20, uniqueItems: false)
     public var viewType: ViewType
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var alternativeId: String
@@ -39,8 +41,12 @@ public struct PrescribedAlternativeSyncView: Codable, JSONEncodable, Hashable {
     /** Rótulo da alternativa na prescrição, o mesmo de `PrescriptionDraftAlternative`, preservado verbatim. É o nome que o aluno vê na tela de troca e que o histórico guarda, independentemente de o exercício continuar na origem do catálogo. */
     public var displayName: String
     public var scope: Scope
+    /** Equipamento do exercício da alternativa em texto legível, como a origem o entrega — o mesmo de `ExerciseCatalogDetail.equipment`. Ausente quando a origem não o informa. */
+    public var equipment: String?
+    /** Músculos principais do exercício da alternativa em texto legível, como a origem os entrega — os mesmos de `ExerciseCatalogDetail.primaryMuscles`. Ausente quando a origem não os informa. */
+    public var primaryMuscles: [String]?
 
-    public init(viewType: ViewType, alternativeId: String, prescribedExerciseId: String, exerciseId: String, variantId: String, displayName: String, scope: Scope) {
+    public init(viewType: ViewType, alternativeId: String, prescribedExerciseId: String, exerciseId: String, variantId: String, displayName: String, scope: Scope, equipment: String? = nil, primaryMuscles: [String]? = nil) {
         self.viewType = viewType
         self.alternativeId = alternativeId
         self.prescribedExerciseId = prescribedExerciseId
@@ -48,6 +54,8 @@ public struct PrescribedAlternativeSyncView: Codable, JSONEncodable, Hashable {
         self.variantId = variantId
         self.displayName = displayName
         self.scope = scope
+        self.equipment = equipment
+        self.primaryMuscles = primaryMuscles
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -58,6 +66,8 @@ public struct PrescribedAlternativeSyncView: Codable, JSONEncodable, Hashable {
         case variantId
         case displayName
         case scope
+        case equipment
+        case primaryMuscles
     }
 
     // Encodable protocol methods
@@ -71,6 +81,8 @@ public struct PrescribedAlternativeSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(variantId, forKey: .variantId)
         try container.encode(displayName, forKey: .displayName)
         try container.encode(scope, forKey: .scope)
+        try container.encodeIfPresent(equipment, forKey: .equipment)
+        try container.encodeIfPresent(primaryMuscles, forKey: .primaryMuscles)
     }
 }
 

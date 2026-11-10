@@ -16,6 +16,7 @@ public struct ExecutionExerciseDeferPayload: Codable, JSONEncodable, Hashable {
     public static let exerciseExecutionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescribedPositionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let executedPositionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let observationRule = StringRule(minLength: 1, maxLength: 500, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var deferralId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -25,14 +26,17 @@ public struct ExecutionExerciseDeferPayload: Codable, JSONEncodable, Hashable {
     public var reason: DeferralReason
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var deferredAt: Date
+    /** Observação opcional desta adaptação (`REAL-05`, `DOC-STUDENT-WORKOUT` §7.10), texto curto do aluno, preso a ela. Nasce sem ser mostrada ao personal; a escolha é `setStudentObservationSharing`. */
+    public var observation: String?
 
-    public init(deferralId: String, exerciseExecutionId: String, prescribedPosition: Int, executedPosition: Int, reason: DeferralReason, deferredAt: Date) {
+    public init(deferralId: String, exerciseExecutionId: String, prescribedPosition: Int, executedPosition: Int, reason: DeferralReason, deferredAt: Date, observation: String? = nil) {
         self.deferralId = deferralId
         self.exerciseExecutionId = exerciseExecutionId
         self.prescribedPosition = prescribedPosition
         self.executedPosition = executedPosition
         self.reason = reason
         self.deferredAt = deferredAt
+        self.observation = observation
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -42,6 +46,7 @@ public struct ExecutionExerciseDeferPayload: Codable, JSONEncodable, Hashable {
         case executedPosition
         case reason
         case deferredAt
+        case observation
     }
 
     // Encodable protocol methods
@@ -54,6 +59,7 @@ public struct ExecutionExerciseDeferPayload: Codable, JSONEncodable, Hashable {
         try container.encode(executedPosition, forKey: .executedPosition)
         try container.encode(reason, forKey: .reason)
         try container.encode(deferredAt, forKey: .deferredAt)
+        try container.encodeIfPresent(observation, forKey: .observation)
     }
 }
 

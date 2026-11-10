@@ -14,6 +14,8 @@ Name | Type | Description | Notes
 **technique** | [**PrescribedTechnique**](PrescribedTechnique.md) |  | [optional]
 **loadBasis** | [**LoadBasis**](LoadBasis.md) | Leitura do peso do exercício, como o personal a publicou. &#x60;null&#x60; é &#x60;leitura não informada&#x60;, que só se compara com &#x60;null&#x60;. O cliente a mostra colada à carga de cada série (&#x60;20 kg cada halter&#x60;) e nunca a edita nem infere. | [optional]
 **notes** | **String** | Observação do personal para este exercício, preservada verbatim UTF-8, nunca traduzida nem truncada. Ausente quando não há. | [optional]
+**equipment** | **String** | Equipamento do exercício em texto legível, como a origem o entrega — o mesmo de &#x60;ExerciseCatalogDetail.equipment&#x60;, do registro do catálogo ou do exercício próprio. Ausente quando a origem não o informa. | [optional]
+**primaryMuscles** | **[String]** | Músculos principais do exercício em texto legível, como a origem os entrega — os mesmos de &#x60;ExerciseCatalogDetail.primaryMuscles&#x60;, do registro do catálogo ou do exercício próprio. Ausente quando a origem não os informa. | [optional]
 **sets** | [PrescribedSetSyncView] |  |
 **authorizedAlternativeIds** | **[String]** |  |
 

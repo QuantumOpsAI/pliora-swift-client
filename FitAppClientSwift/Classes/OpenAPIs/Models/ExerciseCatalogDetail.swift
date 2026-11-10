@@ -49,7 +49,7 @@ public struct ExerciseCatalogDetail: Codable, JSONEncodable, Hashable {
     public var force: String?
     /** Lista de textos de atributo. O servidor a entrega **sem repetição e na ordem da origem**, e o app a exibe nessa ordem (por isso o schema não declara `uniqueItems`: os clientes gerados a tratariam como conjunto, de ordem instável). Lista ausente significa que a origem não a informa; o contrato não usa lista vazia para isso. */
     public var grips: [String]?
-    /** Assets de mídia disponíveis, com a mesma forma que o aluno recebe. `angle` e `demonstrator` distinguem os assets de um mesmo exercício quando houver mais de um. */
+    /** Assets de mídia disponíveis, com a mesma forma que o aluno recebe. `angle` e `demonstrator` distinguem os assets de um mesmo exercício quando houver mais de um. No exercício do catálogo vêm também, ao lado dos vídeos, a capa do vídeo (`IMAGE`/`POSTER`) e o mapa corporal (`IMAGE`/`BODY_MAP`), ambos `TEMPORARY_CACHE_ALLOWED` com `offlineValidUntil` de no máximo 24 horas. */
     public var media: [ExerciseMediaAsset]
     public var similarQuery: ExerciseSimilarQuery?
 

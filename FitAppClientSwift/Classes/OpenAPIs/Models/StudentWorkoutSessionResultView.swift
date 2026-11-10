@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** O resultado de uma sessão de treino **terminada** (&#x60;COMPLETED&#x60; ou &#x60;ABANDONED&#x60;): o cabeçalho, os números, o volume, os recordes, a nota de esforço e o que foi feito por exercício. É derivado dos fatos da sessão e da versão da prescrição que a originou, e não muda quando o personal publica outra. Sem percentual de aderência, sem escore e sem carga máxima estimada: os números são fatos, e a ausência é ausência, nunca zero. &#x60;exercisesDone&#x60; conta os exercícios &#x60;COMPLETED&#x60; e &#x60;setsDone&#x60; as séries &#x60;COMPLETED&#x60; ou &#x60;PARTIAL&#x60; (a série pulada não conta). &#x60;executedOrder&#x60; e &#x60;prescribedOrder&#x60; existem **só quando diferem** e andam juntas. */
+/** O resultado de uma sessão de treino **terminada** (&#x60;COMPLETED&#x60; ou &#x60;ABANDONED&#x60;): o cabeçalho, os números, o volume, os recordes, a nota de esforço e o que foi feito por exercício. É derivado dos fatos da sessão e da versão da prescrição que a originou, e não muda quando o personal publica outra. Sem percentual de aderência, sem escore e sem carga máxima estimada: os números são fatos, e a ausência é ausência, nunca zero. &#x60;exercisesDone&#x60; conta os exercícios &#x60;COMPLETED&#x60; e &#x60;setsDone&#x60; as séries &#x60;COMPLETED&#x60; ou &#x60;PARTIAL&#x60; (a série pulada e a anulada não contam). &#x60;setsUnrecorded&#x60; conta as séries prescritas sem registro, pela regra do servidor. &#x60;executedOrder&#x60; e &#x60;prescribedOrder&#x60; existem **só quando diferem** e andam juntas. */
 public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable {
 
     public enum Status: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -27,7 +27,8 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
     public static let exercisesPlannedRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let setsDoneRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let setsPlannedRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
-    public static let volumeRule = ArrayRule(minItems: nil, maxItems: 2, uniqueItems: false)
+    public static let setsUnrecordedRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let volumeRule = ArrayRule(minItems: nil, maxItems: 14, uniqueItems: false)
     public static let recordsRule = ArrayRule(minItems: nil, maxItems: 200, uniqueItems: false)
     public static let blocksRule = ArrayRule(minItems: nil, maxItems: 30, uniqueItems: false)
     public static let exercisesRule = ArrayRule(minItems: nil, maxItems: 60, uniqueItems: false)
@@ -63,7 +64,9 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
     public var setsDone: Int
     /** Séries do treino na versão da sessão. */
     public var setsPlanned: Int
-    /** O volume da sessão, uma parcela por unidade de carga gravada (`KG`, `LB`), sem conversão. As exclusões e a ausência de comparação entre sessões estão em `WorkoutVolumePortion`. Vazia quando nenhuma série tem as duas grandezas: o app mostra `—`, nunca zero. */
+    /** Séries prescritas **sem registro** (`DOC-STUDENT-WORKOUT` §6.4, `REAL-04`; AL12: `séries sem registro: n`, só quando n > 0): as séries da versão da sessão sem nenhum fato em vigor, inclusive as de exercício deixado para depois e não feito e as anuladas como registrado por engano (§7.3). **Não entram:** as séries de um exercício **pulado inteiro**, que contam como `Não fiz` — a mesma regra da série pulada uma a uma (decisão do owner de 2026-11-09) —, as já classificadas (`classifyStudentUnrecordedSets`) e as séries a mais. O app usa este número e não o recalcula a partir de `setsPlanned`; `setsDone + setsUnrecorded` não soma `setsPlanned` quando há `Não fiz`. No treino marcado como feito depois (§6.7), as séries que o aluno deixou sem registro, ou anulou, também contam. */
+    public var setsUnrecorded: Int
+    /** O volume da sessão, uma parcela por par (unidade de carga gravada, leitura do peso), sem conversão e sem somar leituras diferentes: kg `TOTAL`, kg `AS_MARKED` e lb são três parcelas. As exclusões e a ausência de comparação entre sessões estão em `WorkoutVolumePortion`. Vazia quando nenhuma série tem as duas grandezas: o app mostra `—`, nunca zero. */
     public var volume: [WorkoutVolumePortion]
     /** Os recordes que a sessão bateu, projeção com `origin: PROJECTION`. Vazia quando não houve recorde; a primeira vez não é recorde e vive em `exercises[].firstTime`. */
     public var records: [StudentWorkoutSessionRecord]
@@ -78,7 +81,7 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
     /** A ordem prescrita dos mesmos exercícios. Presente se e somente se `executedOrder` é. */
     public var prescribedOrder: [String]?
 
-    public init(sessionId: String, workoutName: String, localDate: Date, startedAt: Date, endedAt: Date, durationSeconds: Int?, pausedDurationSeconds: Int? = nil, recordedLater: Bool? = nil, whatChanged: StudentWorkoutSessionResultWhatChanged? = nil, status: Status, endedBy: WorkoutSessionEndedBy, firstWorkoutRecorded: FirstWorkoutRecorded? = nil, exercisesDone: Int, exercisesPlanned: Int, setsDone: Int, setsPlanned: Int, volume: [WorkoutVolumePortion], records: [StudentWorkoutSessionRecord], sessionEffort: WorkoutSessionEffort? = nil, blocks: [StudentWorkoutSessionResultBlock]? = nil, exercises: [StudentWorkoutSessionResultExercise], executedOrder: [String]? = nil, prescribedOrder: [String]? = nil) {
+    public init(sessionId: String, workoutName: String, localDate: Date, startedAt: Date, endedAt: Date, durationSeconds: Int?, pausedDurationSeconds: Int? = nil, recordedLater: Bool? = nil, whatChanged: StudentWorkoutSessionResultWhatChanged? = nil, status: Status, endedBy: WorkoutSessionEndedBy, firstWorkoutRecorded: FirstWorkoutRecorded? = nil, exercisesDone: Int, exercisesPlanned: Int, setsDone: Int, setsPlanned: Int, setsUnrecorded: Int, volume: [WorkoutVolumePortion], records: [StudentWorkoutSessionRecord], sessionEffort: WorkoutSessionEffort? = nil, blocks: [StudentWorkoutSessionResultBlock]? = nil, exercises: [StudentWorkoutSessionResultExercise], executedOrder: [String]? = nil, prescribedOrder: [String]? = nil) {
         self.sessionId = sessionId
         self.workoutName = workoutName
         self.localDate = localDate
@@ -95,6 +98,7 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
         self.exercisesPlanned = exercisesPlanned
         self.setsDone = setsDone
         self.setsPlanned = setsPlanned
+        self.setsUnrecorded = setsUnrecorded
         self.volume = volume
         self.records = records
         self.sessionEffort = sessionEffort
@@ -121,6 +125,7 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
         case exercisesPlanned
         case setsDone
         case setsPlanned
+        case setsUnrecorded
         case volume
         case records
         case sessionEffort
@@ -150,6 +155,7 @@ public struct StudentWorkoutSessionResultView: Codable, JSONEncodable, Hashable 
         try container.encode(exercisesPlanned, forKey: .exercisesPlanned)
         try container.encode(setsDone, forKey: .setsDone)
         try container.encode(setsPlanned, forKey: .setsPlanned)
+        try container.encode(setsUnrecorded, forKey: .setsUnrecorded)
         try container.encode(volume, forKey: .volume)
         try container.encode(records, forKey: .records)
         try container.encodeIfPresent(sessionEffort, forKey: .sessionEffort)

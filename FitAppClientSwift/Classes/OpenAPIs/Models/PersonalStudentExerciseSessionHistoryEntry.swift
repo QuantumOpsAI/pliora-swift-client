@@ -25,6 +25,7 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     public static let executedVariantLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let equipmentContextKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
     public static let setsRule = ArrayRule(minItems: nil, maxItems: 100, uniqueItems: false)
+    public static let studentObservationsRule = ArrayRule(minItems: nil, maxItems: 120, uniqueItems: false)
     public static let prescribedPositionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let executedPositionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -52,6 +53,8 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     public var sets: [PersonalStudentExerciseSetContextView]
     /** Substituição daquele exercício naquela sessão, quando houve, com o motivo estruturado. Ausente quando não houve. */
     public var substitution: PersonalStudentExerciseSubstitutionView?
+    /** As observações deste exercício nesta sessão — das séries, da substituição e das outras adaptações — que o aluno marcou com `Mostrar ao personal`, cada uma presa à linha do fato a que pertence. Ausente quando não há nenhuma marcada, sem indício de que exista observação não marcada. Só esta leitura as publica: o contexto do relato de desconforto nunca traz observação. */
+    public var studentObservations: [PersonalStudentAdaptationObservationView]?
     /** Posição do exercício na ordem prescrita daquela sessão, contada de 1: a ordem que o personal montou, preservada da versão do plano que a sessão usou, e imutável — reorganizar a lista de hoje nunca a reescreve (lote-3 §9.4, item 2; `COORD-03`, a ordem prescrita é orientação, não trava). */
     public var prescribedPosition: Int
     /** Posição do exercício na ordem efetivamente executada daquela sessão, contada de 1 e derivada pelo servidor da sequência dos fatos de série — nunca da organização de hoje (lote-3 §9.4, item 5). **Ausente** quando o exercício não tem fato de série registrado na sessão, e a ausência nunca é posição presumida nem zero. Quando presente e diferente de `prescribedPosition`, a sessão exibe `feito em <n>º (prescrito em <m>º)`: a comparação dos dois fatos é determinística e esta leitura não publica uma marca derivada dela (`DOC-PERSONAL-DESTINATIONS` §9.2). */
@@ -61,7 +64,7 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
     /** Adiamento daquele exercício naquela sessão, quando houve, com o motivo estruturado, o instante, as duas posições e o desfecho registrados. Ausente quando não houve. */
     public var deferral: PersonalStudentExerciseDeferralView?
 
-    public init(sessionId: String, localDate: Date, recordedLater: Bool? = nil, sessionStatus: SessionStatus, startedAt: Date, endedAt: Date?, endedBy: WorkoutSessionEndedBy? = nil, sessionEffort: WorkoutSessionEffort? = nil, executedVariantId: String, executedVariantLabel: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil, prescribedPosition: Int, executedPosition: Int? = nil, blockSeparated: Bool? = nil, deferral: PersonalStudentExerciseDeferralView? = nil) {
+    public init(sessionId: String, localDate: Date, recordedLater: Bool? = nil, sessionStatus: SessionStatus, startedAt: Date, endedAt: Date?, endedBy: WorkoutSessionEndedBy? = nil, sessionEffort: WorkoutSessionEffort? = nil, executedVariantId: String, executedVariantLabel: String, equipmentContextKey: String? = nil, sets: [PersonalStudentExerciseSetContextView], substitution: PersonalStudentExerciseSubstitutionView? = nil, studentObservations: [PersonalStudentAdaptationObservationView]? = nil, prescribedPosition: Int, executedPosition: Int? = nil, blockSeparated: Bool? = nil, deferral: PersonalStudentExerciseDeferralView? = nil) {
         self.sessionId = sessionId
         self.localDate = localDate
         self.recordedLater = recordedLater
@@ -75,6 +78,7 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
         self.equipmentContextKey = equipmentContextKey
         self.sets = sets
         self.substitution = substitution
+        self.studentObservations = studentObservations
         self.prescribedPosition = prescribedPosition
         self.executedPosition = executedPosition
         self.blockSeparated = blockSeparated
@@ -95,6 +99,7 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
         case equipmentContextKey
         case sets
         case substitution
+        case studentObservations
         case prescribedPosition
         case executedPosition
         case blockSeparated
@@ -118,6 +123,7 @@ public struct PersonalStudentExerciseSessionHistoryEntry: Codable, JSONEncodable
         try container.encodeIfPresent(equipmentContextKey, forKey: .equipmentContextKey)
         try container.encode(sets, forKey: .sets)
         try container.encodeIfPresent(substitution, forKey: .substitution)
+        try container.encodeIfPresent(studentObservations, forKey: .studentObservations)
         try container.encode(prescribedPosition, forKey: .prescribedPosition)
         try container.encodeIfPresent(executedPosition, forKey: .executedPosition)
         try container.encodeIfPresent(blockSeparated, forKey: .blockSeparated)

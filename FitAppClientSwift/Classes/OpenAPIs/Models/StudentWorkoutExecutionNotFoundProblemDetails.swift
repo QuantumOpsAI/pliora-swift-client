@@ -21,6 +21,8 @@ public struct StudentWorkoutExecutionNotFoundProblemDetails: Codable, JSONEncoda
         case exerciseExecutionNotFound = "EXERCISE_EXECUTION_NOT_FOUND"
         case setExecutionNotFound = "SET_EXECUTION_NOT_FOUND"
         case deferralNotFound = "DEFERRAL_NOT_FOUND"
+        case prescribedSetNotFound = "PRESCRIBED_SET_NOT_FOUND"
+        case observationSubjectNotFound = "OBSERVATION_SUBJECT_NOT_FOUND"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)

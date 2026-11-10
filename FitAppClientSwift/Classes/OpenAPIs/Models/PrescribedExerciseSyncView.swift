@@ -24,6 +24,8 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
     public static let positionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let blockKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
     public static let notesRule = StringRule(minLength: 1, maxLength: 2000, pattern: nil)
+    public static let equipmentRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let primaryMusclesRule = ArrayRule(minItems: 1, maxItems: 20, uniqueItems: false)
     public static let setsRule = ArrayRule(minItems: 1, maxItems: nil, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var prescribedExerciseId: String
@@ -44,10 +46,14 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
     public var loadBasis: LoadBasis?
     /** Observação do personal para este exercício, preservada verbatim UTF-8, nunca traduzida nem truncada. Ausente quando não há. */
     public var notes: String?
+    /** Equipamento do exercício em texto legível, como a origem o entrega — o mesmo de `ExerciseCatalogDetail.equipment`, do registro do catálogo ou do exercício próprio. Ausente quando a origem não o informa. */
+    public var equipment: String?
+    /** Músculos principais do exercício em texto legível, como a origem os entrega — os mesmos de `ExerciseCatalogDetail.primaryMuscles`, do registro do catálogo ou do exercício próprio. Ausente quando a origem não os informa. */
+    public var primaryMuscles: [String]?
     public var sets: [PrescribedSetSyncView]
     public var authorizedAlternativeIds: [String]
 
-    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, position: Int, orderPolicy: OrderPolicy, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, loadBasis: LoadBasis? = nil, notes: String? = nil, sets: [PrescribedSetSyncView], authorizedAlternativeIds: [String]) {
+    public init(prescribedExerciseId: String, exerciseId: String, prescribedVariantId: String, displayName: String, position: Int, orderPolicy: OrderPolicy, blockKey: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, loadBasis: LoadBasis? = nil, notes: String? = nil, equipment: String? = nil, primaryMuscles: [String]? = nil, sets: [PrescribedSetSyncView], authorizedAlternativeIds: [String]) {
         self.prescribedExerciseId = prescribedExerciseId
         self.exerciseId = exerciseId
         self.prescribedVariantId = prescribedVariantId
@@ -59,6 +65,8 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
         self.technique = technique
         self.loadBasis = loadBasis
         self.notes = notes
+        self.equipment = equipment
+        self.primaryMuscles = primaryMuscles
         self.sets = sets
         self.authorizedAlternativeIds = authorizedAlternativeIds
     }
@@ -75,6 +83,8 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
         case technique
         case loadBasis
         case notes
+        case equipment
+        case primaryMuscles
         case sets
         case authorizedAlternativeIds
     }
@@ -94,6 +104,8 @@ public struct PrescribedExerciseSyncView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(technique, forKey: .technique)
         try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
         try container.encodeIfPresent(notes, forKey: .notes)
+        try container.encodeIfPresent(equipment, forKey: .equipment)
+        try container.encodeIfPresent(primaryMuscles, forKey: .primaryMuscles)
         try container.encode(sets, forKey: .sets)
         try container.encode(authorizedAlternativeIds, forKey: .authorizedAlternativeIds)
     }

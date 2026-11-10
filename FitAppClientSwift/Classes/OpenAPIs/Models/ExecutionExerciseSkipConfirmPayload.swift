@@ -24,6 +24,7 @@ public struct ExecutionExerciseSkipConfirmPayload: Codable, JSONEncodable, Hasha
     public static let deferralIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescribedPositionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let executedPositionRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let observationRule = StringRule(minLength: 1, maxLength: 500, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var skipId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -35,8 +36,10 @@ public struct ExecutionExerciseSkipConfirmPayload: Codable, JSONEncodable, Hasha
     public var reason: Reason
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var skippedAt: Date
+    /** Observação opcional desta adaptação (`REAL-05`, `DOC-STUDENT-WORKOUT` §7.10), texto curto do aluno, preso a ela. Nasce sem ser mostrada ao personal; a escolha é `setStudentObservationSharing`. */
+    public var observation: String?
 
-    public init(skipId: String, exerciseExecutionId: String, deferralId: String? = nil, prescribedPosition: Int, executedPosition: Int, reason: Reason, skippedAt: Date) {
+    public init(skipId: String, exerciseExecutionId: String, deferralId: String? = nil, prescribedPosition: Int, executedPosition: Int, reason: Reason, skippedAt: Date, observation: String? = nil) {
         self.skipId = skipId
         self.exerciseExecutionId = exerciseExecutionId
         self.deferralId = deferralId
@@ -44,6 +47,7 @@ public struct ExecutionExerciseSkipConfirmPayload: Codable, JSONEncodable, Hasha
         self.executedPosition = executedPosition
         self.reason = reason
         self.skippedAt = skippedAt
+        self.observation = observation
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -54,6 +58,7 @@ public struct ExecutionExerciseSkipConfirmPayload: Codable, JSONEncodable, Hasha
         case executedPosition
         case reason
         case skippedAt
+        case observation
     }
 
     // Encodable protocol methods
@@ -67,6 +72,7 @@ public struct ExecutionExerciseSkipConfirmPayload: Codable, JSONEncodable, Hasha
         try container.encode(executedPosition, forKey: .executedPosition)
         try container.encode(reason, forKey: .reason)
         try container.encode(skippedAt, forKey: .skippedAt)
+        try container.encodeIfPresent(observation, forKey: .observation)
     }
 }
 

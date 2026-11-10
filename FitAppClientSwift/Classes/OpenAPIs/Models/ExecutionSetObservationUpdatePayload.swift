@@ -10,6 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
+/** A observação da série. Editar o texto não muda a escolha de &#x60;Mostrar ao personal&#x60;; **apagá-lo** (&#x60;null&#x60;) desfaz a escolha, e um texto escrito depois nasce outra vez sem ser mostrado — o personal só vê o texto que o aluno marcou (&#x60;DOC-STUDENT-WORKOUT&#x60; §7.10). */
 public struct ExecutionSetObservationUpdatePayload: Codable, JSONEncodable, Hashable {
 
     public static let setExecutionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)

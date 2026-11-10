@@ -431,6 +431,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStepUpPreconditionProblemDetai
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStepUpProofRejectionProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStepUpProofView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStepUpRegistrationReauthProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentAdaptationObservationView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentAnamnesisAnalysisCase.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentAnamnesisAnalysisClarificationRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentAnamnesisAnalysisConflictProblemDetails.swift
@@ -496,6 +497,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentInvitationShareLinkView
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentInvitationUnauthenticatedProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentInvitationView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentListItemView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentObservationView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentOpenAttentionView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentOperationAnamnesisView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentOperationAssignmentState.swift
@@ -629,6 +631,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/ReadinessView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RecognitionCommand.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RecordStudentWorkoutSessionRetroactivelyRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RecordedPrivacyDecisionView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/RecordedSetStatus.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/RecordedSharingGrantView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ReferenceLoadBasis.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ReferenceLoadConfirmationSource.swift
@@ -797,6 +800,9 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentInvitationValidity.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentInvitationView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentNotificationConsentView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentNotificationPreferences.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentObservationSharingRequest.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentObservationSharingView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentObservationSubject.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentOnboardingCompletionView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentOnboardingConflictProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentOnboardingForbiddenProblemDetails.swift
@@ -875,6 +881,10 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentTrainingLocation.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTrainingPlanState.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTrainingRateLimitedProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTrainingUnauthenticatedProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentUnrecordedSetClassificationItem.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentUnrecordedSetClassificationRequest.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentUnrecordedSetClassificationResponse.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentUnrecordedSetClassificationResponseClassifiedSetsInner.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeeklyReviewDestination.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeeklyReviewDestinationData.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutExecutionConflictProblemDetails.swift
@@ -901,6 +911,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionResultExercise.sw
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionResultLastComparableExecution.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionResultRestInterval.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionResultSet.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionResultSetOriginal.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionResultSkip.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionResultSubstitution.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutSessionResultView.swift
@@ -1468,6 +1479,7 @@ docs/PersonalStepUpPreconditionProblemDetails.md
 docs/PersonalStepUpProofRejectionProblemDetails.md
 docs/PersonalStepUpProofView.md
 docs/PersonalStepUpRegistrationReauthProblemDetails.md
+docs/PersonalStudentAdaptationObservationView.md
 docs/PersonalStudentAnamnesisAnalysisCase.md
 docs/PersonalStudentAnamnesisAnalysisClarificationRequest.md
 docs/PersonalStudentAnamnesisAnalysisConflictProblemDetails.md
@@ -1533,6 +1545,7 @@ docs/PersonalStudentInvitationShareLinkView.md
 docs/PersonalStudentInvitationUnauthenticatedProblemDetails.md
 docs/PersonalStudentInvitationView.md
 docs/PersonalStudentListItemView.md
+docs/PersonalStudentObservationView.md
 docs/PersonalStudentOpenAttentionView.md
 docs/PersonalStudentOperationAnamnesisView.md
 docs/PersonalStudentOperationAssignmentState.md
@@ -1668,6 +1681,7 @@ docs/ReadinessView.md
 docs/RecognitionCommand.md
 docs/RecordStudentWorkoutSessionRetroactivelyRequest.md
 docs/RecordedPrivacyDecisionView.md
+docs/RecordedSetStatus.md
 docs/RecordedSharingGrantView.md
 docs/ReferenceLoadBasis.md
 docs/ReferenceLoadConfirmationSource.md
@@ -1839,6 +1853,9 @@ docs/StudentInvitationView.md
 docs/StudentInvitationsAPI.md
 docs/StudentNotificationConsentView.md
 docs/StudentNotificationPreferences.md
+docs/StudentObservationSharingRequest.md
+docs/StudentObservationSharingView.md
+docs/StudentObservationSubject.md
 docs/StudentOnboardingAPI.md
 docs/StudentOnboardingCompletionView.md
 docs/StudentOnboardingConflictProblemDetails.md
@@ -1920,6 +1937,10 @@ docs/StudentTrainingLocation.md
 docs/StudentTrainingPlanState.md
 docs/StudentTrainingRateLimitedProblemDetails.md
 docs/StudentTrainingUnauthenticatedProblemDetails.md
+docs/StudentUnrecordedSetClassificationItem.md
+docs/StudentUnrecordedSetClassificationRequest.md
+docs/StudentUnrecordedSetClassificationResponse.md
+docs/StudentUnrecordedSetClassificationResponseClassifiedSetsInner.md
 docs/StudentWeeklyReviewDestination.md
 docs/StudentWeeklyReviewDestinationData.md
 docs/StudentWorkoutExecutionConflictProblemDetails.md
@@ -1946,6 +1967,7 @@ docs/StudentWorkoutSessionResultExercise.md
 docs/StudentWorkoutSessionResultLastComparableExecution.md
 docs/StudentWorkoutSessionResultRestInterval.md
 docs/StudentWorkoutSessionResultSet.md
+docs/StudentWorkoutSessionResultSetOriginal.md
 docs/StudentWorkoutSessionResultSkip.md
 docs/StudentWorkoutSessionResultSubstitution.md
 docs/StudentWorkoutSessionResultView.md

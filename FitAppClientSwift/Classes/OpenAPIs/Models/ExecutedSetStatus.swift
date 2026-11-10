@@ -10,10 +10,12 @@ import Foundation
 import AnyCodable
 #endif
 
+/** O estado **em vigor** de uma série executada, depois das emendas. &#x60;SKIPPED&#x60; é &#x60;Não fiz&#x60;. &#x60;RECORDED_BY_MISTAKE&#x60; (&#x60;Registrado por engano&#x60;, &#x60;DOC-STUDENT-WORKOUT&#x60; §7.3) só nasce por emenda (&#x60;amendStudentSetExecution&#x60; com &#x60;status: RECORDED_BY_MISTAKE&#x60;): a série sai de todas as leituras de execução — feitas, volume, recordes, última execução comparável, evolução e histórico — e a série prescrita volta a **sem registro**; só o resultado do próprio aluno a mostra, com o original. As leituras do personal nunca publicam este valor. */
 public enum ExecutedSetStatus: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case completed = "COMPLETED"
     case partial = "PARTIAL"
     case skipped = "SKIPPED"
+    case recordedByMistake = "RECORDED_BY_MISTAKE"
     case unknownDefaultOpenApi = "unknown_default_open_api"
 }
 

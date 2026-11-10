@@ -10,9 +10,14 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Emenda de uma série. &#x60;replacement.durationSeconds&#x60; segue a regra de &#x60;amendStudentSetExecution&#x60;: só numa série por tempo, com &#x60;reps&#x60; nulas, e a duração medida da série nunca muda. Quem a viola é &#x60;FINAL_FAILURE&#x60; com &#x60;VALIDATION_ERROR&#x60; no &#x60;command&#x60; de sync e &#x60;422 VALIDATION_FAILED&#x60; na rota HTTP, nunca descarte silencioso. reason omitido ou null é não informado, persistido como null, sem default nem motivo inferido. Medida, activeDurationSeconds, alvo original, contagem e descanso são preservados; uma emenda não inicia outra série. */
+/** Emenda de uma série. &#x60;replacement.durationSeconds&#x60; segue a regra de &#x60;amendStudentSetExecution&#x60;: só numa série por tempo, com &#x60;reps&#x60; nulas, e a duração medida da série nunca muda. Quem a viola é &#x60;FINAL_FAILURE&#x60; com &#x60;VALIDATION_ERROR&#x60; no &#x60;command&#x60; de sync e &#x60;422 VALIDATION_FAILED&#x60; na rota HTTP, nunca descarte silencioso. reason omitido ou null é não informado, persistido como null, sem default nem motivo inferido — e a tela não o pergunta (&#x60;DOC-STUDENT-WORKOUT&#x60; §7.3). Medida, activeDurationSeconds, alvo original, contagem e descanso são preservados; uma emenda não inicia outra série. **Exatamente um** de &#x60;replacement&#x60; (os valores) e &#x60;status&#x60; (o estado) vem preenchido; a regra é de &#x60;amendStudentSetExecution&#x60;. */
 public struct ExecutionSetAmendPayload: Codable, JSONEncodable, Hashable {
 
+    public enum Status: String, Codable, CaseIterable, CaseIterableDefaultsLast {
+        case skipped = "SKIPPED"
+        case recordedByMistake = "RECORDED_BY_MISTAKE"
+        case unknownDefaultOpenApi = "unknown_default_open_api"
+    }
     public enum Reason: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case dataEntryError = "DATA_ENTRY_ERROR"
         case deviceRecovery = "DEVICE_RECOVERY"
@@ -25,15 +30,19 @@ public struct ExecutionSetAmendPayload: Codable, JSONEncodable, Hashable {
     public var amendmentId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var setExecutionId: String
-    public var replacement: WorkoutSetValues
+    /** Os valores corrigidos. Ausente ou nulo quando a correção é do estado (`status`). */
+    public var replacement: WorkoutSetValues?
+    /** O estado corrigido (`DOC-STUDENT-WORKOUT` §7.3): `SKIPPED` é `Não fiz` e `RECORDED_BY_MISTAKE` é `Registrado por engano`. Ausente ou nulo quando a correção é dos valores (`replacement`). */
+    public var status: Status?
     public var reason: Reason?
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var amendedAt: Date
 
-    public init(amendmentId: String, setExecutionId: String, replacement: WorkoutSetValues, reason: Reason? = nil, amendedAt: Date) {
+    public init(amendmentId: String, setExecutionId: String, replacement: WorkoutSetValues? = nil, status: Status? = nil, reason: Reason? = nil, amendedAt: Date) {
         self.amendmentId = amendmentId
         self.setExecutionId = setExecutionId
         self.replacement = replacement
+        self.status = status
         self.reason = reason
         self.amendedAt = amendedAt
     }
@@ -42,6 +51,7 @@ public struct ExecutionSetAmendPayload: Codable, JSONEncodable, Hashable {
         case amendmentId
         case setExecutionId
         case replacement
+        case status
         case reason
         case amendedAt
     }
@@ -52,7 +62,8 @@ public struct ExecutionSetAmendPayload: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(amendmentId, forKey: .amendmentId)
         try container.encode(setExecutionId, forKey: .setExecutionId)
-        try container.encode(replacement, forKey: .replacement)
+        try container.encodeIfPresent(replacement, forKey: .replacement)
+        try container.encodeIfPresent(status, forKey: .status)
         try container.encodeIfPresent(reason, forKey: .reason)
         try container.encode(amendedAt, forKey: .amendedAt)
     }
@@ -61,6 +72,7 @@ public struct ExecutionSetAmendPayload: Codable, JSONEncodable, Hashable {
 
 extension ExecutionSetAmendPayload: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
+        if status == .unknownDefaultOpenApi { return true }
         if reason == .unknownDefaultOpenApi { return true }
         return false
     }
