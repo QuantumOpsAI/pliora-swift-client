@@ -15,6 +15,7 @@ Method | HTTP request | Description
 [**getStudentSetExecution**](WorkoutExecutionAPI.md#getstudentsetexecution) | **GET** /student/workout-sessions/{sessionId}/set-executions/{setExecutionId} | Ler a série executada e a revisão que as escritas revisionais exigem
 [**getStudentWorkoutControl**](WorkoutExecutionAPI.md#getstudentworkoutcontrol) | **GET** /student/workout-sessions/{sessionId}/control | Ler o controle consistente da sessão e seus checkpoints
 [**getStudentWorkoutControlOperation**](WorkoutExecutionAPI.md#getstudentworkoutcontroloperation) | **GET** /student/workout-sessions/{sessionId}/control/operations/{operationId} | Recuperar recibo confirmado com autorização atual
+[**joinStudentExerciseExecutionBlock**](WorkoutExecutionAPI.md#joinstudentexerciseexecutionblock) | **POST** /student/workout-sessions/{sessionId}/joins | Juntar de novo um bloco previamente separado na sessão
 [**rateStudentWorkoutSessionEffort**](WorkoutExecutionAPI.md#ratestudentworkoutsessioneffort) | **PUT** /student/workout-sessions/{sessionId}/effort | Dar a nota de esforço do treino terminado
 [**recordStudentRestPeriod**](WorkoutExecutionAPI.md#recordstudentrestperiod) | **POST** /student/workout-sessions/{sessionId}/rest-periods | Registrar o descanso realmente medido entre séries
 [**recordStudentSetExecution**](WorkoutExecutionAPI.md#recordstudentsetexecution) | **POST** /student/workout-sessions/{sessionId}/set-executions | Registrar a série executada
@@ -24,6 +25,7 @@ Method | HTTP request | Description
 [**resumeStudentDeferredExercise**](WorkoutExecutionAPI.md#resumestudentdeferredexercise) | **POST** /student/workout-sessions/{sessionId}/deferrals/{deferralId}/resumption | Retomar um exercício adiado, sem apagar o fato do adiamento
 [**resumeStudentWorkoutSession**](WorkoutExecutionAPI.md#resumestudentworkoutsession) | **POST** /student/workout-sessions/{sessionId}/resumption | Retomar a sessão interrompida, voltando a &#x60;IN_PROGRESS&#x60;
 [**setStudentObservationSharing**](WorkoutExecutionAPI.md#setstudentobservationsharing) | **PUT** /student/workout-sessions/{sessionId}/observation-sharing | Mostrar ou não ao personal uma observação do aluno
+[**splitStudentExerciseExecutionBlock**](WorkoutExecutionAPI.md#splitstudentexerciseexecutionblock) | **POST** /student/workout-sessions/{sessionId}/splits | Separar só hoje um bloco combinado na sessão
 [**startStudentExerciseExecution**](WorkoutExecutionAPI.md#startstudentexerciseexecution) | **POST** /student/workout-sessions/{sessionId}/exercise-executions | Iniciar a execução de um exercício da sessão
 [**updateStudentSetExecutionObservation**](WorkoutExecutionAPI.md#updatestudentsetexecutionobservation) | **PUT** /student/workout-sessions/{sessionId}/set-executions/{setExecutionId}/observation | Atualizar a observação editável de uma série já registrada
 
@@ -377,7 +379,7 @@ Name | Type | Description  | Notes
 
 Adiar um exercício, preservando-o como pendência aberta
 
-Caminho HTTP autoritativo do fato `execution.exercise.defer`. `deferralId` é criado no device e adotado pelo servidor. **Adiar não é pular.** O exercício permanece como pendência aberta, visível e recuperável, e o encerramento da sessão recusa qualquer pendência não declarada. `EQUIPMENT_BUSY` (aparelho em uso, que volta a ficar livre) e `EQUIPMENT_UNAVAILABLE` (aparelho quebrado ou ausente, que não volta) são motivos distintos e não se substituem. Posição prescrita e posição executada coexistem: juntas formam a fila dinâmica e nenhuma sobrescreve a outra. A marca **Manter nesta posição** não impede o adiamento; o exercício de bloco combinado não é adiado sozinho.
+Caminho HTTP autoritativo do fato `execution.exercise.defer`. `deferralId` é criado no device e adotado pelo servidor. **Adiar não é pular.** O exercício permanece como pendência aberta, visível e recuperável, e o encerramento da sessão recusa qualquer pendência não declarada. `EQUIPMENT_BUSY` (aparelho em uso, que volta a ficar livre) e `EQUIPMENT_UNAVAILABLE` (aparelho quebrado ou ausente, que não volta) são motivos distintos e não se substituem. Posição prescrita e posição executada coexistem: juntas formam a fila dinâmica e nenhuma sobrescreve a outra. A marca **Manter nesta posição** não impede o adiamento; o exercício de bloco combinado não é adiado sozinho: adiar um bloco combinado não separado leva o bloco inteiro como unidade contígua para o fim da fila de hoje (lote-3 §9.3 regra 7); após Separar só hoje, cada membro é adiado individualmente como exercício solto.
 
 ### Example
 ```swift
@@ -640,6 +642,62 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **joinStudentExerciseExecutionBlock**
+```swift
+    open class func joinStudentExerciseExecutionBlock(sessionId: String, idempotencyKey: String, executionExerciseJoinPayload: ExecutionExerciseJoinPayload, acceptLanguage: String? = nil, completion: @escaping (_ data: StudentExerciseJoinResponse?, _ error: Error?) -> Void)
+```
+
+Juntar de novo um bloco previamente separado na sessão
+
+Caminho HTTP autoritativo do fato `execution.exercise.join`. `joinId` é criado no device e adotado pelo servidor. Recompõe o bloco combinado previamente separado por Separar só hoje, antes de qualquer série do bloco ter sido registrada (lote-3 §9.2, Tela 2). A resposta devolve a **fila executada resultante inteira**, onde os exercícios voltam a formar uma unidade contígua de bloco.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let sessionId = "sessionId_example" // String | Sessão do aluno autenticado, com a mesma identidade adotada em `POST /student/workout-sessions`. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let executionExerciseJoinPayload = ExecutionExerciseJoinPayload(joinId: "joinId_example", exerciseExecutionId: "exerciseExecutionId_example", prescribedPosition: 123, joinedAt: Date(), observation: "observation_example") // ExecutionExerciseJoinPayload |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Juntar de novo um bloco previamente separado na sessão
+WorkoutExecutionAPI.joinStudentExerciseExecutionBlock(sessionId: sessionId, idempotencyKey: idempotencyKey, executionExerciseJoinPayload: executionExerciseJoinPayload, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **sessionId** | **String** | Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **executionExerciseJoinPayload** | [**ExecutionExerciseJoinPayload**](ExecutionExerciseJoinPayload.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**StudentExerciseJoinResponse**](StudentExerciseJoinResponse.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -1136,6 +1194,62 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**StudentObservationSharingView**](StudentObservationSharingView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **splitStudentExerciseExecutionBlock**
+```swift
+    open class func splitStudentExerciseExecutionBlock(sessionId: String, idempotencyKey: String, executionExerciseSplitPayload: ExecutionExerciseSplitPayload, acceptLanguage: String? = nil, completion: @escaping (_ data: StudentExerciseSplitResponse?, _ error: Error?) -> Void)
+```
+
+Separar só hoje um bloco combinado na sessão
+
+Caminho HTTP autoritativo do fato `execution.exercise.split`. `splitId` é criado no device e adotado pelo servidor. Transforma os exercícios do bloco combinado (bi-set, tri-set, circuito) em itens soltos da lista de hoje somente nesta sessão (lote-3 §9.2). As rodadas viram séries comuns e o descanso do bloco vira o descanso entre as séries. A prescrição continua intacta dizendo que são um bloco. A resposta devolve a **fila executada resultante inteira**, onde os exercícios do bloco passam a poder ser movidos e adiados individualmente.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let sessionId = "sessionId_example" // String | Sessão do aluno autenticado, com a mesma identidade adotada em `POST /student/workout-sessions`. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+let idempotencyKey = "idempotencyKey_example" // String | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+let executionExerciseSplitPayload = ExecutionExerciseSplitPayload(splitId: "splitId_example", exerciseExecutionId: "exerciseExecutionId_example", prescribedPosition: 123, splitAt: Date(), observation: "observation_example") // ExecutionExerciseSplitPayload |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Separar só hoje um bloco combinado na sessão
+WorkoutExecutionAPI.splitStudentExerciseExecutionBlock(sessionId: sessionId, idempotencyKey: idempotencyKey, executionExerciseSplitPayload: executionExerciseSplitPayload, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **sessionId** | **String** | Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível. |
+ **idempotencyKey** | **String** | Chave opaca gerada pelo cliente para uma tentativa lógica de mutação. |
+ **executionExerciseSplitPayload** | [**ExecutionExerciseSplitPayload**](ExecutionExerciseSplitPayload.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**StudentExerciseSplitResponse**](StudentExerciseSplitResponse.md)
 
 ### Authorization
 

@@ -164,12 +164,16 @@ FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionDiscomfortReportCommand.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionDiscomfortReportPayload.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseDeferCommand.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseDeferPayload.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseJoinCommand.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseJoinPayload.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseReorderCommand.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseReorderPayload.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseResumeCommand.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseResumePayload.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseSkipConfirmCommand.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseSkipConfirmPayload.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseSplitCommand.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseSplitPayload.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseStartCommand.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionExerciseStartPayload.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ExecutionRestRecordCommand.swift
@@ -759,6 +763,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentCurrentClarificationDestination
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentCurrentPlanDestination.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseDemonstrationForbiddenProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseDemonstrationView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseJoinResponse.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseOrderResponse.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseProgressExecuted.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseProgressItem.swift
@@ -769,6 +774,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseProgressSet.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseProgressVariant.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseProgressView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseSkipResponse.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseSplitResponse.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentGoalTimeframe.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentInvitationAcceptanceConflictProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentInvitationAcceptanceContextRequest.swift
@@ -1200,12 +1206,16 @@ docs/ExecutionDiscomfortReportCommand.md
 docs/ExecutionDiscomfortReportPayload.md
 docs/ExecutionExerciseDeferCommand.md
 docs/ExecutionExerciseDeferPayload.md
+docs/ExecutionExerciseJoinCommand.md
+docs/ExecutionExerciseJoinPayload.md
 docs/ExecutionExerciseReorderCommand.md
 docs/ExecutionExerciseReorderPayload.md
 docs/ExecutionExerciseResumeCommand.md
 docs/ExecutionExerciseResumePayload.md
 docs/ExecutionExerciseSkipConfirmCommand.md
 docs/ExecutionExerciseSkipConfirmPayload.md
+docs/ExecutionExerciseSplitCommand.md
+docs/ExecutionExerciseSplitPayload.md
 docs/ExecutionExerciseStartCommand.md
 docs/ExecutionExerciseStartPayload.md
 docs/ExecutionRestRecordCommand.md
@@ -1811,6 +1821,7 @@ docs/StudentCurrentClarificationDestination.md
 docs/StudentCurrentPlanDestination.md
 docs/StudentExerciseDemonstrationForbiddenProblemDetails.md
 docs/StudentExerciseDemonstrationView.md
+docs/StudentExerciseJoinResponse.md
 docs/StudentExerciseOrderResponse.md
 docs/StudentExerciseProgressExecuted.md
 docs/StudentExerciseProgressItem.md
@@ -1821,6 +1832,7 @@ docs/StudentExerciseProgressSet.md
 docs/StudentExerciseProgressVariant.md
 docs/StudentExerciseProgressView.md
 docs/StudentExerciseSkipResponse.md
+docs/StudentExerciseSplitResponse.md
 docs/StudentGoalTimeframe.md
 docs/StudentInvitationAcceptanceConflictProblemDetails.md
 docs/StudentInvitationAcceptanceContextRequest.md
