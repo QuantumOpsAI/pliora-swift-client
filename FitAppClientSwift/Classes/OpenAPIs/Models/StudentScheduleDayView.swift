@@ -10,12 +10,13 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Um dia da programação. Transporta o treino prescrito para aquela data e o estado consolidado do dia. Não transporta horário, série, carga, repetição, alvo operacional ou qualquer fato de execução detalhado. */
+/** Um dia da programação. Transporta o treino prescrito para aquela data e o estado consolidado do dia. Não transporta horário, série, carga, repetição, alvo operacional ou qualquer fato de execução detalhado. Além do treino do dia, &#x60;placedSessions&#x60; lista as sessões feitas nesta data que não são o treino do dia: o treino antecipado, o adiado e a repetição. Um dia sem treino com sessões colocadas é &#x60;REST_DAY&#x60; com &#x60;placedSessions&#x60; não vazio, e a tela mostra as sessões, não descanso. */
 public struct StudentScheduleDayView: Codable, JSONEncodable, Hashable {
 
     public static let workoutIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let workoutNameRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let workoutFocusRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let placedSessionsRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
     /** Data civil no calendário ISO 8601, sem horário ou timezone. */
     public var date: Date
     public var status: StudentScheduleDayStatus
@@ -25,13 +26,19 @@ public struct StudentScheduleDayView: Codable, JSONEncodable, Hashable {
     public var workoutName: String?
     /** Foco declarado do treino {ex. \"Costas e Bíceps\"}; nulo quando não há treino ou quando a versão foi publicada antes de o foco autorado existir. Conteúdo autorado, preservado verbatim e invariante de locale. O cliente compõe a linha exibida; o separador visual é copy do cliente. */
     public var workoutFocus: String?
+    /** A data, nesta semana, da sessão que satisfez o treino deste dia; presente **sempre e somente** com `status` `DONE_ELSEWHERE`. */
+    public var doneOn: Date?
+    /** As sessões colocadas nesta data que não são o treino do dia — antecipada, adiada ou repetição —, em ordem de início. Vazia quando não há nenhuma; nunca ausente. Em sequência livre (`planMode: SEQUENCE`) é sempre vazia: a sessão da sequência é o treino do dia. */
+    public var placedSessions: [StudentSchedulePlacedSessionView]
 
-    public init(date: Date, status: StudentScheduleDayStatus, workoutId: String?, workoutName: String?, workoutFocus: String?) {
+    public init(date: Date, status: StudentScheduleDayStatus, workoutId: String?, workoutName: String?, workoutFocus: String?, doneOn: Date? = nil, placedSessions: [StudentSchedulePlacedSessionView]) {
         self.date = date
         self.status = status
         self.workoutId = workoutId
         self.workoutName = workoutName
         self.workoutFocus = workoutFocus
+        self.doneOn = doneOn
+        self.placedSessions = placedSessions
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -40,6 +47,8 @@ public struct StudentScheduleDayView: Codable, JSONEncodable, Hashable {
         case workoutId
         case workoutName
         case workoutFocus
+        case doneOn
+        case placedSessions
     }
 
     // Encodable protocol methods
@@ -51,6 +60,8 @@ public struct StudentScheduleDayView: Codable, JSONEncodable, Hashable {
         try container.encode(workoutId, forKey: .workoutId)
         try container.encode(workoutName, forKey: .workoutName)
         try container.encode(workoutFocus, forKey: .workoutFocus)
+        try container.encodeIfPresent(doneOn, forKey: .doneOn)
+        try container.encode(placedSessions, forKey: .placedSessions)
     }
 }
 

@@ -12,6 +12,7 @@ import AnyCodable
 
 public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
 
+    public static let offersRule = ArrayRule(minItems: nil, maxItems: 30, uniqueItems: false)
     public var status: StudentTodayWorkoutCardStatus
     /** Presente **exatamente** em `TRAINING_PAUSED` (desde 0.93.0, `P4` de `DOC-RELATIONSHIP-LIFECYCLE` §7.4 e §11.1): o lado que pausou o vínculo, por papel — nunca nome, e-mail, data nem motivo. `STUDENT` liga a variante `C10b` do cartão (`Você pausou o vínculo com seu personal.`, com a ação `Retomar vínculo`); `PERSONAL`, a ausência do campo ou um valor que o cliente não conhece mantêm a variante neutra `C10` da `Q-18`. O cartão não decide a retomada: a ação depende do estado relido em `getStudentRelationship`. */
     public var pausedBy: RelationshipPausedBy?
@@ -24,8 +25,14 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
     /** Dia civil, no fuso do vínculo, em que começa a ativação que ainda não começou; presente se e somente se `status` é `PLAN_NOT_STARTED`. Não é validade nem contagem de dias. */
     public var planStartsOn: Date?
     public var sequencePlan: StudentTodaySequencePlanView?
+    /** Dia civil, nesta semana, da sessão que satisfez o treino de hoje; presente se e somente se `status` é `WEEK_SLOT_SATISFIED`. */
+    public var satisfiedOn: Date?
+    /** O treino do slot de hoje — a data de hoje, o treino, o nome e o foco —, que já foi feito em `satisfiedOn`; presente se e somente se `status` é `WEEK_SLOT_SATISFIED`. */
+    public var satisfiedWorkout: StudentTodayCardNextScheduledWorkoutView?
+    /** O que o aluno pode iniciar hoje, na ordem do servidor: presente **sempre** em `REST_DAY`, `WEEK_SLOT_SATISFIED` e `WORKOUT_COMPLETED`, ausente nos demais estados. Vazia quando não há nada a oferecer; nunca ausente nesses três estados. */
+    public var offers: [StudentTodayOfferView]?
 
-    public init(status: StudentTodayWorkoutCardStatus, pausedBy: RelationshipPausedBy? = nil, firstWorkout: Bool, prescribedWorkout: StudentTodayCardPrescribedWorkoutView?, openSession: StudentTodayCardOpenSessionView?, completedSession: StudentTodayCardCompletedSessionView?, nextScheduledWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, planStartsOn: Date? = nil, sequencePlan: StudentTodaySequencePlanView? = nil) {
+    public init(status: StudentTodayWorkoutCardStatus, pausedBy: RelationshipPausedBy? = nil, firstWorkout: Bool, prescribedWorkout: StudentTodayCardPrescribedWorkoutView?, openSession: StudentTodayCardOpenSessionView?, completedSession: StudentTodayCardCompletedSessionView?, nextScheduledWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, planStartsOn: Date? = nil, sequencePlan: StudentTodaySequencePlanView? = nil, satisfiedOn: Date? = nil, satisfiedWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, offers: [StudentTodayOfferView]? = nil) {
         self.status = status
         self.pausedBy = pausedBy
         self.firstWorkout = firstWorkout
@@ -35,6 +42,9 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
         self.nextScheduledWorkout = nextScheduledWorkout
         self.planStartsOn = planStartsOn
         self.sequencePlan = sequencePlan
+        self.satisfiedOn = satisfiedOn
+        self.satisfiedWorkout = satisfiedWorkout
+        self.offers = offers
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -47,6 +57,9 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
         case nextScheduledWorkout
         case planStartsOn
         case sequencePlan
+        case satisfiedOn
+        case satisfiedWorkout
+        case offers
     }
 
     // Encodable protocol methods
@@ -62,6 +75,9 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(nextScheduledWorkout, forKey: .nextScheduledWorkout)
         try container.encodeIfPresent(planStartsOn, forKey: .planStartsOn)
         try container.encodeIfPresent(sequencePlan, forKey: .sequencePlan)
+        try container.encodeIfPresent(satisfiedOn, forKey: .satisfiedOn)
+        try container.encodeIfPresent(satisfiedWorkout, forKey: .satisfiedWorkout)
+        try container.encodeIfPresent(offers, forKey: .offers)
     }
 }
 

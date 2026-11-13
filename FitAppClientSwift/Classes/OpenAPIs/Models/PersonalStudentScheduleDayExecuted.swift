@@ -21,17 +21,25 @@ public struct PersonalStudentScheduleDayExecuted: Codable, JSONEncodable, Hashab
     public var prescriptionVersionId: String
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var completedAt: Date
+    /** A colocação da sessão na semana, fixada no início dela e nunca reescrita. */
+    public var placement: WorkoutPlacement
+    /** Data do slot que a sessão satisfez; presente com `ANTICIPATED` e `POSTPONED`, ausente nas demais. */
+    public var slotDate: Date?
 
-    public init(sessionId: String, prescriptionVersionId: String, completedAt: Date) {
+    public init(sessionId: String, prescriptionVersionId: String, completedAt: Date, placement: WorkoutPlacement, slotDate: Date? = nil) {
         self.sessionId = sessionId
         self.prescriptionVersionId = prescriptionVersionId
         self.completedAt = completedAt
+        self.placement = placement
+        self.slotDate = slotDate
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case sessionId
         case prescriptionVersionId
         case completedAt
+        case placement
+        case slotDate
     }
 
     // Encodable protocol methods
@@ -41,5 +49,15 @@ public struct PersonalStudentScheduleDayExecuted: Codable, JSONEncodable, Hashab
         try container.encode(sessionId, forKey: .sessionId)
         try container.encode(prescriptionVersionId, forKey: .prescriptionVersionId)
         try container.encode(completedAt, forKey: .completedAt)
+        try container.encode(placement, forKey: .placement)
+        try container.encodeIfPresent(slotDate, forKey: .slotDate)
+    }
+}
+
+
+extension PersonalStudentScheduleDayExecuted: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if placement == .unknownDefaultOpenApi { return true }
+        return false
     }
 }
