@@ -10,11 +10,13 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Substitui a programação da ativação vigente: o modo, os slots ou a sequência e a data de término. As regras de &#x60;weekdaySlots&#x60;, &#x60;sequence&#x60; e &#x60;endDate&#x60; são as de &#x60;ActivatePlanRequest&#x60;; o início e a versão não se alteram aqui, e &#x60;endDate&#x60; ausente é ativação sem data de término. */
+/** Substitui a programação da ativação vigente: o modo, os slots ou a sequência, o descanso obrigatório, o intervalo mínimo e a data de término. As regras de &#x60;weekdaySlots&#x60;, &#x60;sequence&#x60;, &#x60;restRequired&#x60;, &#x60;minDaysBetweenSameWorkout&#x60; e &#x60;endDate&#x60; são as de &#x60;ActivatePlanRequest&#x60;; o início e a versão não se alteram aqui, &#x60;endDate&#x60; ausente é ativação sem data de término, e &#x60;restRequired&#x60; ou &#x60;minDaysBetweenSameWorkout&#x60; ausentes são nenhum descanso obrigatório e nenhum intervalo mínimo. */
 public struct UpdatePlanActivationRequest: Codable, JSONEncodable, Hashable {
 
     public static let weekdaySlotsRule = ArrayRule(minItems: 1, maxItems: 20, uniqueItems: false)
     public static let sequenceRule = ArrayRule(minItems: 1, maxItems: 20, uniqueItems: false)
+    public static let restRequiredRule = ArrayRule(minItems: nil, maxItems: 7, uniqueItems: false)
+    public static let minDaysBetweenSameWorkoutRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: 14, exclusiveMaximum: false, multipleOf: nil)
     public var mode: PlanActivationMode
     /** Último dia de validade; ausente quando a ativação passa a não ter data de término. Nunca anterior ao início. */
     public var endDate: Date?
@@ -22,12 +24,18 @@ public struct UpdatePlanActivationRequest: Codable, JSONEncodable, Hashable {
     public var weekdaySlots: [PlanWeekdaySlot]?
     /** Ordem dos treinos em sequência livre; só em `SEQUENCE`. Lista ordenada, sem repetição de treino. */
     public var sequence: [String]?
+    /** Dias da semana de **descanso obrigatório** (`DOC-STUDENT-WEEK` §5.1), cada um com validade opcional; só em `WEEKDAYS`. Opcional; ausente ou vazio é nenhum. Num dia obrigatório em vigor nenhum início é aceito — nem do plano, nem repetição, nem retroativo. Um dia da semana é **ou** sugerido para um treino **ou** obrigatório: o dia que algum slot nomeia é `REST_REQUIRED_WEEKDAY_IN_SLOT`; o mesmo dia duas vezes, `REST_REQUIRED_WEEKDAY_REPEATED`; `until` anterior ao início da ativação, `REST_REQUIRED_UNTIL_BEFORE_START`; a lista em `SEQUENCE`, `REST_REQUIRED_NOT_ALLOWED_FOR_MODE` — todos `422 VALIDATION_FAILED` com o caminho do elemento em `fieldErrors`. */
+    public var restRequired: [PlanRestRequiredWeekday]?
+    /** **Intervalo mínimo entre repetições do mesmo treino**, em dias, por plano (`DOC-STUDENT-WEEK` §5.2); vale em `WEEKDAYS` e em `SEQUENCE`. Opcional; ausente é sem regra. Com valor N, uma sessão do treino no dia D só é aceita se não houver sessão do mesmo treino, aberta ou concluída, em dia D' com |D − D'| < N. */
+    public var minDaysBetweenSameWorkout: Int?
 
-    public init(mode: PlanActivationMode, endDate: Date? = nil, weekdaySlots: [PlanWeekdaySlot]? = nil, sequence: [String]? = nil) {
+    public init(mode: PlanActivationMode, endDate: Date? = nil, weekdaySlots: [PlanWeekdaySlot]? = nil, sequence: [String]? = nil, restRequired: [PlanRestRequiredWeekday]? = nil, minDaysBetweenSameWorkout: Int? = nil) {
         self.mode = mode
         self.endDate = endDate
         self.weekdaySlots = weekdaySlots
         self.sequence = sequence
+        self.restRequired = restRequired
+        self.minDaysBetweenSameWorkout = minDaysBetweenSameWorkout
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -35,6 +43,8 @@ public struct UpdatePlanActivationRequest: Codable, JSONEncodable, Hashable {
         case endDate
         case weekdaySlots
         case sequence
+        case restRequired
+        case minDaysBetweenSameWorkout
     }
 
     // Encodable protocol methods
@@ -45,6 +55,8 @@ public struct UpdatePlanActivationRequest: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(endDate, forKey: .endDate)
         try container.encodeIfPresent(weekdaySlots, forKey: .weekdaySlots)
         try container.encodeIfPresent(sequence, forKey: .sequence)
+        try container.encodeIfPresent(restRequired, forKey: .restRequired)
+        try container.encodeIfPresent(minDaysBetweenSameWorkout, forKey: .minDaysBetweenSameWorkout)
     }
 }
 

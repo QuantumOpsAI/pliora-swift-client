@@ -19,6 +19,8 @@ public struct PlanActivationView: Codable, JSONEncodable, Hashable {
     public static let weekdaySlotsRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
     public static let sequenceRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
     public static let unscheduledWorkoutIdsRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
+    public static let restRequiredRule = ArrayRule(minItems: nil, maxItems: 7, uniqueItems: false)
+    public static let minDaysBetweenSameWorkoutRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: 14, exclusiveMaximum: false, multipleOf: nil)
     public static let revisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var activationId: String
@@ -40,12 +42,16 @@ public struct PlanActivationView: Codable, JSONEncodable, Hashable {
     public var sequence: [String]?
     /** Treinos da versão servida que a programação **não alcança** — sem dia em `WEEKDAYS`, fora da sequência em `SEQUENCE` —, na ordem do plano; é onde cai o treino novo de uma revisão até o personal defini-lo. Vazio quando a programação alcança todos. */
     public var unscheduledWorkoutIds: [String]
+    /** Os dias de descanso obrigatório da ativação, como o personal os gravou, com a validade de cada um; presente somente em `WEEKDAYS` e ausente quando não há nenhum. Nunca nomeia um dia que algum slot nomeia, nem o mesmo dia duas vezes. */
+    public var restRequired: [PlanRestRequiredWeekday]?
+    /** O intervalo mínimo entre repetições do mesmo treino, em dias, nos dois modos; ausente quando o plano não tem essa regra. */
+    public var minDaysBetweenSameWorkout: Int?
     /** Revisão opaca da ativação, a mesma do `ETag`; muda a cada alteração, a cada reapontamento por revisão publicada e a cada encerramento. É o valor de `If-Match` ao alterar, encerrar ou ativar outra. */
     public var revision: String
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var activatedAt: Date
 
-    public init(activationId: String, prescriptionVersionId: String, versionNumber: Int, mode: PlanActivationMode, startDate: Date, endDate: Date? = nil, daysUntilEnd: Int? = nil, validity: PrescriptionValidity, weekdaySlots: [PlanWeekdaySlot]? = nil, sequence: [String]? = nil, unscheduledWorkoutIds: [String], revision: String, activatedAt: Date) {
+    public init(activationId: String, prescriptionVersionId: String, versionNumber: Int, mode: PlanActivationMode, startDate: Date, endDate: Date? = nil, daysUntilEnd: Int? = nil, validity: PrescriptionValidity, weekdaySlots: [PlanWeekdaySlot]? = nil, sequence: [String]? = nil, unscheduledWorkoutIds: [String], restRequired: [PlanRestRequiredWeekday]? = nil, minDaysBetweenSameWorkout: Int? = nil, revision: String, activatedAt: Date) {
         self.activationId = activationId
         self.prescriptionVersionId = prescriptionVersionId
         self.versionNumber = versionNumber
@@ -57,6 +63,8 @@ public struct PlanActivationView: Codable, JSONEncodable, Hashable {
         self.weekdaySlots = weekdaySlots
         self.sequence = sequence
         self.unscheduledWorkoutIds = unscheduledWorkoutIds
+        self.restRequired = restRequired
+        self.minDaysBetweenSameWorkout = minDaysBetweenSameWorkout
         self.revision = revision
         self.activatedAt = activatedAt
     }
@@ -73,6 +81,8 @@ public struct PlanActivationView: Codable, JSONEncodable, Hashable {
         case weekdaySlots
         case sequence
         case unscheduledWorkoutIds
+        case restRequired
+        case minDaysBetweenSameWorkout
         case revision
         case activatedAt
     }
@@ -92,6 +102,8 @@ public struct PlanActivationView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(weekdaySlots, forKey: .weekdaySlots)
         try container.encodeIfPresent(sequence, forKey: .sequence)
         try container.encode(unscheduledWorkoutIds, forKey: .unscheduledWorkoutIds)
+        try container.encodeIfPresent(restRequired, forKey: .restRequired)
+        try container.encodeIfPresent(minDaysBetweenSameWorkout, forKey: .minDaysBetweenSameWorkout)
         try container.encode(revision, forKey: .revision)
         try container.encode(activatedAt, forKey: .activatedAt)
     }
