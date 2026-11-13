@@ -1,18 +1,16 @@
 {
-  "bundleSha256": "64ac3caa6fdcb6d60fd6ce4630c5f2e67f1e2d569d830609f6ebb444ff0b7b5c",
-  "cohort": "wwc-treino-no-pulso",
-  "contractVersion": "0.109.0",
+  "bundleSha256": "730d1a1709429bd1f9211f632b9c52e484a8d5a437dfd6d4ab8d02b9e5b80113",
+  "contractVersion": "0.120.1",
   "generator": {
-    "kotlin": "library=jvm-okhttp4,artifactId=fitapp-client-kotlin,groupId=com.fitapp.client,packageName=com.fitapp.client,artifactVersion=0.109.0.1,enumUnknownDefaultCase=true",
-    "swift": "projectName=FitAppClientSwift,library=alamofire,podVersion=0.109.0,useSPM=true,enumUnknownDefaultCase=true",
+    "kotlin": "library=jvm-okhttp4,artifactId=fitapp-client-kotlin,groupId=com.fitapp.client,packageName=com.fitapp.client,artifactVersion=0.120.1.1,enumUnknownDefaultCase=true",
+    "swift": "projectName=FitAppClientSwift,library=alamofire,podVersion=0.120.1,useSPM=true,enumUnknownDefaultCase=true",
     "tool": "openapi-generator-cli",
     "version": "7.24.0"
   },
-  "releaseVersion": "0.109.0",
-  "sourceCommit": "688d6fdd004d805bea05e0d9b88757e60c4a4ed6",
-  "sourceRef": "epic/wearable-workout-control",
+  "releaseVersion": "0.120.1",
+  "sourceCommit": "4558d76eda8486b0a205588531efba2f04062a0e",
   "sourceRepository": "https://github.com/QuantumOpsAI/pliora-contracts",
   "specPath": "openapi/fitapp-experience-api-v1.yaml",
-  "specSha256": "4f8781de9fea0d60ffeb4728a800c1b33651736ed9661f164095383dd017a7f5",
-  "swiftClientSha256": "01811e7b764f2dfb068ae2f6383f83a63ff05542892688eae65e0a109ce00219"
+  "specSha256": "4086ddcf53e7ffee47d48b4235e9819a2f9093e94e96de376fdcdc9f5c60accb",
+  "swiftClientSha256": "11cfe5cfb88c5ad4653c20dbe20f3abec626e26553effc2c0d6173c9ad853389"
 }

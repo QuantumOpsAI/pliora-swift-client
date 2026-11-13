@@ -12,5 +12,6 @@ Name | Type | Description | Notes
 **correlationId** | **String** | Identificador opaco de correlação, repetido em Problem Details quando houver erro. |
 **fieldErrors** | [FieldError] | Violações por campo quando a validação do comando falhar. | [optional]
 **sessionId** | **String** | Identidade canônica da sessão aberta do aluno, presente **sempre e somente** em &#x60;SESSION_ALREADY_EXISTS&#x60;. É o que permite ao app levar à retomada da sessão que já existe, sem uma leitura a mais, em vez de criar outra. | [optional]
+**placement** | [**WorkoutPlacement**](WorkoutPlacement.md) | A colocação que o casamento calcula agora para o treino pedido, presente **sempre e somente** em &#x60;PLACEMENT_CHANGED&#x60;: o app reabre o resumo com o aviso desta colocação, em vez da que mostrou antes. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

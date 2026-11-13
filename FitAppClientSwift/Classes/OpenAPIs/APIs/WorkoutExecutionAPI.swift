@@ -162,7 +162,7 @@ open class WorkoutExecutionAPI {
     /**
      Emendar os valores executados de uma série, preservando o valor anterior
      - POST /student/workout-sessions/{sessionId}/set-executions/{setExecutionId}/amendments
-     - Caminho HTTP autoritativo do fato `execution.set.amend`. Emendar **cria um fato novo** e preserva o anterior: `previous` e `replacement` coexistem na emenda e nenhuma série é reescrita em silêncio. `amendmentId` é criado no device e adotado pelo servidor. A escrita é compare-and-set sobre a **série**, não sobre a emenda: `If-Match` ecoa a mesma e única revisão de `SET_EXECUTION` que a leitura publica, e a resposta devolve a revisão nova da série junto com a emenda registrada. O `setExecutionId` do corpo precisa ser igual ao do path: divergir é `422 EXECUTION_IDENTITY_MISMATCH`. **Série por tempo.** `replacement.durationSeconds` só é aceito numa série por tempo, com `reps` nulas, e corrige a duração **realizada em vigor**: o valor anterior fica em `previous`, a `measuredDurationSeconds` da série **nunca muda**, e a série passa a publicar `adjustedDurationSeconds` com o valor novo — ou nenhum, se o valor novo é igual ao medido. Emendar é o **único** caminho de correção de uma série já registrada: um segundo registro da mesma série prescrita é `409 SET_ALREADY_EXECUTED` em `recordStudentSetExecution`. `replacement` sem `durationSeconds` numa série por tempo é `DURATION_REQUIRED`, e com ele numa série que não é por tempo é `DURATION_NOT_APPLICABLE`, ambos `422 VALIDATION_FAILED` com o caminho em `fieldErrors`, sem gravar nada. O alvo (`target`) nunca é emendado.
+     - Caminho HTTP autoritativo do fato `execution.set.amend`. Emendar **cria um fato novo** e preserva o anterior: `previous` e `replacement` coexistem na emenda e nenhuma série é reescrita em silêncio. `amendmentId` é criado no device e adotado pelo servidor. A escrita é compare-and-set sobre a **série**, não sobre a emenda: `If-Match` ecoa a mesma e única revisão de `SET_EXECUTION` que a leitura publica, e a resposta devolve a revisão nova da série junto com a emenda registrada. O `setExecutionId` do corpo precisa ser igual ao do path: divergir é `422 EXECUTION_IDENTITY_MISMATCH`. **Com a sessão aberta e depois de terminada** (`UXA-09`, `DOC-STUDENT-WORKOUT` §7.3): a emenda é aceita em `IN_PROGRESS`, `COMPLETED` e `ABANDONED`, sem prazo e sem reabrir a sessão; a sessão `INTERRUPTED` é `409 SESSION_INTERRUPTED` até o aluno decidir. O instante de término e a nota de esforço não mudam, e resumo, histórico, evolução, recordes e última execução comparável leem o valor em vigor na leitura seguinte. **O que se corrige.** Exatamente um de dois: `replacement`, os valores em vigor (carga, repetições ou duração), ou `status`, o estado da série — `SKIPPED` (`Não fiz`) ou `RECORDED_BY_MISTAKE` (`Registrado por engano`). Os dois juntos, ou nenhum, é `422 VALIDATION_FAILED`. Com `replacement`, a série fica feita: mantém `COMPLETED` ou `PARTIAL` se já era feita e passa a `COMPLETED` se estava pulada ou anulada. Com `status: SKIPPED` a série passa a pulada, sem realizado. Com `status: RECORDED_BY_MISTAKE` a série sai de todas as leituras de execução e a série prescrita volta a sem registro (`setsUnrecorded` do resultado); o original continua consultável no resultado do aluno (`exercises[].sets[].original`). A série anulada aceita outra emenda: é assim que o aluno a classifica de novo. Pedir o estado que já está em vigor é `422 VALIDATION_FAILED`, porque a emenda não mudaria nada. **Série por tempo.** `replacement.durationSeconds` só é aceito numa série por tempo, com `reps` nulas, e corrige a duração **realizada em vigor**: o valor anterior fica em `previous`, a `measuredDurationSeconds` da série **nunca muda**, e a série passa a publicar `adjustedDurationSeconds` com o valor novo — ou nenhum, se o valor novo é igual ao medido. Emendar é o **único** caminho de correção de uma série já registrada: um segundo registro da mesma série prescrita é `409 SET_ALREADY_EXECUTED` em `recordStudentSetExecution`. `replacement` sem `durationSeconds` numa série por tempo é `DURATION_REQUIRED`, e com ele numa série que não é por tempo é `DURATION_NOT_APPLICABLE`, ambos `422 VALIDATION_FAILED` com o caminho em `fieldErrors`, sem gravar nada. O alvo (`target`) nunca é emendado.
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -198,6 +198,65 @@ open class WorkoutExecutionAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<StudentSetAmendmentResponse>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Classificar em conjunto as séries sem registro de um treino terminado
+
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter studentUnrecordedSetClassificationRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func classifyStudentUnrecordedSets(sessionId: String, idempotencyKey: String, studentUnrecordedSetClassificationRequest: StudentUnrecordedSetClassificationRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentUnrecordedSetClassificationResponse?, _ error: Error?) -> Void)) -> RequestTask {
+        return classifyStudentUnrecordedSetsWithRequestBuilder(sessionId: sessionId, idempotencyKey: idempotencyKey, studentUnrecordedSetClassificationRequest: studentUnrecordedSetClassificationRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Classificar em conjunto as séries sem registro de um treino terminado
+     - POST /student/workout-sessions/{sessionId}/unrecorded-set-classifications
+     - A classificação em conjunto das séries **sem registro** (`DOC-STUDENT-WORKOUT` §6.4, `REAL-04`; AL9), opcional e sem nada pré-selecionado, ao terminar ou depois: só na sessão `COMPLETED` — outro estado é `409 SESSION_NOT_COMPLETED`. `Deixar sem registro` é o padrão e **não é enviado**. Cada item nomeia uma série prescrita da versão da sessão que está sem registro (`setsUnrecorded` do resultado) e a classe dela: `NOT_DONE` (`Não fiz`) faz nascer a série pulada (`SKIPPED`), sem realizado, com a marca `NOT_DONE`; `DONE_WITHOUT_RECORDING` (`Fiz sem anotar os números`) faz nascer a série feita sem números (`PARTIAL`, com carga, repetições e duração nulas), que conta como feita e fica fora da carga, do volume e dos recordes, com a marca `DONE_WITHOUT_RECORDING`; `AS_PRESCRIBED` (`Feito como prescrito`) faz nascer a série feita (`COMPLETED`) com os valores da prescrição marcados como **não digitados** (§6.7), fora do volume, dos recordes e da última execução comparável até o aluno corrigi-la, com a marca `PRESCRIBED_VALUES`. Cada série nascida é fato declarado pelo aluno, tem `setExecutionId` próprio e se corrige depois por `amendStudentSetExecution` (`UXA-09`). **Sem registro** é a série prescrita sem fato em vigor e cujo exercício não foi pulado inteiro; a série de exercício pulado conta como `Não fiz` (decisão do owner de 2026-11-09) e é `409 SET_NOT_UNRECORDED`, como a série que já tem fato. A série anulada como registrado por engano volta a sem registro, mas tem `setExecutionId`: classificá-la é corrigi-la por emenda, e aqui ela é `409 SET_NOT_UNRECORDED`. Série prescrita fora da versão da sessão é `404 PRESCRIBED_SET_NOT_FOUND`; `prescribedSetId` repetido é `422 VALIDATION_FAILED`. Nada é gravado em parte: ou todos os itens valem, ou nenhum. O vínculo segue a regra das escritas de fato da sessão (`RELATIONSHIP_PAUSED` e `RELATIONSHIP_INACTIVE`). **Idempotência.** `Idempotency-Key` é obrigatório. A mesma chave com os mesmos bytes devolve a mesma resposta sem fazer nascer série outra vez; a mesma chave com outro corpo é `409 IDEMPOTENCY_CONFLICT`; o mesmo `classificationId` com outro conteúdo é `409 EXECUTION_IDENTITY_DIVERGENT`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter studentUnrecordedSetClassificationRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<StudentUnrecordedSetClassificationResponse>
+     */
+    open class func classifyStudentUnrecordedSetsWithRequestBuilder(sessionId: String, idempotencyKey: String, studentUnrecordedSetClassificationRequest: StudentUnrecordedSetClassificationRequest, acceptLanguage: String? = nil) -> RequestBuilder<StudentUnrecordedSetClassificationResponse> {
+        var localVariablePath = "/student/workout-sessions/{sessionId}/unrecorded-set-classifications"
+        let sessionIdPreEscape = "\(APIHelper.mapValueToPathItem(sessionId))"
+        let sessionIdPostEscape = sessionIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{sessionId}", with: sessionIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: studentUnrecordedSetClassificationRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentUnrecordedSetClassificationResponse>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }
@@ -345,7 +404,7 @@ open class WorkoutExecutionAPI {
     /**
      Adiar um exercício, preservando-o como pendência aberta
      - POST /student/workout-sessions/{sessionId}/deferrals
-     - Caminho HTTP autoritativo do fato `execution.exercise.defer`. `deferralId` é criado no device e adotado pelo servidor. **Adiar não é pular.** O exercício permanece como pendência aberta, visível e recuperável, e o encerramento da sessão recusa qualquer pendência não declarada. `EQUIPMENT_BUSY` (aparelho em uso, que volta a ficar livre) e `EQUIPMENT_UNAVAILABLE` (aparelho quebrado ou ausente, que não volta) são motivos distintos e não se substituem. Posição prescrita e posição executada coexistem: juntas formam a fila dinâmica e nenhuma sobrescreve a outra.
+     - Caminho HTTP autoritativo do fato `execution.exercise.defer`. `deferralId` é criado no device e adotado pelo servidor. **Adiar não é pular.** O exercício permanece como pendência aberta, visível e recuperável, e o encerramento da sessão recusa qualquer pendência não declarada. `EQUIPMENT_BUSY` (aparelho em uso, que volta a ficar livre) e `EQUIPMENT_UNAVAILABLE` (aparelho quebrado ou ausente, que não volta) são motivos distintos e não se substituem. Posição prescrita e posição executada coexistem: juntas formam a fila dinâmica e nenhuma sobrescreve a outra. A marca **Manter nesta posição** não impede o adiamento; o exercício de bloco combinado não é adiado sozinho: adiar um bloco combinado não separado leva o bloco inteiro como unidade contígua para o fim da fila de hoje (lote-3 §9.3 regra 7); após Separar só hoje, cada membro é adiado individualmente como exercício solto.
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -611,6 +670,65 @@ open class WorkoutExecutionAPI {
     }
 
     /**
+     Juntar de novo um bloco previamente separado na sessão
+
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter executionExerciseJoinPayload: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func joinStudentExerciseExecutionBlock(sessionId: String, idempotencyKey: String, executionExerciseJoinPayload: ExecutionExerciseJoinPayload, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentExerciseJoinResponse?, _ error: Error?) -> Void)) -> RequestTask {
+        return joinStudentExerciseExecutionBlockWithRequestBuilder(sessionId: sessionId, idempotencyKey: idempotencyKey, executionExerciseJoinPayload: executionExerciseJoinPayload, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Juntar de novo um bloco previamente separado na sessão
+     - POST /student/workout-sessions/{sessionId}/joins
+     - Caminho HTTP autoritativo do fato `execution.exercise.join`. `joinId` é criado no device e adotado pelo servidor. Recompõe o bloco combinado previamente separado por Separar só hoje, antes de qualquer série do bloco ter sido registrada (lote-3 §9.2, Tela 2). A resposta devolve a **fila executada resultante inteira**, onde os exercícios voltam a formar uma unidade contígua de bloco.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter executionExerciseJoinPayload: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<StudentExerciseJoinResponse>
+     */
+    open class func joinStudentExerciseExecutionBlockWithRequestBuilder(sessionId: String, idempotencyKey: String, executionExerciseJoinPayload: ExecutionExerciseJoinPayload, acceptLanguage: String? = nil) -> RequestBuilder<StudentExerciseJoinResponse> {
+        var localVariablePath = "/student/workout-sessions/{sessionId}/joins"
+        let sessionIdPreEscape = "\(APIHelper.mapValueToPathItem(sessionId))"
+        let sessionIdPostEscape = sessionIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{sessionId}", with: sessionIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: executionExerciseJoinPayload)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentExerciseJoinResponse>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
      Dar a nota de esforço do treino terminado
 
      - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
@@ -634,7 +752,7 @@ open class WorkoutExecutionAPI {
     /**
      Dar a nota de esforço do treino terminado
      - PUT /student/workout-sessions/{sessionId}/effort
-     - A nota de esforço do treino inteiro, de 0 a 10, opcional, em um toque. O corpo é `{ effort }`, inteiro, e não tem campo de texto: comentário, pergunta e mensagem não existem. É declaração do aluno sobre o treino todo, e não a média das séries. **A nota é dada uma vez.** O primeiro `PUT` da sessão grava a nota e responde `200`; o **mesmo** pedido repetido — o mesmo valor — é idempotente e responde `200` com a mesma nota, sem novo efeito; um valor **diferente** depois de a nota existir é `409 EFFORT_ALREADY_RATED`, e a nota gravada permanece. **Não há `DELETE`**: a nota não é alterada nem removida depois, e **não há prazo** — nem janela de tempo, nem campo de prazo, nem `EFFORT_WINDOW_CLOSED`. O servidor aceita o primeiro `PUT` da sessão venha quando vier; quem só oferece a nota na tela que aparece ao terminar é o app. Se o app é encerrado antes dessa tela, a sessão fica sem nota. **Só para a sessão concluída pelo aluno.** Na ordem em que são avaliados: sessão que não é `COMPLETED` — aberta, interrompida ou descartada — é `409 SESSION_NOT_COMPLETED`; sessão `COMPLETED` cujo `endedBy` não é `STUDENT` — a encerrada automaticamente e a encerrada pela pausa ou pelo encerramento do vínculo, em que o aluno não passou pela tela — é `409 EFFORT_NOT_AVAILABLE`; nota que já existe com valor diferente é `409 EFFORT_ALREADY_RATED`. Sessão de outra conta ou inexistente é `404 SESSION_NOT_FOUND`, e valor fora de 0 a 10 ou corpo com outro campo é `422 VALIDATION_FAILED`. **A confirmação é o commit no backend.** Sem `200` a nota não existe: o app reenvia a mesma nota, o que é idempotente, ou segue para o resumo sem ela. **O `403` é só o de conta** (`FORBIDDEN`: a identidade não tem o contexto de aluno). A spec não condiciona a nota ao vínculo, então esta operação nunca responde `RELATIONSHIP_PAUSED` nem `RELATIONSHIP_INACTIVE`: a sessão terminada é fato da conta, como a leitura do resultado. A nota é declaração do aluno, selo `DECLARED`: não gera item de atenção, o personal a lê junto do treino feito, e nenhuma tela a interpreta.
+     - A nota de esforço do treino inteiro, de 0 a 10, opcional, em um toque. O corpo é `{ effort }`, inteiro, e não tem campo de texto: comentário, pergunta e mensagem não existem. É declaração do aluno sobre o treino todo, e não a média das séries. **A nota é dada uma vez.** O primeiro `PUT` da sessão grava a nota e responde `200`; o **mesmo** pedido repetido — o mesmo valor — é idempotente e responde `200` com a mesma nota, sem novo efeito; um valor **diferente** depois de a nota existir é `409 EFFORT_ALREADY_RATED`, e a nota gravada permanece. **Não há `DELETE`**: a nota não é alterada nem removida depois, e **não há prazo** — nem janela de tempo, nem campo de prazo, nem `EFFORT_WINDOW_CLOSED`. O servidor aceita o primeiro `PUT` da sessão venha quando vier; quem só oferece a nota na tela que aparece ao terminar é o app. Se o app é encerrado antes dessa tela, a sessão fica sem nota. **Só para a sessão concluída pelo aluno.** Na ordem em que são avaliados: sessão que não é `COMPLETED` — aberta, interrompida ou descartada — é `409 SESSION_NOT_COMPLETED`; sessão `COMPLETED` cujo `endedBy` não é `STUDENT` — a encerrada automaticamente e a encerrada pela pausa ou pelo encerramento do vínculo, em que o aluno não passou pela tela — é `409 EFFORT_NOT_AVAILABLE`; sessão **marcada como feita depois** (`recordedLater = true`, `DOC-STUDENT-WORKOUT` §6.7 e §8.1) sem nota gravada também é `409 EFFORT_NOT_AVAILABLE`, porque ali a nota vai uma vez, no corpo de `recordStudentWorkoutSessionRetroactively`, e quem a pulou não a informa depois; nota que já existe com valor diferente é `409 EFFORT_ALREADY_RATED`. Sessão de outra conta ou inexistente é `404 SESSION_NOT_FOUND`, e valor fora de 0 a 10 ou corpo com outro campo é `422 VALIDATION_FAILED`. **A confirmação é o commit no backend.** Sem `200` a nota não existe: o app reenvia a mesma nota, o que é idempotente, ou segue para o resumo sem ela. **O `403` é só o de conta** (`FORBIDDEN`: a identidade não tem o contexto de aluno). A spec não condiciona a nota ao vínculo, então esta operação nunca responde `RELATIONSHIP_PAUSED` nem `RELATIONSHIP_INACTIVE`: a sessão terminada é fato da conta, como a leitura do resultado. A nota é declaração do aluno, selo `DECLARED`: não gera item de atenção, o personal a lê junto do treino feito, e nenhuma tela a interpreta.
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -871,7 +989,7 @@ open class WorkoutExecutionAPI {
     /**
      Reordenar a fila executada da sessão dentro da política do personal
      - POST /student/workout-sessions/{sessionId}/reorders
-     - Caminho HTTP autoritativo do fato `execution.exercise.reorder`. `reorderId` é criado no device e adotado pelo servidor. **A `ExerciseOrderPolicy` publicada pelo personal é o teto**, e o servidor é quem a aplica: uma reordenação que a viole é `409 EXERCISE_ORDER_NOT_ALLOWED`, e a ordem no servidor permanece exatamente como estava. Reordenação sem registro não é reordenação: a ordem prescrita permanece íntegra ao lado da executada. A resposta devolve a **fila executada resultante inteira**, porque mover um exercício desloca os demais: o cliente adota a ordem do servidor em vez de recalculá-la localmente.
+     - Caminho HTTP autoritativo do fato `execution.exercise.reorder`. `reorderId` é criado no device e adotado pelo servidor. A marca **Manter nesta posição** (`orderPolicy: LOCKED` fora de bloco) é orientação e nunca recusa a reordenação. O servidor recusa com `409 EXERCISE_ORDER_NOT_ALLOWED`, e a ordem permanece exatamente como estava, só o que a estrutura do treino impede: mover sozinho um exercício de bloco combinado, tirá-lo do bloco ou passá-lo à frente do exercício de que ele depende. Reordenação sem registro não é reordenação: a ordem prescrita permanece íntegra ao lado da executada. A resposta devolve a **fila executada resultante inteira**, porque mover um exercício desloca os demais: o cliente adota a ordem do servidor em vez de recalculá-la localmente.
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -1080,6 +1198,124 @@ open class WorkoutExecutionAPI {
         let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
 
         let localVariableRequestBuilder: RequestBuilder<WorkoutSessionSyncView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Mostrar ou não ao personal uma observação do aluno
+
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter studentObservationSharingRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func setStudentObservationSharing(sessionId: String, idempotencyKey: String, studentObservationSharingRequest: StudentObservationSharingRequest, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentObservationSharingView?, _ error: Error?) -> Void)) -> RequestTask {
+        return setStudentObservationSharingWithRequestBuilder(sessionId: sessionId, idempotencyKey: idempotencyKey, studentObservationSharingRequest: studentObservationSharingRequest, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Mostrar ou não ao personal uma observação do aluno
+     - PUT /student/workout-sessions/{sessionId}/observation-sharing
+     - A escolha `Mostrar ao personal` (`DOC-STUDENT-WORKOUT` §7.10), **por observação** e sem preferência global: a da série (`updateStudentSetExecutionObservation`) ou a de uma adaptação — substituição, pulo, reordenação, adiamento e classificação em conjunto. A observação nasce **sem** ser mostrada; o aluno marca e desmarca depois, como correção do autor, com a sessão em qualquer estado e sem prazo. Cada mudança do interruptor fica registrada internamente — o estado, o instante do servidor e do aparelho e a versão do texto de apoio (`supportTextVersion`) —, como prova da escolha do aluno, e esse registro não é publicado a ninguém. Pedir o estado que já está em vigor responde `200` sem nova mudança registrada. **Quem lê.** O personal do vínculo da sessão passa a ler, na leitura seguinte, só a observação marcada (`listPersonalStudentExerciseSessionHistory`, presa à linha do fato); desmarcar a tira sem rastro. Com o vínculo encerrado, o personal antigo mantém só o que estava marcado até o fim do vínculo: desmarcar depois tira o texto dele também, e marcar depois do fim não o alcança. Por isso esta escrita **não** depende do vínculo — é fato da conta, como a nota de esforço — e o `403` é só o de conta. **Recusas.** Sessão de outra conta ou inexistente é `404 SESSION_NOT_FOUND`; fato que não é da sessão é `404 OBSERVATION_SUBJECT_NOT_FOUND`; fato sem observação é `409 OBSERVATION_ABSENT`. A observação do desconforto não tem interruptor e não é um `subject` aceito. **Idempotência.** `Idempotency-Key` é obrigatório: a mesma chave com os mesmos bytes devolve a mesma resposta; a mesma chave com outro corpo é `409 IDEMPOTENCY_CONFLICT`.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter studentObservationSharingRequest: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<StudentObservationSharingView>
+     */
+    open class func setStudentObservationSharingWithRequestBuilder(sessionId: String, idempotencyKey: String, studentObservationSharingRequest: StudentObservationSharingRequest, acceptLanguage: String? = nil) -> RequestBuilder<StudentObservationSharingView> {
+        var localVariablePath = "/student/workout-sessions/{sessionId}/observation-sharing"
+        let sessionIdPreEscape = "\(APIHelper.mapValueToPathItem(sessionId))"
+        let sessionIdPostEscape = sessionIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{sessionId}", with: sessionIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: studentObservationSharingRequest)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentObservationSharingView>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
+
+        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
+    }
+
+    /**
+     Separar só hoje um bloco combinado na sessão
+
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter executionExerciseSplitPayload: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - parameter apiResponseQueue: The queue on which api response is dispatched.
+     - parameter completion: completion handler to receive the data and the error objects
+     */
+    @discardableResult
+    open class func splitStudentExerciseExecutionBlock(sessionId: String, idempotencyKey: String, executionExerciseSplitPayload: ExecutionExerciseSplitPayload, acceptLanguage: String? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: StudentExerciseSplitResponse?, _ error: Error?) -> Void)) -> RequestTask {
+        return splitStudentExerciseExecutionBlockWithRequestBuilder(sessionId: sessionId, idempotencyKey: idempotencyKey, executionExerciseSplitPayload: executionExerciseSplitPayload, acceptLanguage: acceptLanguage).execute(apiResponseQueue) { result in
+            switch result {
+            case let .success(response):
+                completion(response.body, nil)
+            case let .failure(error):
+                completion(nil, error)
+            }
+        }
+    }
+
+    /**
+     Separar só hoje um bloco combinado na sessão
+     - POST /student/workout-sessions/{sessionId}/splits
+     - Caminho HTTP autoritativo do fato `execution.exercise.split`. `splitId` é criado no device e adotado pelo servidor. Transforma os exercícios do bloco combinado (bi-set, tri-set, circuito) em itens soltos da lista de hoje somente nesta sessão (lote-3 §9.2). As rodadas viram séries comuns e o descanso do bloco vira o descanso entre as séries. A prescrição continua intacta dizendo que são um bloco. A resposta devolve a **fila executada resultante inteira**, onde os exercícios do bloco passam a poder ser movidos e adiados individualmente.
+     - Bearer Token:
+       - type: http
+       - name: BearerAuth
+     - responseHeaders: [Content-Language(Locale), Vary(String)]
+     - parameter sessionId: (path) Sessão do aluno autenticado, com a mesma identidade adotada em &#x60;POST /student/workout-sessions&#x60;. Existência fora do escopo do ator nunca é revelada: ausência e falta de autorização respondem de forma indistinguível.
+     - parameter idempotencyKey: (header) Chave opaca gerada pelo cliente para uma tentativa lógica de mutação.
+     - parameter executionExerciseSplitPayload: (body)
+     - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+     - returns: RequestBuilder<StudentExerciseSplitResponse>
+     */
+    open class func splitStudentExerciseExecutionBlockWithRequestBuilder(sessionId: String, idempotencyKey: String, executionExerciseSplitPayload: ExecutionExerciseSplitPayload, acceptLanguage: String? = nil) -> RequestBuilder<StudentExerciseSplitResponse> {
+        var localVariablePath = "/student/workout-sessions/{sessionId}/splits"
+        let sessionIdPreEscape = "\(APIHelper.mapValueToPathItem(sessionId))"
+        let sessionIdPostEscape = sessionIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
+        localVariablePath = localVariablePath.replacingOccurrences(of: "{sessionId}", with: sessionIdPostEscape, options: .literal, range: nil)
+        let localVariableURLString = FitAppClientSwiftAPI.basePath + localVariablePath
+        let localVariableParameters = JSONEncodingHelper.encodingParameters(forEncodableObject: executionExerciseSplitPayload)
+
+        let localVariableUrlComponents = URLComponents(string: localVariableURLString)
+
+        let localVariableNillableHeaders: [String: Any?] = [
+            "Content-Type": "application/json",
+            "Accept-Language": acceptLanguage?.encodeToJSON(),
+            "Idempotency-Key": idempotencyKey.encodeToJSON(),
+        ]
+
+        let localVariableHeaderParameters = APIHelper.rejectNilHeaders(localVariableNillableHeaders)
+
+        let localVariableRequestBuilder: RequestBuilder<StudentExerciseSplitResponse>.Type = FitAppClientSwiftAPI.requestBuilderFactory.getBuilder()
 
         return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true)
     }

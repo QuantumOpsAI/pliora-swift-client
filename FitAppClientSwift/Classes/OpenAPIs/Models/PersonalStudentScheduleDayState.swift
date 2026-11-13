@@ -10,12 +10,13 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Estado consolidado do dia na semana do aluno, decidido pelo servidor. &#x60;ASSIGNED_NOT_STARTED&#x60;: há atribuição vigente e nenhum fato de conclusão. &#x60;ASSIGNED_COMPLETED&#x60;: há atribuição vigente e sessão concluída. &#x60;NO_ASSIGNMENT&#x60;: dia dentro do período do vínculo sem atribuição — estado declarado, nunca dia ausente, lista vazia ou campo nulo. &#x60;OUTSIDE_RELATIONSHIP_PERIOD&#x60;: dia fora do período do vínculo ativo, servido sem qualquer conteúdo prescrito ou executado. */
+/** Estado consolidado do dia na semana do aluno, decidido pelo servidor. &#x60;ASSIGNED_NOT_STARTED&#x60;: há atribuição vigente e nenhum fato de conclusão. &#x60;ASSIGNED_COMPLETED&#x60;: há atribuição vigente e sessão concluída. &#x60;DONE_ELSEWHERE&#x60;: há atribuição vigente, e uma sessão em outra data desta semana a satisfez (&#x60;doneOn&#x60;); o dia não tem fato executado próprio. &#x60;NO_ASSIGNMENT&#x60;: dia dentro do período do vínculo sem atribuição — estado declarado, nunca dia ausente, lista vazia ou campo nulo. &#x60;OUTSIDE_RELATIONSHIP_PERIOD&#x60;: dia fora do período do vínculo ativo, servido sem qualquer conteúdo prescrito ou executado. */
 public enum PersonalStudentScheduleDayState: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case assignedNotStarted = "ASSIGNED_NOT_STARTED"
     case assignedCompleted = "ASSIGNED_COMPLETED"
     case noAssignment = "NO_ASSIGNMENT"
     case outsideRelationshipPeriod = "OUTSIDE_RELATIONSHIP_PERIOD"
+    case doneElsewhere = "DONE_ELSEWHERE"
     case unknownDefaultOpenApi = "unknown_default_open_api"
 }
 

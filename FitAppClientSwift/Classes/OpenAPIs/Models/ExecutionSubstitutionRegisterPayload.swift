@@ -21,6 +21,7 @@ public struct ExecutionSubstitutionRegisterPayload: Codable, JSONEncodable, Hash
     public static let executedVariantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let equipmentInstanceIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let deferralIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let observationRule = StringRule(minLength: 1, maxLength: 500, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var substitutionId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
@@ -43,8 +44,10 @@ public struct ExecutionSubstitutionRegisterPayload: Codable, JSONEncodable, Hash
     public var scope: SubstitutionScope
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var registeredAt: Date
+    /** Observação opcional desta adaptação (`REAL-05`, `DOC-STUDENT-WORKOUT` §7.10), texto curto do aluno, preso a ela. Nasce sem ser mostrada ao personal; a escolha é `setStudentObservationSharing`. */
+    public var observation: String?
 
-    public init(substitutionId: String, exerciseExecutionId: String, prescribedExerciseId: String, prescribedVariantId: String, executedExerciseId: String, executedVariantId: String, equipmentInstanceId: String? = nil, deferralId: String? = nil, type: SubstitutionType, reason: SubstitutionReason, authorizationSource: SubstitutionAuthorizationSource, scope: SubstitutionScope, registeredAt: Date) {
+    public init(substitutionId: String, exerciseExecutionId: String, prescribedExerciseId: String, prescribedVariantId: String, executedExerciseId: String, executedVariantId: String, equipmentInstanceId: String? = nil, deferralId: String? = nil, type: SubstitutionType, reason: SubstitutionReason, authorizationSource: SubstitutionAuthorizationSource, scope: SubstitutionScope, registeredAt: Date, observation: String? = nil) {
         self.substitutionId = substitutionId
         self.exerciseExecutionId = exerciseExecutionId
         self.prescribedExerciseId = prescribedExerciseId
@@ -58,6 +61,7 @@ public struct ExecutionSubstitutionRegisterPayload: Codable, JSONEncodable, Hash
         self.authorizationSource = authorizationSource
         self.scope = scope
         self.registeredAt = registeredAt
+        self.observation = observation
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -74,6 +78,7 @@ public struct ExecutionSubstitutionRegisterPayload: Codable, JSONEncodable, Hash
         case authorizationSource
         case scope
         case registeredAt
+        case observation
     }
 
     // Encodable protocol methods
@@ -93,6 +98,7 @@ public struct ExecutionSubstitutionRegisterPayload: Codable, JSONEncodable, Hash
         try container.encode(authorizationSource, forKey: .authorizationSource)
         try container.encode(scope, forKey: .scope)
         try container.encode(registeredAt, forKey: .registeredAt)
+        try container.encodeIfPresent(observation, forKey: .observation)
     }
 }
 

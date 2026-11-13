@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Uma série da sessão com **prescrito, alvo e executado separados**: &#x60;prescribed&#x60; é o que o personal escreveu (a série em percentual segue em percentual), &#x60;target&#x60; é o alvo apresentado quando a tela da série abriu, com a origem, e &#x60;actual&#x60; é o executado em vigor depois das emendas — &#x60;null&#x60; na série pulada. Nenhum dos três é derivado dos outros. &#x60;setType&#x60; e &#x60;setIndex&#x60; são os de &#x60;prescribed&#x60;. */
+/** Uma série da sessão com **prescrito, alvo e executado separados**: &#x60;prescribed&#x60; é o que o personal escreveu (a série em percentual segue em percentual), &#x60;target&#x60; é o alvo apresentado quando a tela da série abriu, com a origem, e &#x60;actual&#x60; é o executado em vigor depois das emendas — &#x60;null&#x60; na série pulada e na anulada como registrado por engano. Nenhum dos três é derivado dos outros. &#x60;setType&#x60; e &#x60;setIndex&#x60; são os de &#x60;prescribed&#x60;. A série anulada (&#x60;status: RECORDED_BY_MISTAKE&#x60;) continua aqui, só para o aluno, com a marca &#x60;RECORDED_BY_MISTAKE&#x60; e o &#x60;original&#x60;; ela não conta em &#x60;setsDone&#x60;, no volume nem nos recordes. */
 public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
 
     public static let setExecutionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -25,6 +25,7 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
     public var prescribed: WorkoutSummarySetView
     public var target: ExecutionTargetValues
     public var actual: WorkoutSetValues?
+    public var original: StudentWorkoutSessionResultSetOriginal?
     /** true quando a contagem de repetições da série for por lado (`DOC-STUDENT-WORKOUT-TECH` §6.5). */
     public var repsPerSide: Bool?
     /** Leitura do peso da série executada, gravada pelo servidor como cópia da prescrição; `null` é `leitura não informada`. */
@@ -37,13 +38,14 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
     /** O excedente do descanso depois da série: o medido menos o alvo efetivo (`adjustedTargetSeconds` quando presente, senão `targetSeconds`), nunca negativo. Derivado na leitura, nunca gravado. **Ausente** quando a série não tem descanso registrado ou o descanso não tinha alvo: sem alvo não há excedente, e a ausência nunca vira zero. */
     public var restOvertimeSeconds: Int?
 
-    public init(setExecutionId: String, status: ExecutedSetStatus, roundIndex: Int? = nil, prescribed: WorkoutSummarySetView, target: ExecutionTargetValues, actual: WorkoutSetValues?, repsPerSide: Bool? = nil, loadBasis: LoadBasis? = nil, isAdditional: Bool? = nil, adaptationBadges: [StudentWorkoutSessionSetBadge]? = nil, restInterval: StudentWorkoutSessionResultRestInterval? = nil, restOvertimeSeconds: Int? = nil) {
+    public init(setExecutionId: String, status: ExecutedSetStatus, roundIndex: Int? = nil, prescribed: WorkoutSummarySetView, target: ExecutionTargetValues, actual: WorkoutSetValues?, original: StudentWorkoutSessionResultSetOriginal? = nil, repsPerSide: Bool? = nil, loadBasis: LoadBasis? = nil, isAdditional: Bool? = nil, adaptationBadges: [StudentWorkoutSessionSetBadge]? = nil, restInterval: StudentWorkoutSessionResultRestInterval? = nil, restOvertimeSeconds: Int? = nil) {
         self.setExecutionId = setExecutionId
         self.status = status
         self.roundIndex = roundIndex
         self.prescribed = prescribed
         self.target = target
         self.actual = actual
+        self.original = original
         self.repsPerSide = repsPerSide
         self.loadBasis = loadBasis
         self.isAdditional = isAdditional
@@ -59,6 +61,7 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
         case prescribed
         case target
         case actual
+        case original
         case repsPerSide
         case loadBasis
         case isAdditional
@@ -77,6 +80,7 @@ public struct StudentWorkoutSessionResultSet: Codable, JSONEncodable, Hashable {
         try container.encode(prescribed, forKey: .prescribed)
         try container.encode(target, forKey: .target)
         try container.encode(actual, forKey: .actual)
+        try container.encodeIfPresent(original, forKey: .original)
         try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
         try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
         try container.encodeIfPresent(isAdditional, forKey: .isAdditional)

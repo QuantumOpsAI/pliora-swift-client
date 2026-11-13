@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **asOf** | **Date** | Instante do servidor em que esta fotografia foi lida. |
 **asOfDate** | **Date** | Dia civil de &#x60;asOf&#x60; no fuso do vínculo; é a referência de &#x60;activation.daysUntilEnd&#x60; e de &#x60;validity&#x60;, e o app não calcula \&quot;hoje\&quot; por conta própria. |
 **eligibility** | [**StudentPrescriptionEligibilityView**](StudentPrescriptionEligibilityView.md) |  |
+**professionalVerificationState** | [**ProfessionalVerificationStatus**](ProfessionalVerificationStatus.md) | Impedimento do **personal**, não do aluno (&#x60;JUR-02 &#x3D; A&#x60;): estado da verificação do CREF presente **somente** quando diferente de &#x60;VERIFICADO&#x60;. Publicar, ativar e atribuir ficam bloqueados enquanto ele existir; rascunho, biblioteca, modelo e convite não. O aluno nunca o recebe. | [optional]
 **validity** | [**PrescriptionValidity**](PrescriptionValidity.md) |  | [optional]
 **currentVersion** | [**PrescriptionVersionSummary**](PrescriptionVersionSummary.md) |  | [optional]
 **currentWorkouts** | [PrescriptionWorkoutSummary] | Treinos da versão vigente na ordem do plano, cada um com a contagem de exercícios. | [optional]

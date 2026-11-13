@@ -22,16 +22,19 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
     public var from: Date
     /** Última data civil devolvida, ecoando o intervalo efetivamente aplicado. */
     public var to: Date
+    /** A segunda-feira da semana de `from`, no fuso do vínculo: a semana do aluno vai de segunda a domingo. Informativo; o cliente não recalcula a semana. */
+    public var weekStart: Date
     /** Timezone IANA em que o servidor resolveu as datas civis e a noção de \"hoje\". O cliente não reinterpreta as datas noutro timezone. */
     public var timeZone: String
     /** Uma entrada por data civil entre `from` e `to`, inclusive, em ordem crescente e sem lacuna. Um dia sem treino prescrito é `REST_DAY`. Vazio somente com `planState: TRAINING_PAUSED`. */
     public var days: [StudentScheduleDayView]
 
-    public init(planState: StudentTrainingPlanState? = nil, planMode: PlanActivationMode? = nil, from: Date, to: Date, timeZone: String, days: [StudentScheduleDayView]) {
+    public init(planState: StudentTrainingPlanState? = nil, planMode: PlanActivationMode? = nil, from: Date, to: Date, weekStart: Date, timeZone: String, days: [StudentScheduleDayView]) {
         self.planState = planState
         self.planMode = planMode
         self.from = from
         self.to = to
+        self.weekStart = weekStart
         self.timeZone = timeZone
         self.days = days
     }
@@ -41,6 +44,7 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
         case planMode
         case from
         case to
+        case weekStart
         case timeZone
         case days
     }
@@ -53,6 +57,7 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(planMode, forKey: .planMode)
         try container.encode(from, forKey: .from)
         try container.encode(to, forKey: .to)
+        try container.encode(weekStart, forKey: .weekStart)
         try container.encode(timeZone, forKey: .timeZone)
         try container.encode(days, forKey: .days)
     }

@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Estado consolidado do dia, decidido pelo servidor. &#x60;COMPLETED&#x60;: o treino do dia foi concluído. &#x60;INCOMPLETE&#x60;: dia já passado com sessão iniciada e não concluída. &#x60;PENDING&#x60;: dia já passado com treino atribuído e **sem sessão** iniciada; a tela não mostra selo nenhum para ele. &#x60;RECOMMENDED_TODAY&#x60;: recomendação de hoje, decidida pelo servidor (Smart Workout Scheduling); o cliente não recalcula. &#x60;SCHEDULED&#x60;: dia futuro com treino prescrito. &#x60;REST_DAY&#x60;: dia sem treino prescrito. Um estado de dia passado é fato registrado e não é reescrito por uma prescrição publicada depois. */
+/** Estado consolidado do dia, decidido pelo servidor. &#x60;COMPLETED&#x60;: o treino do dia foi concluído. &#x60;INCOMPLETE&#x60;: dia já passado com sessão iniciada e não concluída. &#x60;PENDING&#x60;: dia já passado com treino atribuído e **sem sessão** iniciada; a tela não mostra selo nenhum para ele. &#x60;RECOMMENDED_TODAY&#x60;: recomendação de hoje, decidida pelo servidor (Smart Workout Scheduling); o cliente não recalcula. &#x60;SCHEDULED&#x60;: dia futuro com treino prescrito. &#x60;REST_DAY&#x60;: dia sem treino prescrito; pode ter &#x60;placedSessions&#x60;, e então a tela mostra as sessões, não descanso. &#x60;DONE_ELSEWHERE&#x60;: o treino do dia foi feito em outra data desta semana, cuja sessão satisfez o slot deste dia; a data está em &#x60;doneOn&#x60;, e o dia mostra o treino do slot. Só existe em plano por dias da semana; nunca com &#x60;planMode: SEQUENCE&#x60;. Um estado de dia passado é fato registrado e não é reescrito por uma prescrição publicada depois. */
 public enum StudentScheduleDayStatus: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case completed = "COMPLETED"
     case pending = "PENDING"
@@ -18,6 +18,7 @@ public enum StudentScheduleDayStatus: String, Codable, CaseIterable, CaseIterabl
     case scheduled = "SCHEDULED"
     case restDay = "REST_DAY"
     case incomplete = "INCOMPLETE"
+    case doneElsewhere = "DONE_ELSEWHERE"
     case unknownDefaultOpenApi = "unknown_default_open_api"
 }
 

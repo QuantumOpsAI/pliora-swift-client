@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Atribui um treino de uma versão **publicada** a uma data civil do aluno. &#x60;assignmentId&#x60; é igual ao &#x60;aggregateId&#x60; e nasce no device. A atribuição referencia a versão por identidade e nunca copia o conteúdo prescrito. Uma versão em rascunho é &#x60;FINAL_FAILURE/PRESCRIPTION_VERSION_NOT_PUBLISHED&#x60;; uma segunda atribuição vigente para o mesmo par aluno/data é &#x60;CONFLICT/INVARIANT_VIOLATED&#x60; com a atribuição canônica que ocupa a data. */
+/** Atribui um treino de uma versão **publicada** a uma data civil do aluno. &#x60;assignmentId&#x60; é igual ao &#x60;aggregateId&#x60; e nasce no device. A atribuição referencia a versão por identidade e nunca copia o conteúdo prescrito. Uma versão em rascunho é &#x60;FINAL_FAILURE/PRESCRIPTION_VERSION_NOT_PUBLISHED&#x60;; uma segunda atribuição à mão do personal vigente para o mesmo par aluno/data é &#x60;CONFLICT/INVARIANT_VIOLATED&#x60; com a atribuição canônica que ocupa a data. */
 public struct PrescriptionAssignmentAssignPayload: Codable, JSONEncodable, Hashable {
 
     public static let assignmentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)

@@ -19,8 +19,9 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
     public enum Code: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case sessionIdentityDivergent = "SESSION_IDENTITY_DIVERGENT"
         case prescriptionVersionNotAssigned = "PRESCRIPTION_VERSION_NOT_ASSIGNED"
-        case dailyWorkoutAlreadyAssigned = "DAILY_WORKOUT_ALREADY_ASSIGNED"
+        case workoutAlreadyDoneToday = "WORKOUT_ALREADY_DONE_TODAY"
         case sessionAlreadyExists = "SESSION_ALREADY_EXISTS"
+        case placementChanged = "PLACEMENT_CHANGED"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -42,8 +43,10 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
     public var fieldErrors: [FieldError]?
     /** Identidade canônica da sessão aberta do aluno, presente **sempre e somente** em `SESSION_ALREADY_EXISTS`. É o que permite ao app levar à retomada da sessão que já existe, sem uma leitura a mais, em vez de criar outra. */
     public var sessionId: String?
+    /** A colocação que o casamento calcula agora para o treino pedido, presente **sempre e somente** em `PLACEMENT_CHANGED`: o app reabre o resumo com o aviso desta colocação, em vez da que mostrou antes. */
+    public var placement: WorkoutPlacement?
 
-    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil, sessionId: String? = nil) {
+    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil, sessionId: String? = nil, placement: WorkoutPlacement? = nil) {
         self.type = type
         self.title = title
         self.status = status
@@ -53,6 +56,7 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
         self.correlationId = correlationId
         self.fieldErrors = fieldErrors
         self.sessionId = sessionId
+        self.placement = placement
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -65,6 +69,7 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
         case correlationId
         case fieldErrors
         case sessionId
+        case placement
     }
 
     // Encodable protocol methods
@@ -80,6 +85,7 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
         try container.encode(correlationId, forKey: .correlationId)
         try container.encodeIfPresent(fieldErrors, forKey: .fieldErrors)
         try container.encodeIfPresent(sessionId, forKey: .sessionId)
+        try container.encodeIfPresent(placement, forKey: .placement)
     }
 }
 
@@ -88,6 +94,7 @@ extension StudentWorkoutSessionConflictProblemDetails: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if status == .unknownDefaultOpenApi { return true }
         if code == .unknownDefaultOpenApi { return true }
+        if placement == .unknownDefaultOpenApi { return true }
         return false
     }
 }

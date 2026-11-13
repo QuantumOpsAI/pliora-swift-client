@@ -27,6 +27,9 @@ public struct StudentWorkoutExecutionConflictProblemDetails: Codable, JSONEncoda
         case exerciseOrderNotAllowed = "EXERCISE_ORDER_NOT_ALLOWED"
         case setExecutionImmutable = "SET_EXECUTION_IMMUTABLE"
         case idempotencyConflict = "IDEMPOTENCY_CONFLICT"
+        case sessionNotCompleted = "SESSION_NOT_COMPLETED"
+        case setNotUnrecorded = "SET_NOT_UNRECORDED"
+        case observationAbsent = "OBSERVATION_ABSENT"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)

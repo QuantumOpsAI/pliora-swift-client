@@ -31,6 +31,8 @@ public struct PersonalStudentPrescriptionView: Codable, JSONEncodable, Hashable 
     /** Dia civil de `asOf` no fuso do vínculo; é a referência de `activation.daysUntilEnd` e de `validity`, e o app não calcula \"hoje\" por conta própria. */
     public var asOfDate: Date
     public var eligibility: StudentPrescriptionEligibilityView
+    /** Impedimento do **personal**, não do aluno (`JUR-02 = A`): estado da verificação do CREF presente **somente** quando diferente de `VERIFICADO`. Publicar, ativar e atribuir ficam bloqueados enquanto ele existir; rascunho, biblioteca, modelo e convite não. O aluno nunca o recebe. */
+    public var professionalVerificationState: ProfessionalVerificationStatus?
     public var validity: PrescriptionValidity?
     public var currentVersion: PrescriptionVersionSummary?
     /** Treinos da versão vigente na ordem do plano, cada um com a contagem de exercícios. */
@@ -38,7 +40,7 @@ public struct PersonalStudentPrescriptionView: Codable, JSONEncodable, Hashable 
     public var activation: PrescriptionActivationSummary?
     public var openDraft: PrescriptionDraftSummary?
 
-    public init(studentId: String, studentLabel: String? = nil, studentName: String, prescriptionId: String? = nil, asOf: Date, asOfDate: Date, eligibility: StudentPrescriptionEligibilityView, validity: PrescriptionValidity? = nil, currentVersion: PrescriptionVersionSummary? = nil, currentWorkouts: [PrescriptionWorkoutSummary]? = nil, activation: PrescriptionActivationSummary? = nil, openDraft: PrescriptionDraftSummary? = nil) {
+    public init(studentId: String, studentLabel: String? = nil, studentName: String, prescriptionId: String? = nil, asOf: Date, asOfDate: Date, eligibility: StudentPrescriptionEligibilityView, professionalVerificationState: ProfessionalVerificationStatus? = nil, validity: PrescriptionValidity? = nil, currentVersion: PrescriptionVersionSummary? = nil, currentWorkouts: [PrescriptionWorkoutSummary]? = nil, activation: PrescriptionActivationSummary? = nil, openDraft: PrescriptionDraftSummary? = nil) {
         self.studentId = studentId
         self.studentLabel = studentLabel
         self.studentName = studentName
@@ -46,6 +48,7 @@ public struct PersonalStudentPrescriptionView: Codable, JSONEncodable, Hashable 
         self.asOf = asOf
         self.asOfDate = asOfDate
         self.eligibility = eligibility
+        self.professionalVerificationState = professionalVerificationState
         self.validity = validity
         self.currentVersion = currentVersion
         self.currentWorkouts = currentWorkouts
@@ -61,6 +64,7 @@ public struct PersonalStudentPrescriptionView: Codable, JSONEncodable, Hashable 
         case asOf
         case asOfDate
         case eligibility
+        case professionalVerificationState
         case validity
         case currentVersion
         case currentWorkouts
@@ -79,6 +83,7 @@ public struct PersonalStudentPrescriptionView: Codable, JSONEncodable, Hashable 
         try container.encode(asOf, forKey: .asOf)
         try container.encode(asOfDate, forKey: .asOfDate)
         try container.encode(eligibility, forKey: .eligibility)
+        try container.encodeIfPresent(professionalVerificationState, forKey: .professionalVerificationState)
         try container.encodeIfPresent(validity, forKey: .validity)
         try container.encodeIfPresent(currentVersion, forKey: .currentVersion)
         try container.encodeIfPresent(currentWorkouts, forKey: .currentWorkouts)
@@ -90,6 +95,7 @@ public struct PersonalStudentPrescriptionView: Codable, JSONEncodable, Hashable 
 
 extension PersonalStudentPrescriptionView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
+        if professionalVerificationState == .unknownDefaultOpenApi { return true }
         if validity == .unknownDefaultOpenApi { return true }
         return false
     }

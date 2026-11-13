@@ -20,6 +20,7 @@ public struct PrescribedTarget: Codable, JSONEncodable, Hashable {
     public static let loadValueRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let loadPercentRule = NumericRule<Double>(minimum: 1, exclusiveMinimum: false, maximum: 150, exclusiveMaximum: false, multipleOf: nil)
     public static let effortValueRule = NumericRule<Double>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
+    public static let noteRule = StringRule(minLength: 1, maxLength: 500, pattern: nil)
     public var repsMin: Int?
     public var repsMax: Int?
     public var repsExact: Int?
@@ -31,8 +32,10 @@ public struct PrescribedTarget: Codable, JSONEncodable, Hashable {
     public var loadPercent: Double?
     public var effortType: PrescribedEffortType?
     public var effortValue: Double?
+    /** Nota curta do personal específica para esta série (ex. \"barra vazia\", \"~60% da carga de trabalho\"), preservada verbatim UTF-8. Ausente quando não há. */
+    public var note: String?
 
-    public init(repsMin: Int? = nil, repsMax: Int? = nil, repsExact: Int? = nil, durationSeconds: Int? = nil, loadValue: Double? = nil, loadUnit: PrescribedLoadUnit? = nil, loadPercent: Double? = nil, effortType: PrescribedEffortType? = nil, effortValue: Double? = nil) {
+    public init(repsMin: Int? = nil, repsMax: Int? = nil, repsExact: Int? = nil, durationSeconds: Int? = nil, loadValue: Double? = nil, loadUnit: PrescribedLoadUnit? = nil, loadPercent: Double? = nil, effortType: PrescribedEffortType? = nil, effortValue: Double? = nil, note: String? = nil) {
         self.repsMin = repsMin
         self.repsMax = repsMax
         self.repsExact = repsExact
@@ -42,6 +45,7 @@ public struct PrescribedTarget: Codable, JSONEncodable, Hashable {
         self.loadPercent = loadPercent
         self.effortType = effortType
         self.effortValue = effortValue
+        self.note = note
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -54,6 +58,7 @@ public struct PrescribedTarget: Codable, JSONEncodable, Hashable {
         case loadPercent
         case effortType
         case effortValue
+        case note
     }
 
     // Encodable protocol methods
@@ -69,6 +74,7 @@ public struct PrescribedTarget: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(loadPercent, forKey: .loadPercent)
         try container.encodeIfPresent(effortType, forKey: .effortType)
         try container.encodeIfPresent(effortValue, forKey: .effortValue)
+        try container.encodeIfPresent(note, forKey: .note)
     }
 }
 

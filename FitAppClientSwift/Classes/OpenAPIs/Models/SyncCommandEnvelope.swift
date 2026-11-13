@@ -14,9 +14,11 @@ import AnyCodable
 public enum SyncCommandEnvelope: Codable, JSONEncodable, Hashable {
     case typeExecutionDiscomfortReportCommand(ExecutionDiscomfortReportCommand)
     case typeExecutionExerciseDeferCommand(ExecutionExerciseDeferCommand)
+    case typeExecutionExerciseJoinCommand(ExecutionExerciseJoinCommand)
     case typeExecutionExerciseReorderCommand(ExecutionExerciseReorderCommand)
     case typeExecutionExerciseResumeCommand(ExecutionExerciseResumeCommand)
     case typeExecutionExerciseSkipConfirmCommand(ExecutionExerciseSkipConfirmCommand)
+    case typeExecutionExerciseSplitCommand(ExecutionExerciseSplitCommand)
     case typeExecutionExerciseStartCommand(ExecutionExerciseStartCommand)
     case typeExecutionRestRecordCommand(ExecutionRestRecordCommand)
     case typeExecutionSessionAbandonCommand(ExecutionSessionAbandonCommand)
@@ -47,11 +49,15 @@ public enum SyncCommandEnvelope: Codable, JSONEncodable, Hashable {
             try container.encode(value)
         case .typeExecutionExerciseDeferCommand(let value):
             try container.encode(value)
+        case .typeExecutionExerciseJoinCommand(let value):
+            try container.encode(value)
         case .typeExecutionExerciseReorderCommand(let value):
             try container.encode(value)
         case .typeExecutionExerciseResumeCommand(let value):
             try container.encode(value)
         case .typeExecutionExerciseSkipConfirmCommand(let value):
+            try container.encode(value)
+        case .typeExecutionExerciseSplitCommand(let value):
             try container.encode(value)
         case .typeExecutionExerciseStartCommand(let value):
             try container.encode(value)
@@ -107,12 +113,16 @@ public enum SyncCommandEnvelope: Codable, JSONEncodable, Hashable {
             self = .typeExecutionDiscomfortReportCommand(try ExecutionDiscomfortReportCommand(from: decoder))
         case "execution.exercise.defer":
             self = .typeExecutionExerciseDeferCommand(try ExecutionExerciseDeferCommand(from: decoder))
+        case "execution.exercise.join":
+            self = .typeExecutionExerciseJoinCommand(try ExecutionExerciseJoinCommand(from: decoder))
         case "execution.exercise.reorder":
             self = .typeExecutionExerciseReorderCommand(try ExecutionExerciseReorderCommand(from: decoder))
         case "execution.exercise.resume":
             self = .typeExecutionExerciseResumeCommand(try ExecutionExerciseResumeCommand(from: decoder))
         case "execution.exercise.skipConfirm":
             self = .typeExecutionExerciseSkipConfirmCommand(try ExecutionExerciseSkipConfirmCommand(from: decoder))
+        case "execution.exercise.split":
+            self = .typeExecutionExerciseSplitCommand(try ExecutionExerciseSplitCommand(from: decoder))
         case "execution.exercise.start":
             self = .typeExecutionExerciseStartCommand(try ExecutionExerciseStartCommand(from: decoder))
         case "execution.rest.record":

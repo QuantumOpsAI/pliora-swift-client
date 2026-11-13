@@ -10,9 +10,10 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Um dia da semana do aluno. &#x60;prescribed&#x60; e &#x60;executed&#x60; são blocos **separados**: o executado nunca reescreve nem substitui o prescrito, e um dia ainda não iniciado não inventa bloco de fato executado nem o preenche com valor neutro. */
+/** Um dia da semana do aluno. &#x60;prescribed&#x60; e &#x60;executed&#x60; são blocos **separados**: o executado nunca reescreve nem substitui o prescrito, e um dia ainda não iniciado não inventa bloco de fato executado nem o preenche com valor neutro. &#x60;placedSessions&#x60; lista as sessões feitas nesta data fora do dia do treino delas — antecipada, adiada ou repetição —, na mesma forma da agenda do aluno e com o fato executado de cada uma. */
 public struct PersonalStudentScheduleDayView: Codable, JSONEncodable, Hashable {
 
+    public static let placedSessionsRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
     /** Data civil no calendário ISO 8601, sem horário ou timezone. */
     public var date: Date
     public var state: PersonalStudentScheduleDayState
@@ -20,12 +21,18 @@ public struct PersonalStudentScheduleDayView: Codable, JSONEncodable, Hashable {
     public var prescribed: PersonalStudentScheduleDayPrescribed?
     /** Referência do fato executado; `null` enquanto não há sessão concluída no dia. */
     public var executed: PersonalStudentScheduleDayExecuted?
+    /** A data, nesta semana, da sessão que satisfez a atribuição deste dia; presente **sempre e somente** com `state` `DONE_ELSEWHERE`. */
+    public var doneOn: Date?
+    /** As sessões colocadas nesta data que não são a atribuição do dia, em ordem de início. Vazia quando não há nenhuma; nunca ausente. */
+    public var placedSessions: [PersonalStudentSchedulePlacedSessionView]
 
-    public init(date: Date, state: PersonalStudentScheduleDayState, prescribed: PersonalStudentScheduleDayPrescribed?, executed: PersonalStudentScheduleDayExecuted?) {
+    public init(date: Date, state: PersonalStudentScheduleDayState, prescribed: PersonalStudentScheduleDayPrescribed?, executed: PersonalStudentScheduleDayExecuted?, doneOn: Date? = nil, placedSessions: [PersonalStudentSchedulePlacedSessionView]) {
         self.date = date
         self.state = state
         self.prescribed = prescribed
         self.executed = executed
+        self.doneOn = doneOn
+        self.placedSessions = placedSessions
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -33,6 +40,8 @@ public struct PersonalStudentScheduleDayView: Codable, JSONEncodable, Hashable {
         case state
         case prescribed
         case executed
+        case doneOn
+        case placedSessions
     }
 
     // Encodable protocol methods
@@ -43,6 +52,8 @@ public struct PersonalStudentScheduleDayView: Codable, JSONEncodable, Hashable {
         try container.encode(state, forKey: .state)
         try container.encode(prescribed, forKey: .prescribed)
         try container.encode(executed, forKey: .executed)
+        try container.encodeIfPresent(doneOn, forKey: .doneOn)
+        try container.encode(placedSessions, forKey: .placedSessions)
     }
 }
 

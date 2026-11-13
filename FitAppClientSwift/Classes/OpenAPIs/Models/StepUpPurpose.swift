@@ -10,10 +10,11 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Finalidade fechada do step-up — os dois únicos atos que a regra protege: a declaração de liberação médica (P9) e a dispensa profissional (P9b) da análise de anamnese (&#x60;DOC-ANAMNESIS-BY-RELATIONSHIP&#x60; §5.1). Qualquer outro ato é &#x60;422 VALIDATION_FAILED&#x60; pelo próprio enum fechado — a lista não é extensível por conveniência. */
+/** Finalidade fechada do step-up — os atos que a regra protege: a declaração de liberação médica (P9) e a dispensa profissional (P9b) da análise de anamnese (&#x60;DOC-ANAMNESIS-BY-RELATIONSHIP&#x60; §5.1), e o cadastro de passkey adicional em conta que já possui credencial (&#x60;ADR-0007&#x60; §3, pliora-backend#1090). Para &#x60;PASSKEY_REGISTRATION&#x60; a intenção é canônica e derivada no servidor: &#x60;targetRef&#x60; é literal &#x60;opq_step_up_control&#x60;, &#x60;targetVersion&#x60; é &#x60;1&#x60;, &#x60;targetRevision&#x60; ecoa a revisão do controle lida (o &#x60;If-Match&#x60; do próprio pedido) — qualquer outro valor é &#x60;422 VALIDATION_FAILED&#x60;. Qualquer outro ato também é &#x60;422 VALIDATION_FAILED&#x60; pelo próprio enum fechado — a lista não é extensível por conveniência. */
 public enum StepUpPurpose: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case medicalClearanceDeclaration = "MEDICAL_CLEARANCE_DECLARATION"
     case professionalWaiver = "PROFESSIONAL_WAIVER"
+    case passkeyRegistration = "PASSKEY_REGISTRATION"
     case unknownDefaultOpenApi = "unknown_default_open_api"
 }
 
