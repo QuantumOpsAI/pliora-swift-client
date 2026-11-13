@@ -26,14 +26,20 @@ public struct WorkoutSessionStartResponse: Codable, JSONEncodable, Hashable {
     /** Instante do servidor em que o início foi confirmado; o dia civil da sessão sai dele, no fuso do vínculo. */
     public var startedAt: Date
     public var nextAction: WorkoutSessionNextAction
+    /** A colocação da sessão na semana, decidida pelo casamento deste início e fixada na sessão: é a que o histórico, o resultado e a semana do personal mostram depois. */
+    public var placement: WorkoutPlacement
+    /** Data do slot que a sessão satisfaz; presente com `ANTICIPATED` e `POSTPONED`, ausente nas demais colocações. */
+    public var slotDate: Date?
 
-    public init(sessionId: String, workoutId: String, prescriptionVersionId: String, status: WorkoutSessionStatus, startedAt: Date, nextAction: WorkoutSessionNextAction) {
+    public init(sessionId: String, workoutId: String, prescriptionVersionId: String, status: WorkoutSessionStatus, startedAt: Date, nextAction: WorkoutSessionNextAction, placement: WorkoutPlacement, slotDate: Date? = nil) {
         self.sessionId = sessionId
         self.workoutId = workoutId
         self.prescriptionVersionId = prescriptionVersionId
         self.status = status
         self.startedAt = startedAt
         self.nextAction = nextAction
+        self.placement = placement
+        self.slotDate = slotDate
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -43,6 +49,8 @@ public struct WorkoutSessionStartResponse: Codable, JSONEncodable, Hashable {
         case status
         case startedAt
         case nextAction
+        case placement
+        case slotDate
     }
 
     // Encodable protocol methods
@@ -55,6 +63,8 @@ public struct WorkoutSessionStartResponse: Codable, JSONEncodable, Hashable {
         try container.encode(status, forKey: .status)
         try container.encode(startedAt, forKey: .startedAt)
         try container.encode(nextAction, forKey: .nextAction)
+        try container.encode(placement, forKey: .placement)
+        try container.encodeIfPresent(slotDate, forKey: .slotDate)
     }
 }
 
@@ -62,6 +72,7 @@ public struct WorkoutSessionStartResponse: Codable, JSONEncodable, Hashable {
 extension WorkoutSessionStartResponse: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if status == .unknownDefaultOpenApi { return true }
+        if placement == .unknownDefaultOpenApi { return true }
         return false
     }
 }

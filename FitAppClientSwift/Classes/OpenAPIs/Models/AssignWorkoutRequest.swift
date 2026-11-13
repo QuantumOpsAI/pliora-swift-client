@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Atribui um treino de versão publicada a uma data civil do aluno. A identidade da atribuição nasce no cliente; a versão precisa estar publicada e existe no máximo uma atribuição vigente por par aluno/data. */
+/** Atribui um treino de versão publicada a uma data civil do aluno. A identidade da atribuição nasce no cliente; a versão precisa estar publicada e existe no máximo uma atribuição à mão do personal vigente por par aluno/data. */
 public struct AssignWorkoutRequest: Codable, JSONEncodable, Hashable {
 
     public static let assignmentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)

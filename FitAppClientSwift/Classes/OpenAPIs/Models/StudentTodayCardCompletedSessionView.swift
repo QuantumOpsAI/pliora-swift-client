@@ -28,13 +28,19 @@ public struct StudentTodayCardCompletedSessionView: Codable, JSONEncodable, Hash
     public var totalSetCount: Int
     /** Quantos recordes a sessão bateu: o tamanho de `records` em `getStudentWorkoutSessionResult`, pela mesma projeção. **Nulo** quando a projeção não pôde ser lida nesta resposta, e então o cartão não desenha a linha de recordes: nulo nunca é lido como zero, e `0` só diz que a sessão não bateu recorde. */
     public var recordCount: Int?
+    /** A colocação da sessão na semana, fixada no início dela e nunca reescrita. */
+    public var placement: WorkoutPlacement
+    /** Data do slot que a sessão satisfez; presente com `ANTICIPATED` e `POSTPONED`, ausente nas demais. */
+    public var slotDate: Date?
 
-    public init(sessionId: String, durationSeconds: Int, completedSetCount: Int, totalSetCount: Int, recordCount: Int?) {
+    public init(sessionId: String, durationSeconds: Int, completedSetCount: Int, totalSetCount: Int, recordCount: Int?, placement: WorkoutPlacement, slotDate: Date? = nil) {
         self.sessionId = sessionId
         self.durationSeconds = durationSeconds
         self.completedSetCount = completedSetCount
         self.totalSetCount = totalSetCount
         self.recordCount = recordCount
+        self.placement = placement
+        self.slotDate = slotDate
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -43,6 +49,8 @@ public struct StudentTodayCardCompletedSessionView: Codable, JSONEncodable, Hash
         case completedSetCount
         case totalSetCount
         case recordCount
+        case placement
+        case slotDate
     }
 
     // Encodable protocol methods
@@ -54,5 +62,15 @@ public struct StudentTodayCardCompletedSessionView: Codable, JSONEncodable, Hash
         try container.encode(completedSetCount, forKey: .completedSetCount)
         try container.encode(totalSetCount, forKey: .totalSetCount)
         try container.encode(recordCount, forKey: .recordCount)
+        try container.encode(placement, forKey: .placement)
+        try container.encodeIfPresent(slotDate, forKey: .slotDate)
+    }
+}
+
+
+extension StudentTodayCardCompletedSessionView: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if placement == .unknownDefaultOpenApi { return true }
+        return false
     }
 }
