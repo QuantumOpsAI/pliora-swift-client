@@ -22,10 +22,13 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
         case workoutAlreadyDoneToday = "WORKOUT_ALREADY_DONE_TODAY"
         case sessionAlreadyExists = "SESSION_ALREADY_EXISTS"
         case placementChanged = "PLACEMENT_CHANGED"
+        case restRequiredToday = "REST_REQUIRED_TODAY"
+        case minRestIntervalNotMet = "MIN_REST_INTERVAL_NOT_MET"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let correlationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let minDaysBetweenSameWorkoutRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: 14, exclusiveMaximum: false, multipleOf: nil)
     public static let sessionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** URI estável que identifica a classe do problema. */
     public var type: String
@@ -41,12 +44,16 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
     public var correlationId: String
     /** Violações por campo quando a validação do comando falhar. */
     public var fieldErrors: [FieldError]?
+    /** Primeiro dia civil, no fuso do vínculo, em que o início deste treino é aceito, presente **sempre e somente** em `MIN_REST_INTERVAL_NOT_MET`: a data da última sessão do mesmo treino, aberta ou concluída, mais o intervalo mínimo. */
+    public var availableFrom: Date?
+    /** O intervalo mínimo entre repetições do mesmo treino, em dias, do plano em vigor, presente **sempre e somente** em `MIN_REST_INTERVAL_NOT_MET`, ao lado de `availableFrom`: a AL2 compõe a frase `Seu personal pede N dias entre repetições deste treino. Libera <data>.` com este número, sem calcular nada. */
+    public var minDaysBetweenSameWorkout: Int?
     /** Identidade canônica da sessão aberta do aluno, presente **sempre e somente** em `SESSION_ALREADY_EXISTS`. É o que permite ao app levar à retomada da sessão que já existe, sem uma leitura a mais, em vez de criar outra. */
     public var sessionId: String?
     /** A colocação que o casamento calcula agora para o treino pedido, presente **sempre e somente** em `PLACEMENT_CHANGED`: o app reabre o resumo com o aviso desta colocação, em vez da que mostrou antes. */
     public var placement: WorkoutPlacement?
 
-    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil, sessionId: String? = nil, placement: WorkoutPlacement? = nil) {
+    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil, availableFrom: Date? = nil, minDaysBetweenSameWorkout: Int? = nil, sessionId: String? = nil, placement: WorkoutPlacement? = nil) {
         self.type = type
         self.title = title
         self.status = status
@@ -55,6 +62,8 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
         self.instance = instance
         self.correlationId = correlationId
         self.fieldErrors = fieldErrors
+        self.availableFrom = availableFrom
+        self.minDaysBetweenSameWorkout = minDaysBetweenSameWorkout
         self.sessionId = sessionId
         self.placement = placement
     }
@@ -68,6 +77,8 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
         case instance
         case correlationId
         case fieldErrors
+        case availableFrom
+        case minDaysBetweenSameWorkout
         case sessionId
         case placement
     }
@@ -84,6 +95,8 @@ public struct StudentWorkoutSessionConflictProblemDetails: Codable, JSONEncodabl
         try container.encodeIfPresent(instance, forKey: .instance)
         try container.encode(correlationId, forKey: .correlationId)
         try container.encodeIfPresent(fieldErrors, forKey: .fieldErrors)
+        try container.encodeIfPresent(availableFrom, forKey: .availableFrom)
+        try container.encodeIfPresent(minDaysBetweenSameWorkout, forKey: .minDaysBetweenSameWorkout)
         try container.encodeIfPresent(sessionId, forKey: .sessionId)
         try container.encodeIfPresent(placement, forKey: .placement)
     }

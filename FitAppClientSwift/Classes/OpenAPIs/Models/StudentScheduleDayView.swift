@@ -20,7 +20,7 @@ public struct StudentScheduleDayView: Codable, JSONEncodable, Hashable {
     /** Data civil no calendário ISO 8601, sem horário ou timezone. */
     public var date: Date
     public var status: StudentScheduleDayStatus
-    /** Identificador público opaco do treino prescrito para esta data; nulo quando não há treino prescrito (`REST_DAY`). */
+    /** Identificador público opaco do treino prescrito para esta data; nulo quando não há treino prescrito (`REST_DAY` e `REST_REQUIRED`). */
     public var workoutId: String?
     /** Nome do treino prescrito {ex. \"Treino A\"}; nulo quando não há treino. Conteúdo do domínio preservado verbatim UTF-8 e invariante de locale. */
     public var workoutName: String?

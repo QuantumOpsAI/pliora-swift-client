@@ -541,6 +541,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/PlanActivationMode.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlanActivationOutcome.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlanActivationView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlanRelationshipState.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PlanRestRequiredWeekday.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlanWeekday.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlanWeekdaySlot.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactChannelGrant.swift
@@ -1599,6 +1600,7 @@ docs/PlanActivationMode.md
 docs/PlanActivationOutcome.md
 docs/PlanActivationView.md
 docs/PlanRelationshipState.md
+docs/PlanRestRequiredWeekday.md
 docs/PlanWeekday.md
 docs/PlanWeekdaySlot.md
 docs/PlatformAPI.md

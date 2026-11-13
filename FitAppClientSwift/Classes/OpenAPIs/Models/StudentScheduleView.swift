@@ -26,7 +26,7 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
     public var weekStart: Date
     /** Timezone IANA em que o servidor resolveu as datas civis e a noção de \"hoje\". O cliente não reinterpreta as datas noutro timezone. */
     public var timeZone: String
-    /** Uma entrada por data civil entre `from` e `to`, inclusive, em ordem crescente e sem lacuna. Um dia sem treino prescrito é `REST_DAY`. Vazio somente com `planState: TRAINING_PAUSED`. */
+    /** Uma entrada por data civil entre `from` e `to`, inclusive, em ordem crescente e sem lacuna. Um dia sem treino prescrito é `REST_DAY`, ou `REST_REQUIRED` no descanso obrigatório em vigor sem sessão na data. Vazio somente com `planState: TRAINING_PAUSED`. */
     public var days: [StudentScheduleDayView]
 
     public init(planState: StudentTrainingPlanState? = nil, planMode: PlanActivationMode? = nil, from: Date, to: Date, weekStart: Date, timeZone: String, days: [StudentScheduleDayView]) {
