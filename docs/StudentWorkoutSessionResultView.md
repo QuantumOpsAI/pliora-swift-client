@@ -4,6 +4,8 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **sessionId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
+**placement** | [**WorkoutPlacement**](WorkoutPlacement.md) | A colocação da sessão na semana, fixada no início dela e nunca reescrita; o resumo mostra o sufixo dela (antecipado, adiado, repetição). |
+**slotDate** | **Date** | Data do slot que a sessão satisfez; presente com &#x60;ANTICIPATED&#x60; e &#x60;POSTPONED&#x60;, ausente nas demais. | [optional]
 **workoutName** | **String** | O nome do treino executado, como estava na versão que originou a sessão. Conteúdo do domínio preservado verbatim. |
 **localDate** | **Date** | O dia civil gravado na sessão, fixado no início dela; não muda se o aluno trocar de personal ou de fuso. |
 **startedAt** | **Date** | O instante do servidor em que a sessão começou. |

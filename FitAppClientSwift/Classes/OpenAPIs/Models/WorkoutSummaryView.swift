@@ -13,6 +13,10 @@ import AnyCodable
 /** Resumo do treino prescrito, lido antes do início da sessão: o treino como o personal o montou — blocos, exercícios e séries prescritas — e, por exercício, a última execução comparável do aluno. As séries são o **prescrito**: nenhum campo descreve o alvo operacional da sessão (&#x60;ExecutionTarget&#x60;), e a série em percentual não aparece calculada — o alvo calculado (&#x60;calculatedLoadTargets&#x60;) só existe depois do início. &#x60;lastComparable&#x60; é projeção de fatos já registrados, nunca alvo nem recomendação. Com o vínculo pausado a resposta é **só** &#x60;planState: TRAINING_PAUSED&#x60;, sem treino; sem &#x60;planState&#x60;, todo o resumo é obrigatório. */
 public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
 
+    public enum BlockedBy: String, Codable, CaseIterable, CaseIterableDefaultsLast {
+        case minRestInterval = "MIN_REST_INTERVAL"
+        case unknownDefaultOpenApi = "unknown_default_open_api"
+    }
     public static let workoutIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescriptionVersionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let nameRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -42,8 +46,20 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
     public var blocks: [PrescribedBlock]?
     /** Exercícios prescritos, na ordem prescrita pelo personal, com as séries prescritas e a última execução comparável de cada um. */
     public var exercises: [WorkoutSummaryExerciseView]?
+    /** A colocação que o início deste treino teria hoje, pelo casamento de `startStudentWorkoutSession`: é daqui que a tela tira o aviso antes de iniciar, e o pedido de início a devolve em `expectedPlacement`. Obrigatória em toda leitura com treino; `ON_SCHEDULE` em sequência livre. */
+    public var placementToday: WorkoutPlacement?
+    /** Data do slot que o início hoje satisfaria; presente com `placementToday` `ANTICIPATED` ou `POSTPONED`, ausente nas demais colocações. */
+    public var slotDate: Date?
+    /** Dia desta semana (segunda a domingo) em que o aluno já concluiu este treino, para o aviso de repetição; ausente quando ele não o concluiu nesta semana. */
+    public var doneThisWeekOn: Date?
+    /** `true` quando o aluno já concluiu algum treino hoje, para o aviso de segundo treino do dia. Em plano por dias da semana não é recusa: não existe limite de um treino por dia. Em sequência livre o início de outro treino no mesmo dia continua recusado (`WORKOUT_ALREADY_DONE_TODAY`, `Q-09`). */
+    public var secondWorkoutToday: Bool?
+    /** Por que o início deste treino seria recusado hoje: `MIN_REST_INTERVAL` é o intervalo mínimo entre repetições, que entra em 0.121.0; nesta versão nunca é produzido. Vem com `availableFrom`. */
+    public var blockedBy: BlockedBy?
+    /** Primeiro dia em que o início deixa de ser recusado; presente só com `blockedBy`. */
+    public var availableFrom: Date?
 
-    public init(planState: StudentTrainingPlanState? = nil, workoutId: String? = nil, prescriptionVersionId: String? = nil, name: String? = nil, focus: String? = nil, estimatedDurationMinutes: DurationMinutesRange? = nil, exerciseCount: Int? = nil, setCount: Int? = nil, coachNotes: String? = nil, blocks: [PrescribedBlock]? = nil, exercises: [WorkoutSummaryExerciseView]? = nil) {
+    public init(planState: StudentTrainingPlanState? = nil, workoutId: String? = nil, prescriptionVersionId: String? = nil, name: String? = nil, focus: String? = nil, estimatedDurationMinutes: DurationMinutesRange? = nil, exerciseCount: Int? = nil, setCount: Int? = nil, coachNotes: String? = nil, blocks: [PrescribedBlock]? = nil, exercises: [WorkoutSummaryExerciseView]? = nil, placementToday: WorkoutPlacement? = nil, slotDate: Date? = nil, doneThisWeekOn: Date? = nil, secondWorkoutToday: Bool? = nil, blockedBy: BlockedBy? = nil, availableFrom: Date? = nil) {
         self.planState = planState
         self.workoutId = workoutId
         self.prescriptionVersionId = prescriptionVersionId
@@ -55,6 +71,12 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
         self.coachNotes = coachNotes
         self.blocks = blocks
         self.exercises = exercises
+        self.placementToday = placementToday
+        self.slotDate = slotDate
+        self.doneThisWeekOn = doneThisWeekOn
+        self.secondWorkoutToday = secondWorkoutToday
+        self.blockedBy = blockedBy
+        self.availableFrom = availableFrom
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -69,6 +91,12 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
         case coachNotes
         case blocks
         case exercises
+        case placementToday
+        case slotDate
+        case doneThisWeekOn
+        case secondWorkoutToday
+        case blockedBy
+        case availableFrom
     }
 
     // Encodable protocol methods
@@ -86,6 +114,12 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(coachNotes, forKey: .coachNotes)
         try container.encodeIfPresent(blocks, forKey: .blocks)
         try container.encodeIfPresent(exercises, forKey: .exercises)
+        try container.encodeIfPresent(placementToday, forKey: .placementToday)
+        try container.encodeIfPresent(slotDate, forKey: .slotDate)
+        try container.encodeIfPresent(doneThisWeekOn, forKey: .doneThisWeekOn)
+        try container.encodeIfPresent(secondWorkoutToday, forKey: .secondWorkoutToday)
+        try container.encodeIfPresent(blockedBy, forKey: .blockedBy)
+        try container.encodeIfPresent(availableFrom, forKey: .availableFrom)
     }
 }
 
@@ -93,6 +127,8 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
 extension WorkoutSummaryView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if planState == .unknownDefaultOpenApi { return true }
+        if placementToday == .unknownDefaultOpenApi { return true }
+        if blockedBy == .unknownDefaultOpenApi { return true }
         return false
     }
 }

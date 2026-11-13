@@ -28,6 +28,10 @@ public struct StudentWorkoutSessionHistoryItem: Codable, JSONEncodable, Hashable
     public static let recordsRule = ArrayRule(minItems: nil, maxItems: 3, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var sessionId: String
+    /** A colocação da sessão na semana, fixada no início dela e nunca reescrita; a linha do histórico mostra o sufixo dela (antecipado, adiado, repetição). */
+    public var placement: WorkoutPlacement
+    /** Data do slot que a sessão satisfez; presente com `ANTICIPATED` e `POSTPONED`, ausente nas demais. */
+    public var slotDate: Date?
     /** O nome do treino executado, como estava na versão que originou a sessão. Conteúdo do domínio preservado verbatim. */
     public var workoutName: String
     /** O dia civil gravado na sessão, fixado no início dela; é com ele que `from` e `to` comparam. */
@@ -52,8 +56,10 @@ public struct StudentWorkoutSessionHistoryItem: Codable, JSONEncodable, Hashable
     /** Até 3 recordes da sessão, resumidos, os primeiros do `records` do resultado dela. Vazia quando a sessão não bateu recorde e quando `recordCount` é nulo. */
     public var records: [StudentProgressRecord]
 
-    public init(sessionId: String, workoutName: String, localDate: Date, startedAt: Date, endedAt: Date, durationSeconds: Int?, recordedLater: RecordedLater? = nil, status: Status, endedBy: WorkoutSessionEndedBy, completedSetCount: Int, totalSetCount: Int, recordCount: Int?, records: [StudentProgressRecord]) {
+    public init(sessionId: String, placement: WorkoutPlacement, slotDate: Date? = nil, workoutName: String, localDate: Date, startedAt: Date, endedAt: Date, durationSeconds: Int?, recordedLater: RecordedLater? = nil, status: Status, endedBy: WorkoutSessionEndedBy, completedSetCount: Int, totalSetCount: Int, recordCount: Int?, records: [StudentProgressRecord]) {
         self.sessionId = sessionId
+        self.placement = placement
+        self.slotDate = slotDate
         self.workoutName = workoutName
         self.localDate = localDate
         self.startedAt = startedAt
@@ -70,6 +76,8 @@ public struct StudentWorkoutSessionHistoryItem: Codable, JSONEncodable, Hashable
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case sessionId
+        case placement
+        case slotDate
         case workoutName
         case localDate
         case startedAt
@@ -89,6 +97,8 @@ public struct StudentWorkoutSessionHistoryItem: Codable, JSONEncodable, Hashable
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(sessionId, forKey: .sessionId)
+        try container.encode(placement, forKey: .placement)
+        try container.encodeIfPresent(slotDate, forKey: .slotDate)
         try container.encode(workoutName, forKey: .workoutName)
         try container.encode(localDate, forKey: .localDate)
         try container.encode(startedAt, forKey: .startedAt)
@@ -107,6 +117,7 @@ public struct StudentWorkoutSessionHistoryItem: Codable, JSONEncodable, Hashable
 
 extension StudentWorkoutSessionHistoryItem: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
+        if placement == .unknownDefaultOpenApi { return true }
         if status == .unknownDefaultOpenApi { return true }
         if endedBy == .unknownDefaultOpenApi { return true }
         return false

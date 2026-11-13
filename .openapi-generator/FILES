@@ -527,6 +527,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleDayExecuted.swi
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleDayPrescribed.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleDayState.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleDayView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentSchedulePlacedSessionView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentsForbiddenProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentsUnauthenticatedProblemDetails.swift
@@ -845,6 +846,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentRelationshipReplacementInput.sw
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentRelationshipView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleDayStatus.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleDayView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentSchedulePlacedSessionView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleRangeProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentSequenceWorkoutView.swift
@@ -869,6 +871,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayCardSessionStatus.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayHeaderView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayLastSessionCardView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayLastSessionView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayOfferView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayOpenSessionView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayPersonalRef.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayPrescribedWorkoutView.swift
@@ -1050,6 +1053,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutControlValuesReps.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutControlView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutCoreSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutLoad.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutPlacement.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutReminderPreference.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutSessionEffort.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutSessionEndedBy.swift
@@ -1581,6 +1585,7 @@ docs/PersonalStudentScheduleDayExecuted.md
 docs/PersonalStudentScheduleDayPrescribed.md
 docs/PersonalStudentScheduleDayState.md
 docs/PersonalStudentScheduleDayView.md
+docs/PersonalStudentSchedulePlacedSessionView.md
 docs/PersonalStudentScheduleView.md
 docs/PersonalStudentsForbiddenProblemDetails.md
 docs/PersonalStudentsUnauthenticatedProblemDetails.md
@@ -1906,6 +1911,7 @@ docs/StudentRelationshipReplacementInput.md
 docs/StudentRelationshipView.md
 docs/StudentScheduleDayStatus.md
 docs/StudentScheduleDayView.md
+docs/StudentSchedulePlacedSessionView.md
 docs/StudentScheduleRangeProblemDetails.md
 docs/StudentScheduleView.md
 docs/StudentSequenceWorkoutView.md
@@ -1930,6 +1936,7 @@ docs/StudentTodayCardSessionStatus.md
 docs/StudentTodayHeaderView.md
 docs/StudentTodayLastSessionCardView.md
 docs/StudentTodayLastSessionView.md
+docs/StudentTodayOfferView.md
 docs/StudentTodayOpenSessionView.md
 docs/StudentTodayPersonalRef.md
 docs/StudentTodayPrescribedWorkoutView.md
@@ -2114,6 +2121,7 @@ docs/WorkoutControlView.md
 docs/WorkoutCoreSyncView.md
 docs/WorkoutExecutionAPI.md
 docs/WorkoutLoad.md
+docs/WorkoutPlacement.md
 docs/WorkoutReminderPreference.md
 docs/WorkoutSessionEffort.md
 docs/WorkoutSessionEndedBy.md
