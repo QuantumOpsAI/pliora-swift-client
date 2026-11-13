@@ -13,6 +13,7 @@ import AnyCodable
 /** Bloco consolidado exibido uma única vez no resumo, somente quando houver conteúdo, detalhando as adaptações da sessão (AL12 item 3; &#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §2.5.1). */
 public struct StudentWorkoutSessionResultWhatChanged: Codable, JSONEncodable, Hashable {
 
+    public static let studentNotesRule = ArrayRule(minItems: nil, maxItems: 400, uniqueItems: false)
     /** Divergência entre executedOrder e prescribedOrder. */
     public var orderDivergence: Bool?
     /** Identificadores dos blocos separados nesta sessão. */
@@ -23,11 +24,11 @@ public struct StudentWorkoutSessionResultWhatChanged: Codable, JSONEncodable, Ha
     public var exerciseSetDifferences: [StudentWorkoutSessionExerciseSetDifference]?
     /** Pulos de exercício ou série com justificativa declarada. */
     public var skips: [StudentWorkoutSessionResultSkip]?
-    /** Classificação de lacunas na execução. */
+    /** Classificação de lacunas na execução: as séries `Não fiz`, `Fiz sem anotar os números` e com `valores da prescrição`. */
     public var gapClassifications: [StudentWorkoutSessionGapClassification]?
     /** Séries ou exercícios deixados para depois. */
     public var deferredExercises: [StudentWorkoutSessionResultDeferral]?
-    /** Observações do aluno marcadas com o selo Mostrado ao personal (§7.10). */
+    /** As observações do aluno na sessão, da série e das adaptações, marcadas ou não; o selo `Mostrado ao personal` vem de `sharedWithPersonal` de cada uma (§7.10). */
     public var studentNotes: [StudentWorkoutSessionStudentNote]?
 
     public init(orderDivergence: Bool? = nil, splitBlocks: [String]? = nil, substitutions: [StudentWorkoutSessionResultSubstitution]? = nil, exerciseSetDifferences: [StudentWorkoutSessionExerciseSetDifference]? = nil, skips: [StudentWorkoutSessionResultSkip]? = nil, gapClassifications: [StudentWorkoutSessionGapClassification]? = nil, deferredExercises: [StudentWorkoutSessionResultDeferral]? = nil, studentNotes: [StudentWorkoutSessionStudentNote]? = nil) {

@@ -8,5 +8,6 @@ Name | Type | Description | Notes
 **setType** | [**PrescribedSetType**](PrescribedSetType.md) | Tipo da série, **obrigatório**: a série comum é &#x60;WORKING&#x60;, nunca a ausência do campo. &#x60;DROP_SET&#x60; nunca é a primeira série do exercício, e em bloco combinado o tipo é por série, não por rodada. |
 **derivedFromPrescribedSetId** | **String** | Série da versão de origem da qual esta foi copiada, **gravada pelo servidor** quando o rascunho é &#x60;REVISION&#x60;. É o vínculo que deixa a revisão dizer o que mudou. Ausente em série que o personal criou neste rascunho e em rascunho que não é revisão. O cliente nunca a declara: reenviá-la na edição é inócuo e um valor diferente do gravado nunca o substitui. | [optional]
 **target** | [**PrescribedTarget**](PrescribedTarget.md) |  | [optional]
+**note** | **String** | Nota curta do personal específica para esta série (ex. \&quot;barra vazia\&quot;, \&quot;~60% da carga de trabalho\&quot;), preservada verbatim UTF-8. Ausente quando não há. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

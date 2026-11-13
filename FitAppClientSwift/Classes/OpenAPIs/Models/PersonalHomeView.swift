@@ -30,8 +30,9 @@ public struct PersonalHomeView: Codable, JSONEncodable, Hashable {
     public var hasPendingProfessionalRegistration: Bool
     /** Verdadeiro quando existe ao menos um convite ainda não terminal emitido por esta conta. É **booleano de propósito**: a Home só precisa distinguir \"não tenho alunos\" de \"convidei e ainda não aceitaram\", e a lista, os estados por convite e as ações de reenviar e cancelar continuam em `listPersonalStudentInvitations`, que é a origem deste sinal. Convite não é vínculo: ele não entra em `PersonalRelationshipSummary` nem em `activeStudentCount`, e falso nunca é o resultado de uma falha de leitura — indisponibilidade é `503 PERSONAL_HOME_UNAVAILABLE`. */
     public var hasPendingStudentInvitations: Bool
+    public var professionalVerificationState: ProfessionalVerificationStatus
 
-    public init(asOf: Date, homeState: PersonalHomeState, activeStudentCount: Int, attentionItemCount: Int, studentsWithAttentionItemCount: Int, hasPendingProfessionalRegistration: Bool, hasPendingStudentInvitations: Bool) {
+    public init(asOf: Date, homeState: PersonalHomeState, activeStudentCount: Int, attentionItemCount: Int, studentsWithAttentionItemCount: Int, hasPendingProfessionalRegistration: Bool, hasPendingStudentInvitations: Bool, professionalVerificationState: ProfessionalVerificationStatus) {
         self.asOf = asOf
         self.homeState = homeState
         self.activeStudentCount = activeStudentCount
@@ -39,6 +40,7 @@ public struct PersonalHomeView: Codable, JSONEncodable, Hashable {
         self.studentsWithAttentionItemCount = studentsWithAttentionItemCount
         self.hasPendingProfessionalRegistration = hasPendingProfessionalRegistration
         self.hasPendingStudentInvitations = hasPendingStudentInvitations
+        self.professionalVerificationState = professionalVerificationState
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -49,6 +51,7 @@ public struct PersonalHomeView: Codable, JSONEncodable, Hashable {
         case studentsWithAttentionItemCount
         case hasPendingProfessionalRegistration
         case hasPendingStudentInvitations
+        case professionalVerificationState
     }
 
     // Encodable protocol methods
@@ -62,6 +65,7 @@ public struct PersonalHomeView: Codable, JSONEncodable, Hashable {
         try container.encode(studentsWithAttentionItemCount, forKey: .studentsWithAttentionItemCount)
         try container.encode(hasPendingProfessionalRegistration, forKey: .hasPendingProfessionalRegistration)
         try container.encode(hasPendingStudentInvitations, forKey: .hasPendingStudentInvitations)
+        try container.encode(professionalVerificationState, forKey: .professionalVerificationState)
     }
 }
 
@@ -69,6 +73,7 @@ public struct PersonalHomeView: Codable, JSONEncodable, Hashable {
 extension PersonalHomeView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if homeState == .unknownDefaultOpenApi { return true }
+        if professionalVerificationState == .unknownDefaultOpenApi { return true }
         return false
     }
 }

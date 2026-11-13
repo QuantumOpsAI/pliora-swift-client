@@ -7,7 +7,8 @@ Name | Type | Description | Notes
 **amendmentId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **setExecutionId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **previous** | [**WorkoutSetValues**](WorkoutSetValues.md) |  |
-**replacement** | [**WorkoutSetValues**](WorkoutSetValues.md) |  |
+**replacement** | [**WorkoutSetValues**](WorkoutSetValues.md) | Os valores corrigidos; &#x60;null&#x60; quando a emenda corrigiu o estado. |
+**status** | **String** | O estado corrigido; &#x60;null&#x60; quando a emenda corrigiu os valores. |
 **reason** | **String** |  |
 **amendedAt** | **Date** | Instante RFC 3339 / ISO 8601 com offset explícito. |
 

@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Marcas curtas de adaptações ocorridas na série (AL12 item 2; &#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §2.5.1): a mais (ADDITIONAL), sem registro (NO_RECORD), não fiz (NOT_DONE), fiz sem anotar (DONE_WITHOUT_RECORDING), corrigido (AMENDED), registrado por engano (RECORDED_BY_MISTAKE), ordem alterada (REORDERED), substituído (SUBSTITUTED), bloco separado (SPLIT_BLOCK), valores da prescrição (PRESCRIBED_VALUES). */
+/** Marcas curtas de adaptações ocorridas na série (AL12 item 2; &#x60;DOC-STUDENT-WORKOUT-TECH&#x60; §2.5.1): a mais (ADDITIONAL), sem registro (NO_RECORD), não fiz (NOT_DONE), fiz sem anotar (DONE_WITHOUT_RECORDING), corrigido (AMENDED: valores ou estado corrigidos, inclusive para &#x60;Não fiz&#x60;), registrado por engano (RECORDED_BY_MISTAKE: a série anulada, que só o resultado do aluno mostra; o personal lê a linha como sem registro com &#x60;corrigido&#x60;), ordem alterada (REORDERED), substituído (SUBSTITUTED), bloco separado (SPLIT_BLOCK), valores da prescrição (PRESCRIBED_VALUES). */
 public enum StudentWorkoutSessionSetBadge: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case additional = "ADDITIONAL"
     case noRecord = "NO_RECORD"

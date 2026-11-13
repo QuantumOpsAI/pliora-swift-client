@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 **exerciseExecutionId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **prescribedSetId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
 **setIndex** | **Int** |  |
-**status** | [**ExecutedSetStatus**](ExecutedSetStatus.md) |  |
+**status** | [**RecordedSetStatus**](RecordedSetStatus.md) |  |
 **target** | [**ExecutionTargetValues**](ExecutionTargetValues.md) |  |
 **actual** | [**WorkoutSetValues**](WorkoutSetValues.md) |  | [optional]
 **measuredDurationSeconds** | **Int** | Duração da série por tempo **medida pelo cronômetro da série**, em segundos. No request terminal direto, obrigatória em série por tempo concluída ou parcial e proibida nas demais. Na OPEN timed controlada é omitida pelo chamador, e o servidor a deriva junto de actual.durationSeconds no commit. Nunca é sobrescrita: se &#x60;actual.durationSeconds&#x60; for diferente dela, o aluno a corrigiu, e o servidor publica o valor corrigido em &#x60;adjustedDurationSeconds&#x60;. | [optional]

@@ -10,7 +10,6 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Referência de mídia provider-agnostic. A identidade de cache é &#x60;(assetId, mediaVersion)&#x60;; &#x60;url&#x60; é uma referência de entrega renovável e nunca participa da identidade. OFFLINE_DOWNLOAD_ALLOWED exige sha256 e byteSize na emissão do backend; TEMPORARY_CACHE_ALLOWED só pode ser retido até offlineValidUntil. &#x60;angle&#x60; e &#x60;demonstrator&#x60;, quando a origem os informa, distinguem os assets de um mesmo exercício; são códigos opacos de vocabulário aberto, nunca enums, e a ausência significa que a origem não os informa. O vídeo de exercício próprio do personal é user-media (&#x60;ADR-0015&#x60;): chega com &#x60;offlinePolicy: STREAM_ONLY&#x60; — sem direito de cache além da reprodução e sem &#x60;offlineValidUntil&#x60; —, &#x60;url&#x60; de curta duração com &#x60;expiresAt&#x60;, e deixa de ser servido no tombstone, que não recolhe uma URL já emitida: ela serve até vencer. */
 public struct ExerciseMediaAsset: Codable, JSONEncodable, Hashable {
 
     public enum Availability: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -29,6 +28,8 @@ public struct ExerciseMediaAsset: Codable, JSONEncodable, Hashable {
     public enum Usage: String, Codable, CaseIterable, CaseIterableDefaultsLast {
         case thumbnail = "THUMBNAIL"
         case demonstration = "DEMONSTRATION"
+        case poster = "POSTER"
+        case bodyMap = "BODY_MAP"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public enum OfflinePolicy: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -52,6 +53,7 @@ public struct ExerciseMediaAsset: Codable, JSONEncodable, Hashable {
     /** Estado explícito; nunca deve ser inferido da presença de URL. */
     public var availability: Availability
     public var mediaType: MediaType
+    /** Papel do asset. `DEMONSTRATION` é a execução em vídeo do exercício; `THUMBNAIL` é a miniatura que a mídia própria do personal já publica; `POSTER` é o quadro de capa de um vídeo `DEMONSTRATION` do catálogo, um `IMAGE` pareado ao vídeo pelo mesmo `angle` e `demonstrator`; `BODY_MAP` é o mapa corporal do exercício, um `IMAGE` com os músculos destacados, emitido por `demonstrator`. `POSTER` e `BODY_MAP` nunca são miniatura de lista: `THUMBNAIL` não as substitui e nenhuma das três entra em listagem. */
     public var usage: Usage
     /** STREAM_ONLY proíbe persistência offline; TEMPORARY_CACHE_ALLOWED permite cache somente até offlineValidUntil; OFFLINE_DOWNLOAD_ALLOWED permite download verificável por sha256/byteSize dentro dos direitos vigentes. */
     public var offlinePolicy: OfflinePolicy

@@ -13,6 +13,8 @@ Name | Type | Description | Notes
 **notes** | **String** | Observação do personal para este exercício, preservada verbatim UTF-8, nunca traduzida nem truncada. Ausente quando não há. | [optional]
 **cadence** | [**PrescribedCadence**](PrescribedCadence.md) |  | [optional]
 **technique** | [**PrescribedTechnique**](PrescribedTechnique.md) |  | [optional]
+**equipment** | **String** | Equipamento do exercício em texto legível, como a origem o entrega — o mesmo de &#x60;ExerciseCatalogDetail.equipment&#x60;, do registro do catálogo ou do exercício próprio. Ausente quando a origem não o informa. | [optional]
+**primaryMuscles** | **[String]** | Músculos principais do exercício em texto legível, como a origem os entrega — os mesmos de &#x60;ExerciseCatalogDetail.primaryMuscles&#x60;, do registro do catálogo ou do exercício próprio. Ausente quando a origem não os informa. | [optional]
 **sets** | [WorkoutSummarySetView] | Séries prescritas do exercício, na ordem de &#x60;setIndex&#x60;. |
 **lastComparable** | [**WorkoutSummaryLastComparableView**](WorkoutSummaryLastComparableView.md) |  | [optional]
 

@@ -4,7 +4,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **setIndex** | **Int** |  |
-**status** | [**ExecutedSetStatus**](ExecutedSetStatus.md) |  |
+**status** | [**RecordedSetStatus**](RecordedSetStatus.md) | O estado em vigor da série. Nulo **se e somente se** a linha é a série prescrita que voltou a sem registro porque o único fato dela foi anulado como registrado por engano; então &#x60;adaptationBadges&#x60; traz &#x60;NO_RECORD&#x60; e &#x60;AMENDED&#x60;. |
 **setType** | [**PrescribedSetType**](PrescribedSetType.md) | Tipo da série prescrita (&#x60;LE-16&#x60;): a comparação entre séries considera só as do mesmo tipo, e a de aquecimento não entra em maior carga nem em volume. Ausente quando não houve prescrição registrada. | [optional]
 **loadPercent** | **Double** | Percentual da carga de referência com que a série foi prescrita; ausente quando a carga prescrita não era em percentual. É o prescrito e nunca vira carga: em &#x60;prescribed&#x60;, &#x60;loadValue&#x60; e &#x60;loadUnit&#x60; ficam nulos, e a carga **executada** está em &#x60;actual&#x60;. | [optional]
 **prescribed** | [**WorkoutSetValues**](WorkoutSetValues.md) | Valores prescritos da série. &#x60;null&#x60; quando não houve prescrição registrada — e nenhum valor presumido é preenchido para destravar a comparação. |

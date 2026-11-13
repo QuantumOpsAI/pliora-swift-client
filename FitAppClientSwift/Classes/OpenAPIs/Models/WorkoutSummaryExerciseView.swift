@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Um exercício prescrito como o aluno o vê antes de iniciar: identidade, posição, nome, variante prescrita, bloco, observação, cadência, técnica, as séries prescritas e a última execução comparável. Não transporta alvo operacional, carga calculada, fato desta sessão, alternativa autorizada nem mídia. */
+/** Um exercício prescrito como o aluno o vê antes de iniciar: identidade, posição, nome, variante prescrita, bloco, observação, cadência, técnica, equipamento e músculos principais em texto legível, as séries prescritas e a última execução comparável. Não transporta alvo operacional, carga calculada, fato desta sessão, alternativa autorizada nem mídia. */
 public struct WorkoutSummaryExerciseView: Codable, JSONEncodable, Hashable {
 
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -21,6 +21,8 @@ public struct WorkoutSummaryExerciseView: Codable, JSONEncodable, Hashable {
     public static let setCountRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let blockKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
     public static let notesRule = StringRule(minLength: 1, maxLength: 2000, pattern: nil)
+    public static let equipmentRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
+    public static let primaryMusclesRule = ArrayRule(minItems: 1, maxItems: 20, uniqueItems: false)
     public static let setsRule = ArrayRule(minItems: 1, maxItems: 50, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var exerciseId: String
@@ -40,11 +42,15 @@ public struct WorkoutSummaryExerciseView: Codable, JSONEncodable, Hashable {
     public var notes: String?
     public var cadence: PrescribedCadence?
     public var technique: PrescribedTechnique?
+    /** Equipamento do exercício em texto legível, como a origem o entrega — o mesmo de `ExerciseCatalogDetail.equipment`, do registro do catálogo ou do exercício próprio. Ausente quando a origem não o informa. */
+    public var equipment: String?
+    /** Músculos principais do exercício em texto legível, como a origem os entrega — os mesmos de `ExerciseCatalogDetail.primaryMuscles`, do registro do catálogo ou do exercício próprio. Ausente quando a origem não os informa. */
+    public var primaryMuscles: [String]?
     /** Séries prescritas do exercício, na ordem de `setIndex`. */
     public var sets: [WorkoutSummarySetView]
     public var lastComparable: WorkoutSummaryLastComparableView?
 
-    public init(exerciseId: String, prescribedExerciseId: String, variantId: String, position: Int, name: String, setCount: Int, blockKey: String? = nil, notes: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, sets: [WorkoutSummarySetView], lastComparable: WorkoutSummaryLastComparableView? = nil) {
+    public init(exerciseId: String, prescribedExerciseId: String, variantId: String, position: Int, name: String, setCount: Int, blockKey: String? = nil, notes: String? = nil, cadence: PrescribedCadence? = nil, technique: PrescribedTechnique? = nil, equipment: String? = nil, primaryMuscles: [String]? = nil, sets: [WorkoutSummarySetView], lastComparable: WorkoutSummaryLastComparableView? = nil) {
         self.exerciseId = exerciseId
         self.prescribedExerciseId = prescribedExerciseId
         self.variantId = variantId
@@ -55,6 +61,8 @@ public struct WorkoutSummaryExerciseView: Codable, JSONEncodable, Hashable {
         self.notes = notes
         self.cadence = cadence
         self.technique = technique
+        self.equipment = equipment
+        self.primaryMuscles = primaryMuscles
         self.sets = sets
         self.lastComparable = lastComparable
     }
@@ -70,6 +78,8 @@ public struct WorkoutSummaryExerciseView: Codable, JSONEncodable, Hashable {
         case notes
         case cadence
         case technique
+        case equipment
+        case primaryMuscles
         case sets
         case lastComparable
     }
@@ -88,6 +98,8 @@ public struct WorkoutSummaryExerciseView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(notes, forKey: .notes)
         try container.encodeIfPresent(cadence, forKey: .cadence)
         try container.encodeIfPresent(technique, forKey: .technique)
+        try container.encodeIfPresent(equipment, forKey: .equipment)
+        try container.encodeIfPresent(primaryMuscles, forKey: .primaryMuscles)
         try container.encode(sets, forKey: .sets)
         try container.encodeIfPresent(lastComparable, forKey: .lastComparable)
     }

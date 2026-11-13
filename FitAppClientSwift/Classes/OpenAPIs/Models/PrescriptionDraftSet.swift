@@ -16,6 +16,7 @@ public struct PrescriptionDraftSet: Codable, JSONEncodable, Hashable {
     public static let prescribedSetIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let setIndexRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     public static let derivedFromPrescribedSetIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let noteRule = StringRule(minLength: 1, maxLength: 500, pattern: nil)
     /** Identidade da série, criada pelo personal no device para que a edição offline seja idempotente. */
     public var prescribedSetId: String
     public var setIndex: Int
@@ -24,13 +25,16 @@ public struct PrescriptionDraftSet: Codable, JSONEncodable, Hashable {
     /** Série da versão de origem da qual esta foi copiada, **gravada pelo servidor** quando o rascunho é `REVISION`. É o vínculo que deixa a revisão dizer o que mudou. Ausente em série que o personal criou neste rascunho e em rascunho que não é revisão. O cliente nunca a declara: reenviá-la na edição é inócuo e um valor diferente do gravado nunca o substitui. */
     public var derivedFromPrescribedSetId: String?
     public var target: PrescribedTarget?
+    /** Nota curta do personal específica para esta série (ex. \"barra vazia\", \"~60% da carga de trabalho\"), preservada verbatim UTF-8. Ausente quando não há. */
+    public var note: String?
 
-    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, derivedFromPrescribedSetId: String? = nil, target: PrescribedTarget? = nil) {
+    public init(prescribedSetId: String, setIndex: Int, setType: PrescribedSetType, derivedFromPrescribedSetId: String? = nil, target: PrescribedTarget? = nil, note: String? = nil) {
         self.prescribedSetId = prescribedSetId
         self.setIndex = setIndex
         self.setType = setType
         self.derivedFromPrescribedSetId = derivedFromPrescribedSetId
         self.target = target
+        self.note = note
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -39,6 +43,7 @@ public struct PrescriptionDraftSet: Codable, JSONEncodable, Hashable {
         case setType
         case derivedFromPrescribedSetId
         case target
+        case note
     }
 
     // Encodable protocol methods
@@ -50,6 +55,7 @@ public struct PrescriptionDraftSet: Codable, JSONEncodable, Hashable {
         try container.encode(setType, forKey: .setType)
         try container.encodeIfPresent(derivedFromPrescribedSetId, forKey: .derivedFromPrescribedSetId)
         try container.encodeIfPresent(target, forKey: .target)
+        try container.encodeIfPresent(note, forKey: .note)
     }
 }
 

@@ -31,6 +31,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
     public var sessionProvider: SessionIdentityProvider
     public var professionalRegistration: ProfessionalRegistrationView?
     public var professionalRegistrationStatus: ProfessionalRegistrationStatus
+    public var professionalVerification: ProfessionalVerificationView
     /** Cidade autorada pela própria pessoa; ausente quando não informada. */
     public var city: String?
     /** Elegibilidade para convidar alunos, calculada exclusivamente pelo servidor. Falsa sempre que o registro profissional está ausente. */
@@ -45,7 +46,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
     public var preferences: PersonalPreferencesView
     public var relationshipSummary: PersonalRelationshipSummary
 
-    public init(revision: String, displayName: String? = nil, avatar: AvatarView, email: String? = nil, emailKind: IdentityEmailKind, sessionProvider: SessionIdentityProvider, professionalRegistration: ProfessionalRegistrationView? = nil, professionalRegistrationStatus: ProfessionalRegistrationStatus, city: String? = nil, canInvite: Bool, canImportGooglePhoto: Bool, specialties: Set<PersonalSpecialty>, otherSpecialty: String? = nil, workStyle: PersonalWorkStyleView, preferences: PersonalPreferencesView, relationshipSummary: PersonalRelationshipSummary) {
+    public init(revision: String, displayName: String? = nil, avatar: AvatarView, email: String? = nil, emailKind: IdentityEmailKind, sessionProvider: SessionIdentityProvider, professionalRegistration: ProfessionalRegistrationView? = nil, professionalRegistrationStatus: ProfessionalRegistrationStatus, professionalVerification: ProfessionalVerificationView, city: String? = nil, canInvite: Bool, canImportGooglePhoto: Bool, specialties: Set<PersonalSpecialty>, otherSpecialty: String? = nil, workStyle: PersonalWorkStyleView, preferences: PersonalPreferencesView, relationshipSummary: PersonalRelationshipSummary) {
         self.revision = revision
         self.displayName = displayName
         self.avatar = avatar
@@ -54,6 +55,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
         self.sessionProvider = sessionProvider
         self.professionalRegistration = professionalRegistration
         self.professionalRegistrationStatus = professionalRegistrationStatus
+        self.professionalVerification = professionalVerification
         self.city = city
         self.canInvite = canInvite
         self.canImportGooglePhoto = canImportGooglePhoto
@@ -73,6 +75,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
         case sessionProvider
         case professionalRegistration
         case professionalRegistrationStatus
+        case professionalVerification
         case city
         case canInvite
         case canImportGooglePhoto
@@ -106,6 +109,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
         self.sessionProvider = try container.decode(SessionIdentityProvider.self, forKey: .sessionProvider)
         self.professionalRegistration = try container.decodeIfPresent(ProfessionalRegistrationView.self, forKey: .professionalRegistration)
         self.professionalRegistrationStatus = try container.decode(ProfessionalRegistrationStatus.self, forKey: .professionalRegistrationStatus)
+        self.professionalVerification = try container.decode(ProfessionalVerificationView.self, forKey: .professionalVerification)
         self.city = try container.decodeIfPresent(String.self, forKey: .city)
         self.canInvite = try container.decode(Bool.self, forKey: .canInvite)
         self.canImportGooglePhoto = try container.decode(Bool.self, forKey: .canImportGooglePhoto)
@@ -129,6 +133,7 @@ public struct PersonalProfileView: Codable, JSONEncodable, Hashable {
         try container.encode(sessionProvider, forKey: .sessionProvider)
         try container.encodeIfPresent(professionalRegistration, forKey: .professionalRegistration)
         try container.encode(professionalRegistrationStatus, forKey: .professionalRegistrationStatus)
+        try container.encode(professionalVerification, forKey: .professionalVerification)
         try container.encodeIfPresent(city, forKey: .city)
         try container.encode(canInvite, forKey: .canInvite)
         try container.encode(canImportGooglePhoto, forKey: .canImportGooglePhoto)

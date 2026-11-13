@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 **mediaVersion** | **String** | Versão opaca do asset; comparar apenas por igualdade. |
 **availability** | **String** | Estado explícito; nunca deve ser inferido da presença de URL. |
 **mediaType** | **String** |  |
-**usage** | **String** |  |
+**usage** | **String** | Papel do asset. &#x60;DEMONSTRATION&#x60; é a execução em vídeo do exercício; &#x60;THUMBNAIL&#x60; é a miniatura que a mídia própria do personal já publica; &#x60;POSTER&#x60; é o quadro de capa de um vídeo &#x60;DEMONSTRATION&#x60; do catálogo, um &#x60;IMAGE&#x60; pareado ao vídeo pelo mesmo &#x60;angle&#x60; e &#x60;demonstrator&#x60;; &#x60;BODY_MAP&#x60; é o mapa corporal do exercício, um &#x60;IMAGE&#x60; com os músculos destacados, emitido por &#x60;demonstrator&#x60;. &#x60;POSTER&#x60; e &#x60;BODY_MAP&#x60; nunca são miniatura de lista: &#x60;THUMBNAIL&#x60; não as substitui e nenhuma das três entra em listagem. |
 **offlinePolicy** | **String** | STREAM_ONLY proíbe persistência offline; TEMPORARY_CACHE_ALLOWED permite cache somente até offlineValidUntil; OFFLINE_DOWNLOAD_ALLOWED permite download verificável por sha256/byteSize dentro dos direitos vigentes. |
 **url** | **String** | Referência renovável de entrega; nula quando availability não é AVAILABLE. |
 **contentType** | **String** |  | [optional]

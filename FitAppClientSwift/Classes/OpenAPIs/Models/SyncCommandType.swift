@@ -25,6 +25,8 @@ public enum SyncCommandType: String, Codable, CaseIterable, CaseIterableDefaults
     case executionPeriodExercisePeriodResume = "execution.exercise.resume"
     case executionPeriodExercisePeriodReorder = "execution.exercise.reorder"
     case executionPeriodExercisePeriodSkipconfirm = "execution.exercise.skipConfirm"
+    case executionPeriodExercisePeriodSplit = "execution.exercise.split"
+    case executionPeriodExercisePeriodJoin = "execution.exercise.join"
     case executionPeriodSetPeriodAmend = "execution.set.amend"
     case prescriptionPeriodDraftPeriodCreate = "prescription.draft.create"
     case prescriptionPeriodDraftPeriodUpdate = "prescription.draft.update"

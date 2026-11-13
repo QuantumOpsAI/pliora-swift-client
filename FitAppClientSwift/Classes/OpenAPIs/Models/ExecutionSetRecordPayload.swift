@@ -28,7 +28,7 @@ public struct ExecutionSetRecordPayload: Codable, JSONEncodable, Hashable {
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var prescribedSetId: String
     public var setIndex: Int
-    public var status: ExecutedSetStatus
+    public var status: RecordedSetStatus
     public var target: ExecutionTargetValues
     public var actual: WorkoutSetValues?
     /** Duração da série por tempo **medida pelo cronômetro da série**, em segundos. No request terminal direto, obrigatória em série por tempo concluída ou parcial e proibida nas demais. Na OPEN timed controlada é omitida pelo chamador, e o servidor a deriva junto de actual.durationSeconds no commit. Nunca é sobrescrita: se `actual.durationSeconds` for diferente dela, o aluno a corrigiu, e o servidor publica o valor corrigido em `adjustedDurationSeconds`. */
@@ -43,7 +43,7 @@ public struct ExecutionSetRecordPayload: Codable, JSONEncodable, Hashable {
     public var completedAt: Date
     public var observation: String?
 
-    public init(setExecutionId: String, exerciseExecutionId: String, prescribedSetId: String, setIndex: Int, status: ExecutedSetStatus, target: ExecutionTargetValues, actual: WorkoutSetValues? = nil, measuredDurationSeconds: Int? = nil, executedVariantId: String, equipmentInstanceId: String? = nil, startedAt: Date, completedAt: Date, observation: String? = nil) {
+    public init(setExecutionId: String, exerciseExecutionId: String, prescribedSetId: String, setIndex: Int, status: RecordedSetStatus, target: ExecutionTargetValues, actual: WorkoutSetValues? = nil, measuredDurationSeconds: Int? = nil, executedVariantId: String, equipmentInstanceId: String? = nil, startedAt: Date, completedAt: Date, observation: String? = nil) {
         self.setExecutionId = setExecutionId
         self.exerciseExecutionId = exerciseExecutionId
         self.prescribedSetId = prescribedSetId
