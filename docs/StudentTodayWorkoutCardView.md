@@ -12,5 +12,8 @@ Name | Type | Description | Notes
 **nextScheduledWorkout** | [**StudentTodayCardNextScheduledWorkoutView**](StudentTodayCardNextScheduledWorkoutView.md) |  | [optional]
 **planStartsOn** | **Date** | Dia civil, no fuso do vínculo, em que começa a ativação que ainda não começou; presente se e somente se &#x60;status&#x60; é &#x60;PLAN_NOT_STARTED&#x60;. Não é validade nem contagem de dias. | [optional]
 **sequencePlan** | [**StudentTodaySequencePlanView**](StudentTodaySequencePlanView.md) |  | [optional]
+**satisfiedOn** | **Date** | Dia civil, nesta semana, da sessão que satisfez o treino de hoje; presente se e somente se &#x60;status&#x60; é &#x60;WEEK_SLOT_SATISFIED&#x60;. | [optional]
+**satisfiedWorkout** | [**StudentTodayCardNextScheduledWorkoutView**](StudentTodayCardNextScheduledWorkoutView.md) | O treino do slot de hoje — a data de hoje, o treino, o nome e o foco —, que já foi feito em &#x60;satisfiedOn&#x60;; presente se e somente se &#x60;status&#x60; é &#x60;WEEK_SLOT_SATISFIED&#x60;. | [optional]
+**offers** | [StudentTodayOfferView] | O que o aluno pode iniciar hoje, na ordem do servidor: presente **sempre** em &#x60;REST_DAY&#x60;, &#x60;WEEK_SLOT_SATISFIED&#x60; e &#x60;WORKOUT_COMPLETED&#x60;, ausente nos demais estados. Vazia quando não há nada a oferecer; nunca ausente nesses três estados. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

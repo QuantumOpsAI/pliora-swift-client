@@ -18,7 +18,7 @@ public struct StartWorkoutSessionRequest: Codable, JSONEncodable, Hashable {
     public static let prescriptionVersionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Identidade da sessão, **gerada pelo cliente** antes de qualquer chamada, para que uma sessão iniciada offline mantenha a mesma identidade ao ser sincronizada. Deve ser globalmente única e nunca reutilizada; UUIDv7 é o gerador recomendado, alinhado ao envelope de sync e à baseline dos apps. O valor é opaco: o servidor não atribui semântica a ele e o cliente não infere ordem a partir dele. */
     public var sessionId: String
-    /** Treino prescrito que a sessão vai executar, como lido na Home ou no resumo. Em plano em sequência livre, qualquer treino da sequência vigente, e não só o próximo. */
+    /** Treino prescrito que a sessão vai executar, como lido na Home ou no resumo. Em plano por dias da semana, qualquer treino da versão em vigor, em qualquer dia; em plano em sequência livre, qualquer treino da sequência vigente, e não só o próximo. */
     public var workoutId: String
     /** Versão publicada da prescrição que o cliente leu ao iniciar. A sessão é fixada nela e não migra para uma versão publicada depois. Uma versão que não está atribuída ao aluno é recusada com `PRESCRIPTION_VERSION_NOT_ASSIGNED`, nunca substituída em silêncio. */
     public var prescriptionVersionId: String
@@ -26,13 +26,16 @@ public struct StartWorkoutSessionRequest: Codable, JSONEncodable, Hashable {
     public var startedAt: Date
     /** Ponto de entrada aprovado de onde o CTA \"Iniciar treino\" foi acionado. */
     public var source: WorkoutSessionStartSource
+    /** A colocação que a tela mostrou ao aluno antes do início: o `placementToday` do resumo ou o `placement` da oferta da Hoje. Opcional. Quando vem e difere da que o casamento calcula no início, o início é recusado com `409 PLACEMENT_CHANGED`, com a colocação atual; ausente, o servidor não compara. Em sequência livre a colocação calculada é sempre `ON_SCHEDULE`. */
+    public var expectedPlacement: WorkoutPlacement?
 
-    public init(sessionId: String, workoutId: String, prescriptionVersionId: String, startedAt: Date, source: WorkoutSessionStartSource) {
+    public init(sessionId: String, workoutId: String, prescriptionVersionId: String, startedAt: Date, source: WorkoutSessionStartSource, expectedPlacement: WorkoutPlacement? = nil) {
         self.sessionId = sessionId
         self.workoutId = workoutId
         self.prescriptionVersionId = prescriptionVersionId
         self.startedAt = startedAt
         self.source = source
+        self.expectedPlacement = expectedPlacement
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -41,6 +44,7 @@ public struct StartWorkoutSessionRequest: Codable, JSONEncodable, Hashable {
         case prescriptionVersionId
         case startedAt
         case source
+        case expectedPlacement
     }
 
     // Encodable protocol methods
@@ -52,6 +56,7 @@ public struct StartWorkoutSessionRequest: Codable, JSONEncodable, Hashable {
         try container.encode(prescriptionVersionId, forKey: .prescriptionVersionId)
         try container.encode(startedAt, forKey: .startedAt)
         try container.encode(source, forKey: .source)
+        try container.encodeIfPresent(expectedPlacement, forKey: .expectedPlacement)
     }
 }
 
@@ -59,6 +64,7 @@ public struct StartWorkoutSessionRequest: Codable, JSONEncodable, Hashable {
 extension StartWorkoutSessionRequest: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if source == .unknownDefaultOpenApi { return true }
+        if expectedPlacement == .unknownDefaultOpenApi { return true }
         return false
     }
 }
