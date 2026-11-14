@@ -28,9 +28,9 @@ public struct ActivatePlanRequest: Codable, JSONEncodable, Hashable {
     public var startDate: Date?
     /** Último dia de validade; ausente quando a ativação não tem data de término. Nunca anterior ao início. */
     public var endDate: Date?
-    /** Programação por dias da semana, um slot por treino; só em `WEEKDAYS`. */
+    /** Programação por dias da semana, um slot por treino; só em `WEEKDAYS`. Treino extra num slot é `WORKOUT_IS_EXTRA`. */
     public var weekdaySlots: [PlanWeekdaySlot]?
-    /** Ordem dos treinos em sequência livre, pelo `workoutId` da versão; só em `SEQUENCE`. Lista ordenada, sem repetição de treino. */
+    /** Ordem dos treinos em sequência livre, pelo `workoutId` da versão; só em `SEQUENCE`. Lista ordenada, sem repetição de treino; treino extra nela é `WORKOUT_IS_EXTRA`. */
     public var sequence: [String]?
     /** Dias da semana de **descanso obrigatório** (`DOC-STUDENT-WEEK` §5.1), cada um com validade opcional; só em `WEEKDAYS`. Opcional; ausente ou vazio é nenhum. Num dia obrigatório em vigor nenhum início é aceito — nem do plano, nem repetição, nem retroativo. Um dia da semana é **ou** sugerido para um treino **ou** obrigatório: o dia que algum slot nomeia é `REST_REQUIRED_WEEKDAY_IN_SLOT`; o mesmo dia duas vezes, `REST_REQUIRED_WEEKDAY_REPEATED`; `until` anterior ao início da ativação, `REST_REQUIRED_UNTIL_BEFORE_START`; a lista em `SEQUENCE`, `REST_REQUIRED_NOT_ALLOWED_FOR_MODE` — todos `422 VALIDATION_FAILED` com o caminho do elemento em `fieldErrors`. */
     public var restRequired: [PlanRestRequiredWeekday]?

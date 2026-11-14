@@ -24,7 +24,7 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
     public var nextScheduledWorkout: StudentTodayCardNextScheduledWorkoutView?
     /** Dia civil, no fuso do vínculo, em que começa a ativação que ainda não começou; presente se e somente se `status` é `PLAN_NOT_STARTED`. Não é validade nem contagem de dias. */
     public var planStartsOn: Date?
-    public var sequencePlan: StudentTodaySequencePlanView?
+    public var sequencePlan: StudentTodayCardSequencePlanView?
     /** Dia civil, nesta semana, da sessão que satisfez o treino de hoje; presente se e somente se `status` é `WEEK_SLOT_SATISFIED`. */
     public var satisfiedOn: Date?
     /** O treino do slot de hoje — a data de hoje, o treino, o nome e o foco —, que já foi feito em `satisfiedOn`; presente se e somente se `status` é `WEEK_SLOT_SATISFIED`. */
@@ -32,7 +32,7 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
     /** O que o aluno pode iniciar hoje, na ordem do servidor: presente **sempre** em `REST_DAY`, `WEEK_SLOT_SATISFIED` e `WORKOUT_COMPLETED`, ausente nos demais estados. Vazia quando não há nada a oferecer; nunca ausente nesses três estados. */
     public var offers: [StudentTodayOfferView]?
 
-    public init(status: StudentTodayWorkoutCardStatus, pausedBy: RelationshipPausedBy? = nil, firstWorkout: Bool, prescribedWorkout: StudentTodayCardPrescribedWorkoutView?, openSession: StudentTodayCardOpenSessionView?, completedSession: StudentTodayCardCompletedSessionView?, nextScheduledWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, planStartsOn: Date? = nil, sequencePlan: StudentTodaySequencePlanView? = nil, satisfiedOn: Date? = nil, satisfiedWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, offers: [StudentTodayOfferView]? = nil) {
+    public init(status: StudentTodayWorkoutCardStatus, pausedBy: RelationshipPausedBy? = nil, firstWorkout: Bool, prescribedWorkout: StudentTodayCardPrescribedWorkoutView?, openSession: StudentTodayCardOpenSessionView?, completedSession: StudentTodayCardCompletedSessionView?, nextScheduledWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, planStartsOn: Date? = nil, sequencePlan: StudentTodayCardSequencePlanView? = nil, satisfiedOn: Date? = nil, satisfiedWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, offers: [StudentTodayOfferView]? = nil) {
         self.status = status
         self.pausedBy = pausedBy
         self.firstWorkout = firstWorkout

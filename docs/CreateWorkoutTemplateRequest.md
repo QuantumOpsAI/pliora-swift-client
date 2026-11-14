@@ -5,6 +5,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **templateId** | **String** | Identidade do modelo, gerada pelo cliente; o servidor adota em vez de emitir outra. |
 **name** | **String** | Nome do modelo, autorado pelo personal e preservado verbatim; vira &#x60;content.name&#x60;. |
+**role** | [**WorkoutRole**](WorkoutRole.md) | O papel do modelo na biblioteca; ausente é &#x60;WEEKLY&#x60;. | [optional]
 **description** | **String** | Descrição do modelo, autorada pelo personal e preservada verbatim UTF-8; ausente quando o personal não a escreveu. | [optional]
 **tags** | **[String]** | Etiquetas do modelo, até dez, **na ordem em que o personal as escreveu**, que o servidor preserva. Uma etiqueta repetida — ignorando caixa e acento — é &#x60;422 VALIDATION_FAILED&#x60; no pedido, sem gravar. A lista não declara &#x60;uniqueItems&#x60; de propósito: o gerador a transformaria em conjunto não ordenado nos clientes, e a ordem das etiquetas é do personal. Ausente no pedido é nenhuma etiqueta. | [optional]
 **goal** | [**WorkoutTemplateGoal**](WorkoutTemplateGoal.md) |  | [optional]

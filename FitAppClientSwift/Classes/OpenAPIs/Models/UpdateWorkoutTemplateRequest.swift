@@ -10,11 +10,13 @@ import Foundation
 import AnyCodable
 #endif
 
-/** **Substitui** o conteúdo e os metadados do modelo. &#x60;If-Match&#x60; com a &#x60;revision&#x60; lida é obrigatório. &#x60;description&#x60;, &#x60;goal&#x60; e &#x60;level&#x60; ausentes removem o valor que o modelo tinha, e &#x60;tags&#x60; ausente é nenhuma etiqueta; o nome é &#x60;content.name&#x60;. */
+/** **Substitui** o conteúdo e os metadados do modelo. &#x60;If-Match&#x60; com a &#x60;revision&#x60; lida é obrigatório. &#x60;description&#x60;, &#x60;goal&#x60; e &#x60;level&#x60; ausentes removem o valor que o modelo tinha, &#x60;tags&#x60; ausente é nenhuma etiqueta e &#x60;role&#x60; ausente é &#x60;WEEKLY&#x60;; o nome é &#x60;content.name&#x60;. */
 public struct UpdateWorkoutTemplateRequest: Codable, JSONEncodable, Hashable {
 
     public static let descriptionRule = StringRule(minLength: 1, maxLength: 500, pattern: nil)
     public static let tagsRule = ArrayRule(minItems: nil, maxItems: 10, uniqueItems: false)
+    /** O papel do modelo na biblioteca; ausente é `WEEKLY`. */
+    public var role: WorkoutRole?
     /** Descrição do modelo, autorada pelo personal e preservada verbatim UTF-8; ausente quando o personal não a escreveu. */
     public var description: String?
     /** Etiquetas do modelo, até dez, **na ordem em que o personal as escreveu**, que o servidor preserva. Uma etiqueta repetida — ignorando caixa e acento — é `422 VALIDATION_FAILED` no pedido, sem gravar. A lista não declara `uniqueItems` de propósito: o gerador a transformaria em conjunto não ordenado nos clientes, e a ordem das etiquetas é do personal. Ausente no pedido é nenhuma etiqueta. */
@@ -23,7 +25,8 @@ public struct UpdateWorkoutTemplateRequest: Codable, JSONEncodable, Hashable {
     public var level: WorkoutTemplateLevel?
     public var content: PrescriptionDraftContent
 
-    public init(description: String? = nil, tags: [String]? = nil, goal: WorkoutTemplateGoal? = nil, level: WorkoutTemplateLevel? = nil, content: PrescriptionDraftContent) {
+    public init(role: WorkoutRole? = nil, description: String? = nil, tags: [String]? = nil, goal: WorkoutTemplateGoal? = nil, level: WorkoutTemplateLevel? = nil, content: PrescriptionDraftContent) {
+        self.role = role
         self.description = description
         self.tags = tags
         self.goal = goal
@@ -32,6 +35,7 @@ public struct UpdateWorkoutTemplateRequest: Codable, JSONEncodable, Hashable {
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
+        case role
         case description
         case tags
         case goal
@@ -43,6 +47,7 @@ public struct UpdateWorkoutTemplateRequest: Codable, JSONEncodable, Hashable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(role, forKey: .role)
         try container.encodeIfPresent(description, forKey: .description)
         try container.encodeIfPresent(tags, forKey: .tags)
         try container.encodeIfPresent(goal, forKey: .goal)
@@ -54,6 +59,7 @@ public struct UpdateWorkoutTemplateRequest: Codable, JSONEncodable, Hashable {
 
 extension UpdateWorkoutTemplateRequest: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
+        if role == .unknownDefaultOpenApi { return true }
         if goal == .unknownDefaultOpenApi { return true }
         if level == .unknownDefaultOpenApi { return true }
         return false

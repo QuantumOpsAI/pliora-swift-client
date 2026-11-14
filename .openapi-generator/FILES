@@ -849,6 +849,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentRelationshipReplacementInput.sw
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentRelationshipView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleDayStatus.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleDayView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleExtraWorkoutView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentSchedulePlacedSessionView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleRangeProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleStackedSlotView.swift
@@ -872,6 +873,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayCardNextScheduledWorkoutVi
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayCardOpenSessionView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayCardPrescribedWorkoutView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayCardRelationshipView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayCardSequencePlanView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayCardSessionStatus.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayHeaderView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayLastSessionCardView.swift
@@ -1067,6 +1069,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutCoreSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutLoad.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutPlacement.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutReminderPreference.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutRole.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutSessionEffort.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutSessionEndedBy.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/WorkoutSessionNextAction.swift
@@ -1926,6 +1929,7 @@ docs/StudentRelationshipReplacementInput.md
 docs/StudentRelationshipView.md
 docs/StudentScheduleDayStatus.md
 docs/StudentScheduleDayView.md
+docs/StudentScheduleExtraWorkoutView.md
 docs/StudentSchedulePlacedSessionView.md
 docs/StudentScheduleRangeProblemDetails.md
 docs/StudentScheduleStackedSlotView.md
@@ -1949,6 +1953,7 @@ docs/StudentTodayCardNextScheduledWorkoutView.md
 docs/StudentTodayCardOpenSessionView.md
 docs/StudentTodayCardPrescribedWorkoutView.md
 docs/StudentTodayCardRelationshipView.md
+docs/StudentTodayCardSequencePlanView.md
 docs/StudentTodayCardSessionStatus.md
 docs/StudentTodayHeaderView.md
 docs/StudentTodayLastSessionCardView.md
@@ -2147,6 +2152,7 @@ docs/WorkoutExecutionAPI.md
 docs/WorkoutLoad.md
 docs/WorkoutPlacement.md
 docs/WorkoutReminderPreference.md
+docs/WorkoutRole.md
 docs/WorkoutSessionEffort.md
 docs/WorkoutSessionEndedBy.md
 docs/WorkoutSessionNextAction.md

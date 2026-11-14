@@ -4,6 +4,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **workoutId** | **String** | Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. |
+**role** | [**WorkoutRole**](WorkoutRole.md) | &#x60;WEEKLY&#x60; (conjunto semanal) ou &#x60;EXTRA&#x60; (seção &#x60;Extras&#x60;, fora dos dias da semana). |
 **derivedFromWorkoutId** | **String** | Treino da versão de origem do qual este foi copiado, **gravado pelo servidor** quando o rascunho é &#x60;REVISION&#x60;: é o que permite manter a programação entre versões e dizer o que a revisão mudou. Ausente em treino que o personal criou neste rascunho e em rascunho que não é revisão. O cliente nunca o declara: reenviá-lo na edição é inócuo. | [optional]
 **name** | **String** | Nome do treino {ex. \&quot;Treino A\&quot;}, preservado verbatim e invariante de locale. |
 **focus** | **String** | Foco declarado do treino, preservado verbatim; ausente quando o personal não declarou. | [optional]

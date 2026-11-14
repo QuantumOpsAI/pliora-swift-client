@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Treino de um rascunho de prescrição, com nome e foco autorados pelo personal. */
+/** Treino de um rascunho de prescrição, com nome e foco autorados pelo personal, e o papel dele no plano (&#x60;role&#x60;). É a mesma forma na leitura, na edição, no command de sync, no modelo e na cópia: &#x60;role&#x60; é **obrigatório** em todas, e a cópia (revisão, clone, modelo, importação) leva o &#x60;role&#x60; do treino de origem. */
 public struct PrescriptionDraftWorkout: Codable, JSONEncodable, Hashable {
 
     public static let workoutIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -22,6 +22,8 @@ public struct PrescriptionDraftWorkout: Codable, JSONEncodable, Hashable {
     public static let exercisesRule = ArrayRule(minItems: nil, maxItems: 60, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var workoutId: String
+    /** `WEEKLY` (conjunto semanal) ou `EXTRA` (seção `Extras`, fora dos dias da semana). */
+    public var role: WorkoutRole
     /** Treino da versão de origem do qual este foi copiado, **gravado pelo servidor** quando o rascunho é `REVISION`: é o que permite manter a programação entre versões e dizer o que a revisão mudou. Ausente em treino que o personal criou neste rascunho e em rascunho que não é revisão. O cliente nunca o declara: reenviá-lo na edição é inócuo. */
     public var derivedFromWorkoutId: String?
     /** Nome do treino {ex. \"Treino A\"}, preservado verbatim e invariante de locale. */
@@ -34,8 +36,9 @@ public struct PrescriptionDraftWorkout: Codable, JSONEncodable, Hashable {
     /** Exercícios prescritos; lista vazia é estado legítimo de rascunho e recusada somente na publicação. */
     public var exercises: [PrescriptionDraftExercise]
 
-    public init(workoutId: String, derivedFromWorkoutId: String? = nil, name: String, focus: String? = nil, position: Int, blocks: [PrescribedBlock]? = nil, exercises: [PrescriptionDraftExercise]) {
+    public init(workoutId: String, role: WorkoutRole, derivedFromWorkoutId: String? = nil, name: String, focus: String? = nil, position: Int, blocks: [PrescribedBlock]? = nil, exercises: [PrescriptionDraftExercise]) {
         self.workoutId = workoutId
+        self.role = role
         self.derivedFromWorkoutId = derivedFromWorkoutId
         self.name = name
         self.focus = focus
@@ -46,6 +49,7 @@ public struct PrescriptionDraftWorkout: Codable, JSONEncodable, Hashable {
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case workoutId
+        case role
         case derivedFromWorkoutId
         case name
         case focus
@@ -59,11 +63,20 @@ public struct PrescriptionDraftWorkout: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(workoutId, forKey: .workoutId)
+        try container.encode(role, forKey: .role)
         try container.encodeIfPresent(derivedFromWorkoutId, forKey: .derivedFromWorkoutId)
         try container.encode(name, forKey: .name)
         try container.encodeIfPresent(focus, forKey: .focus)
         try container.encode(position, forKey: .position)
         try container.encodeIfPresent(blocks, forKey: .blocks)
         try container.encode(exercises, forKey: .exercises)
+    }
+}
+
+
+extension PrescriptionDraftWorkout: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if role == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

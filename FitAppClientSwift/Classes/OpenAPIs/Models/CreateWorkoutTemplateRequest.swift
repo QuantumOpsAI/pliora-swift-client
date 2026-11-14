@@ -21,6 +21,8 @@ public struct CreateWorkoutTemplateRequest: Codable, JSONEncodable, Hashable {
     public var templateId: String
     /** Nome do modelo, autorado pelo personal e preservado verbatim; vira `content.name`. */
     public var name: String
+    /** O papel do modelo na biblioteca; ausente é `WEEKLY`. */
+    public var role: WorkoutRole?
     /** Descrição do modelo, autorada pelo personal e preservada verbatim UTF-8; ausente quando o personal não a escreveu. */
     public var description: String?
     /** Etiquetas do modelo, até dez, **na ordem em que o personal as escreveu**, que o servidor preserva. Uma etiqueta repetida — ignorando caixa e acento — é `422 VALIDATION_FAILED` no pedido, sem gravar. A lista não declara `uniqueItems` de propósito: o gerador a transformaria em conjunto não ordenado nos clientes, e a ordem das etiquetas é do personal. Ausente no pedido é nenhuma etiqueta. */
@@ -31,9 +33,10 @@ public struct CreateWorkoutTemplateRequest: Codable, JSONEncodable, Hashable {
     public var loadPolicy: PrescriptionLoadPolicy?
     public var notesPolicy: PrescriptionNotesPolicy?
 
-    public init(templateId: String, name: String, description: String? = nil, tags: [String]? = nil, goal: WorkoutTemplateGoal? = nil, level: WorkoutTemplateLevel? = nil, source: WorkoutTemplateSource? = nil, loadPolicy: PrescriptionLoadPolicy? = nil, notesPolicy: PrescriptionNotesPolicy? = nil) {
+    public init(templateId: String, name: String, role: WorkoutRole? = nil, description: String? = nil, tags: [String]? = nil, goal: WorkoutTemplateGoal? = nil, level: WorkoutTemplateLevel? = nil, source: WorkoutTemplateSource? = nil, loadPolicy: PrescriptionLoadPolicy? = nil, notesPolicy: PrescriptionNotesPolicy? = nil) {
         self.templateId = templateId
         self.name = name
+        self.role = role
         self.description = description
         self.tags = tags
         self.goal = goal
@@ -46,6 +49,7 @@ public struct CreateWorkoutTemplateRequest: Codable, JSONEncodable, Hashable {
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case templateId
         case name
+        case role
         case description
         case tags
         case goal
@@ -61,6 +65,7 @@ public struct CreateWorkoutTemplateRequest: Codable, JSONEncodable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(templateId, forKey: .templateId)
         try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(role, forKey: .role)
         try container.encodeIfPresent(description, forKey: .description)
         try container.encodeIfPresent(tags, forKey: .tags)
         try container.encodeIfPresent(goal, forKey: .goal)
@@ -74,6 +79,7 @@ public struct CreateWorkoutTemplateRequest: Codable, JSONEncodable, Hashable {
 
 extension CreateWorkoutTemplateRequest: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
+        if role == .unknownDefaultOpenApi { return true }
         if goal == .unknownDefaultOpenApi { return true }
         if level == .unknownDefaultOpenApi { return true }
         if loadPolicy == .unknownDefaultOpenApi { return true }

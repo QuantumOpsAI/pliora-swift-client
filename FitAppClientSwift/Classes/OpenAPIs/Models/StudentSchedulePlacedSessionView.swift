@@ -32,7 +32,7 @@ public struct StudentSchedulePlacedSessionView: Codable, JSONEncodable, Hashable
     public var workoutName: String
     /** Foco declarado do treino, preservado verbatim; nulo somente para versão publicada antes de o foco autorado existir. */
     public var workoutFocus: String?
-    /** A colocação fixada no início: `ANTICIPATED`, `POSTPONED` ou `REPEAT` (e `EXTRA` a partir de 0.123.0). Nunca `ON_SCHEDULE`, que é o treino do próprio dia. */
+    /** A colocação fixada no início: `ANTICIPATED`, `POSTPONED`, `REPEAT`, `UNSCHEDULED` ou `EXTRA` (`Mobilidade · FEITO · extra`). Nunca `ON_SCHEDULE`, que é o treino do próprio dia. Em sequência livre, a única sessão colocada é a do extra (`EXTRA`). */
     public var placement: WorkoutPlacement
     /** Data do slot satisfeito; presente com `ANTICIPATED` e `POSTPONED`, ausente nas demais. */
     public var slotDate: Date?
