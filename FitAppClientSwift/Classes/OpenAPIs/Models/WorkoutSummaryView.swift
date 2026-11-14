@@ -47,7 +47,7 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
     public var blocks: [PrescribedBlock]?
     /** Exercícios prescritos, na ordem prescrita pelo personal, com as séries prescritas e a última execução comparável de cada um. */
     public var exercises: [WorkoutSummaryExerciseView]?
-    /** A colocação que o início deste treino teria hoje, pelo casamento de `startStudentWorkoutSession`: é daqui que a tela tira o aviso antes de iniciar, e o pedido de início a devolve em `expectedPlacement`. Obrigatória em toda leitura com treino; `ON_SCHEDULE` em sequência livre. */
+    /** A colocação que o início deste treino teria hoje, pelo casamento de `startStudentWorkoutSession`: é daqui que a tela tira o aviso antes de iniciar, e o pedido de início a devolve em `expectedPlacement`. Obrigatória em toda leitura com treino; `UNSCHEDULED` para o treino Sem dia nesta semana (`Esse treino não tem dia nesta semana. Fazer hoje?`); `ON_SCHEDULE` em sequência livre. */
     public var placementToday: WorkoutPlacement?
     /** Data do slot que o início hoje satisfaria; presente com `placementToday` `ANTICIPATED` ou `POSTPONED`, ausente nas demais colocações. */
     public var slotDate: Date?

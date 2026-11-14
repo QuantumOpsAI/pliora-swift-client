@@ -10,10 +10,12 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Um dia da semana do aluno. &#x60;prescribed&#x60; e &#x60;executed&#x60; são blocos **separados**: o executado nunca reescreve nem substitui o prescrito, e um dia ainda não iniciado não inventa bloco de fato executado nem o preenche com valor neutro. &#x60;placedSessions&#x60; lista as sessões feitas nesta data fora do dia do treino delas — antecipada, adiada ou repetição —, na mesma forma da agenda do aluno e com o fato executado de cada uma. */
+/** Um dia da semana do aluno. &#x60;prescribed&#x60; e &#x60;executed&#x60; são blocos **separados**: o executado nunca reescreve nem substitui o prescrito, e um dia ainda não iniciado não inventa bloco de fato executado nem o preenche com valor neutro. &#x60;placedSessions&#x60; lista as sessões feitas nesta data fora do dia do treino delas — antecipada, adiada ou repetição —, na mesma forma da agenda do aluno e com o fato executado de cada uma. Mais de um treino no mesmo dia (&#x60;collision&#x60; &#x60;STACK&#x60;, &#x60;DOC-STUDENT-WEEK-TECH&#x60; §3.6): o primeiro, em ordem do plano, fica nos campos do dia e os outros em &#x60;stackedSlots&#x60;. */
 public struct PersonalStudentScheduleDayView: Codable, JSONEncodable, Hashable {
 
     public static let placedSessionsRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
+    public static let stackedSlotsRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
+    public static let suggestedWeekdaysRule = ArrayRule(minItems: 1, maxItems: 7, uniqueItems: true)
     /** Data civil no calendário ISO 8601, sem horário ou timezone. */
     public var date: Date
     public var state: PersonalStudentScheduleDayState
@@ -25,14 +27,23 @@ public struct PersonalStudentScheduleDayView: Codable, JSONEncodable, Hashable {
     public var doneOn: Date?
     /** As sessões colocadas nesta data que não são a atribuição do dia, em ordem de início. Vazia quando não há nenhuma; nunca ausente. */
     public var placedSessions: [PersonalStudentSchedulePlacedSessionView]
+    /** As outras atribuições do mesmo dia quando há empilhamento, em ordem do plano; a primeira fica nos campos do dia. **Vazia quando não há empilhamento; nunca ausente.** Só existe num dia com atribuição (`prescribed` não nulo) e é sempre vazia em sequência livre. */
+    public var stackedSlots: [PersonalStudentScheduleStackedSlotView]
+    /** Os dias sugeridos pelo personal para o treino deste dia, só quando o dia arranjado pelo aluno difere da sugestão (`sugerido: terça`); ausente com `view=SUGGESTED`. */
+    public var suggestedWeekdays: Set<PlanWeekday>?
+    /** `true` quando o treino deste dia está aqui por um arranjo do aluno que difere da sugestão; sempre `false` com `view=SUGGESTED` e em sequência livre. */
+    public var arrangedByStudent: Bool
 
-    public init(date: Date, state: PersonalStudentScheduleDayState, prescribed: PersonalStudentScheduleDayPrescribed?, executed: PersonalStudentScheduleDayExecuted?, doneOn: Date? = nil, placedSessions: [PersonalStudentSchedulePlacedSessionView]) {
+    public init(date: Date, state: PersonalStudentScheduleDayState, prescribed: PersonalStudentScheduleDayPrescribed?, executed: PersonalStudentScheduleDayExecuted?, doneOn: Date? = nil, placedSessions: [PersonalStudentSchedulePlacedSessionView], stackedSlots: [PersonalStudentScheduleStackedSlotView], suggestedWeekdays: Set<PlanWeekday>? = nil, arrangedByStudent: Bool) {
         self.date = date
         self.state = state
         self.prescribed = prescribed
         self.executed = executed
         self.doneOn = doneOn
         self.placedSessions = placedSessions
+        self.stackedSlots = stackedSlots
+        self.suggestedWeekdays = suggestedWeekdays
+        self.arrangedByStudent = arrangedByStudent
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -42,6 +53,9 @@ public struct PersonalStudentScheduleDayView: Codable, JSONEncodable, Hashable {
         case executed
         case doneOn
         case placedSessions
+        case stackedSlots
+        case suggestedWeekdays
+        case arrangedByStudent
     }
 
     // Encodable protocol methods
@@ -54,6 +68,9 @@ public struct PersonalStudentScheduleDayView: Codable, JSONEncodable, Hashable {
         try container.encode(executed, forKey: .executed)
         try container.encodeIfPresent(doneOn, forKey: .doneOn)
         try container.encode(placedSessions, forKey: .placedSessions)
+        try container.encode(stackedSlots, forKey: .stackedSlots)
+        try container.encodeIfPresent(suggestedWeekdays, forKey: .suggestedWeekdays)
+        try container.encode(arrangedByStudent, forKey: .arrangedByStudent)
     }
 }
 
