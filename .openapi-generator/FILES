@@ -880,6 +880,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayLastSessionCardView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayLastSessionView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayOfferView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayOpenSessionView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayPendingBehindView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayPersonalRef.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayPrescribedWorkoutView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentTodayRelationshipView.swift
@@ -908,6 +909,9 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekArrangementPreconditionProb
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekArrangementValidationProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekArrangementView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekArrangementWorkoutView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekPushPreviewDayView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekPushPreviewWorkoutView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekPushProposalView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeeklyReviewDestination.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeeklyReviewDestinationData.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutExecutionConflictProblemDetails.swift
@@ -1960,6 +1964,7 @@ docs/StudentTodayLastSessionCardView.md
 docs/StudentTodayLastSessionView.md
 docs/StudentTodayOfferView.md
 docs/StudentTodayOpenSessionView.md
+docs/StudentTodayPendingBehindView.md
 docs/StudentTodayPersonalRef.md
 docs/StudentTodayPrescribedWorkoutView.md
 docs/StudentTodayRelationshipView.md
@@ -1989,6 +1994,9 @@ docs/StudentWeekArrangementPreconditionProblemDetails.md
 docs/StudentWeekArrangementValidationProblemDetails.md
 docs/StudentWeekArrangementView.md
 docs/StudentWeekArrangementWorkoutView.md
+docs/StudentWeekPushPreviewDayView.md
+docs/StudentWeekPushPreviewWorkoutView.md
+docs/StudentWeekPushProposalView.md
 docs/StudentWeeklyReviewDestination.md
 docs/StudentWeeklyReviewDestinationData.md
 docs/StudentWorkoutExecutionConflictProblemDetails.md
