@@ -763,17 +763,26 @@ open class PersonalPrescriptionAPI {
     }
 
     /**
+     * enum for parameter view
+     */
+    public enum View_getPersonalStudentSchedule: String, CaseIterable {
+        case student = "STUDENT"
+        case suggested = "SUGGESTED"
+    }
+
+    /**
      Ler a semana de treino do aluno vinculado
 
      - parameter studentId: (path) Aluno do vínculo ativo. Sem vínculo ativo, ou para aluno de outro personal, a resposta é a mesma usada para dado inexistente e não revela se o aluno, a atribuição ou o vínculo existem.
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
      - parameter weekOf: (query) Data civil contida na semana desejada; ausente devolve a semana de hoje. O servidor normaliza para a semana canônica e é a autoridade do intervalo. (optional)
+     - parameter view: (query) &#x60;STUDENT&#x60; (padrão): a semana como o aluno a arranjou, com &#x60;sugerido:&#x60; onde difere e &#x60;arrangedByStudent&#x60; por dia. &#x60;SUGGESTED&#x60;: a semana recalculada pela programação pura do personal, sem o arranjo do aluno — leitura derivada, que não materializa nada (&#x60;Semana do aluno&#x60; / &#x60;Sugestão&#x60;, &#x60;DEC-SEMANA-26&#x60;). (optional, default to .student)
      - parameter apiResponseQueue: The queue on which api response is dispatched.
      - parameter completion: completion handler to receive the data and the error objects
      */
     @discardableResult
-    open class func getPersonalStudentSchedule(studentId: String, acceptLanguage: String? = nil, weekOf: Date? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalStudentScheduleView?, _ error: Error?) -> Void)) -> RequestTask {
-        return getPersonalStudentScheduleWithRequestBuilder(studentId: studentId, acceptLanguage: acceptLanguage, weekOf: weekOf).execute(apiResponseQueue) { result in
+    open class func getPersonalStudentSchedule(studentId: String, acceptLanguage: String? = nil, weekOf: Date? = nil, view: View_getPersonalStudentSchedule? = nil, apiResponseQueue: DispatchQueue = FitAppClientSwiftAPI.apiResponseQueue, completion: @escaping ((_ data: PersonalStudentScheduleView?, _ error: Error?) -> Void)) -> RequestTask {
+        return getPersonalStudentScheduleWithRequestBuilder(studentId: studentId, acceptLanguage: acceptLanguage, weekOf: weekOf, view: view).execute(apiResponseQueue) { result in
             switch result {
             case let .success(response):
                 completion(response.body, nil)
@@ -786,7 +795,7 @@ open class PersonalPrescriptionAPI {
     /**
      Ler a semana de treino do aluno vinculado
      - GET /personal/students/{studentId}/schedule
-     - Leitura da tela Programação pelo personal do vínculo ativo. Devolve a **semana canônica**: o servidor define o primeiro dia da semana, o intervalo efetivo em datas civis com timezone IANA e a data de hoje, derivada do relógio do servidor no timezone de registro do vínculo. Qualquer data de referência, offset ou timezone enviado pelo cliente como autoridade é ignorado e nunca desloca a marcação de hoje; o locale do device não move o primeiro dia. A resposta traz os sete dias do intervalo, sem omitir nenhum, e cada dia carrega exatamente um estado de máquina. Dia atribuído e concluído expõe a referência do fato executado e a referência da versão prescrita como **campos distintos** — o executado nunca reescreve o prescrito. Dia sem atribuição vem presente com `NO_ASSIGNMENT`, nunca como dia ausente ou campo nulo solto. Dias fora do período do vínculo vêm com `OUTSIDE_RELATIONSHIP_PERIOD` e sem qualquer conteúdo prescrito ou executado, de modo que nenhum dado de outro vínculo seja exposto. Uma janela além do limite de semanas navegáveis do servidor é `422 SCHEDULE_WINDOW_TOO_FAR`; o cliente não amplia esse limite. A leitura do aluno sobre a própria semana continua em `GET /student/schedule`, que permanece inalterada.
+     - Leitura da tela Programação pelo personal do vínculo ativo. Devolve a **semana canônica**: o servidor define o primeiro dia da semana, o intervalo efetivo em datas civis com timezone IANA e a data de hoje, derivada do relógio do servidor no timezone de registro do vínculo. Qualquer data de referência, offset ou timezone enviado pelo cliente como autoridade é ignorado e nunca desloca a marcação de hoje; o locale do device não move o primeiro dia. A resposta traz os sete dias do intervalo, sem omitir nenhum, e cada dia carrega exatamente um estado de máquina. Dia atribuído e concluído expõe a referência do fato executado e a referência da versão prescrita como **campos distintos** — o executado nunca reescreve o prescrito. Dia sem atribuição vem presente com `NO_ASSIGNMENT`, nunca como dia ausente ou campo nulo solto. Dias fora do período do vínculo vêm com `OUTSIDE_RELATIONSHIP_PERIOD` e sem qualquer conteúdo prescrito ou executado, de modo que nenhum dado de outro vínculo seja exposto. Uma janela além do limite de semanas navegáveis do servidor é `422 SCHEDULE_WINDOW_TOO_FAR`; o cliente não amplia esse limite. A leitura do aluno sobre a própria semana continua em `GET /student/schedule`. **Semana do aluno e sugestão** (`DOC-STUDENT-WEEK` §8). Com `view=STUDENT`, o padrão, os dias seguem o arranjo do aluno: `arrangedByStudent` diz se o dia difere da sugestão, `suggestedWeekdays` traz os dias sugeridos onde difere, e `unscheduled` lista os treinos **Sem dia**. Com `view=SUGGESTED`, a semana é recalculada pela programação pura, sem materializar nada: `arrangedByStudent` é `false` em todo dia e `unscheduled` vem vazia. Em sequência livre a Minha semana não se aplica nas duas visões.
      - Bearer Token:
        - type: http
        - name: BearerAuth
@@ -794,9 +803,10 @@ open class PersonalPrescriptionAPI {
      - parameter studentId: (path) Aluno do vínculo ativo. Sem vínculo ativo, ou para aluno de outro personal, a resposta é a mesma usada para dado inexistente e não revela se o aluno, a atribuição ou o vínculo existem.
      - parameter acceptLanguage: (header) Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
      - parameter weekOf: (query) Data civil contida na semana desejada; ausente devolve a semana de hoje. O servidor normaliza para a semana canônica e é a autoridade do intervalo. (optional)
+     - parameter view: (query) &#x60;STUDENT&#x60; (padrão): a semana como o aluno a arranjou, com &#x60;sugerido:&#x60; onde difere e &#x60;arrangedByStudent&#x60; por dia. &#x60;SUGGESTED&#x60;: a semana recalculada pela programação pura do personal, sem o arranjo do aluno — leitura derivada, que não materializa nada (&#x60;Semana do aluno&#x60; / &#x60;Sugestão&#x60;, &#x60;DEC-SEMANA-26&#x60;). (optional, default to .student)
      - returns: RequestBuilder<PersonalStudentScheduleView>
      */
-    open class func getPersonalStudentScheduleWithRequestBuilder(studentId: String, acceptLanguage: String? = nil, weekOf: Date? = nil) -> RequestBuilder<PersonalStudentScheduleView> {
+    open class func getPersonalStudentScheduleWithRequestBuilder(studentId: String, acceptLanguage: String? = nil, weekOf: Date? = nil, view: View_getPersonalStudentSchedule? = nil) -> RequestBuilder<PersonalStudentScheduleView> {
         var localVariablePath = "/personal/students/{studentId}/schedule"
         let studentIdPreEscape = "\(APIHelper.mapValueToPathItem(studentId))"
         let studentIdPostEscape = studentIdPreEscape.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
@@ -807,6 +817,7 @@ open class PersonalPrescriptionAPI {
         var localVariableUrlComponents = URLComponents(string: localVariableURLString)
         localVariableUrlComponents?.queryItems = APIHelper.mapValuesToQueryItems([
             "weekOf": (wrappedValue: weekOf?.encodeToJSON(), isExplode: true),
+            "view": (wrappedValue: view?.encodeToJSON(), isExplode: true),
         ])
 
         let localVariableNillableHeaders: [String: Any?] = [

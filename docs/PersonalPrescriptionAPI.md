@@ -745,12 +745,12 @@ Name | Type | Description  | Notes
 
 # **getPersonalStudentSchedule**
 ```swift
-    open class func getPersonalStudentSchedule(studentId: String, acceptLanguage: String? = nil, weekOf: Date? = nil, completion: @escaping (_ data: PersonalStudentScheduleView?, _ error: Error?) -> Void)
+    open class func getPersonalStudentSchedule(studentId: String, acceptLanguage: String? = nil, weekOf: Date? = nil, view: View_getPersonalStudentSchedule? = nil, completion: @escaping (_ data: PersonalStudentScheduleView?, _ error: Error?) -> Void)
 ```
 
 Ler a semana de treino do aluno vinculado
 
-Leitura da tela Programação pelo personal do vínculo ativo. Devolve a **semana canônica**: o servidor define o primeiro dia da semana, o intervalo efetivo em datas civis com timezone IANA e a data de hoje, derivada do relógio do servidor no timezone de registro do vínculo. Qualquer data de referência, offset ou timezone enviado pelo cliente como autoridade é ignorado e nunca desloca a marcação de hoje; o locale do device não move o primeiro dia. A resposta traz os sete dias do intervalo, sem omitir nenhum, e cada dia carrega exatamente um estado de máquina. Dia atribuído e concluído expõe a referência do fato executado e a referência da versão prescrita como **campos distintos** — o executado nunca reescreve o prescrito. Dia sem atribuição vem presente com `NO_ASSIGNMENT`, nunca como dia ausente ou campo nulo solto. Dias fora do período do vínculo vêm com `OUTSIDE_RELATIONSHIP_PERIOD` e sem qualquer conteúdo prescrito ou executado, de modo que nenhum dado de outro vínculo seja exposto. Uma janela além do limite de semanas navegáveis do servidor é `422 SCHEDULE_WINDOW_TOO_FAR`; o cliente não amplia esse limite. A leitura do aluno sobre a própria semana continua em `GET /student/schedule`, que permanece inalterada.
+Leitura da tela Programação pelo personal do vínculo ativo. Devolve a **semana canônica**: o servidor define o primeiro dia da semana, o intervalo efetivo em datas civis com timezone IANA e a data de hoje, derivada do relógio do servidor no timezone de registro do vínculo. Qualquer data de referência, offset ou timezone enviado pelo cliente como autoridade é ignorado e nunca desloca a marcação de hoje; o locale do device não move o primeiro dia. A resposta traz os sete dias do intervalo, sem omitir nenhum, e cada dia carrega exatamente um estado de máquina. Dia atribuído e concluído expõe a referência do fato executado e a referência da versão prescrita como **campos distintos** — o executado nunca reescreve o prescrito. Dia sem atribuição vem presente com `NO_ASSIGNMENT`, nunca como dia ausente ou campo nulo solto. Dias fora do período do vínculo vêm com `OUTSIDE_RELATIONSHIP_PERIOD` e sem qualquer conteúdo prescrito ou executado, de modo que nenhum dado de outro vínculo seja exposto. Uma janela além do limite de semanas navegáveis do servidor é `422 SCHEDULE_WINDOW_TOO_FAR`; o cliente não amplia esse limite. A leitura do aluno sobre a própria semana continua em `GET /student/schedule`. **Semana do aluno e sugestão** (`DOC-STUDENT-WEEK` §8). Com `view=STUDENT`, o padrão, os dias seguem o arranjo do aluno: `arrangedByStudent` diz se o dia difere da sugestão, `suggestedWeekdays` traz os dias sugeridos onde difere, e `unscheduled` lista os treinos **Sem dia**. Com `view=SUGGESTED`, a semana é recalculada pela programação pura, sem materializar nada: `arrangedByStudent` é `false` em todo dia e `unscheduled` vem vazia. Em sequência livre a Minha semana não se aplica nas duas visões.
 
 ### Example
 ```swift
@@ -760,9 +760,10 @@ import FitAppClientSwift
 let studentId = "studentId_example" // String | Aluno do vínculo ativo. Sem vínculo ativo, ou para aluno de outro personal, a resposta é a mesma usada para dado inexistente e não revela se o aluno, a atribuição ou o vínculo existem.
 let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
 let weekOf = Date() // Date | Data civil contida na semana desejada; ausente devolve a semana de hoje. O servidor normaliza para a semana canônica e é a autoridade do intervalo. (optional)
+let view = "view_example" // String | `STUDENT` (padrão): a semana como o aluno a arranjou, com `sugerido:` onde difere e `arrangedByStudent` por dia. `SUGGESTED`: a semana recalculada pela programação pura do personal, sem o arranjo do aluno — leitura derivada, que não materializa nada (`Semana do aluno` / `Sugestão`, `DEC-SEMANA-26`). (optional) (default to .student)
 
 // Ler a semana de treino do aluno vinculado
-PersonalPrescriptionAPI.getPersonalStudentSchedule(studentId: studentId, acceptLanguage: acceptLanguage, weekOf: weekOf) { (response, error) in
+PersonalPrescriptionAPI.getPersonalStudentSchedule(studentId: studentId, acceptLanguage: acceptLanguage, weekOf: weekOf, view: view) { (response, error) in
     guard error == nil else {
         print(error)
         return
@@ -781,6 +782,7 @@ Name | Type | Description  | Notes
  **studentId** | **String** | Aluno do vínculo ativo. Sem vínculo ativo, ou para aluno de outro personal, a resposta é a mesma usada para dado inexistente e não revela se o aluno, a atribuição ou o vínculo existem. |
  **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
  **weekOf** | **Date** | Data civil contida na semana desejada; ausente devolve a semana de hoje. O servidor normaliza para a semana canônica e é a autoridade do intervalo. | [optional]
+ **view** | **String** | &#x60;STUDENT&#x60; (padrão): a semana como o aluno a arranjou, com &#x60;sugerido:&#x60; onde difere e &#x60;arrangedByStudent&#x60; por dia. &#x60;SUGGESTED&#x60;: a semana recalculada pela programação pura do personal, sem o arranjo do aluno — leitura derivada, que não materializa nada (&#x60;Semana do aluno&#x60; / &#x60;Sugestão&#x60;, &#x60;DEC-SEMANA-26&#x60;). | [optional] [default to .student]
 
 ### Return type
 

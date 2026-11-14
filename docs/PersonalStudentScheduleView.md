@@ -10,5 +10,6 @@ Name | Type | Description | Notes
 **firstDayOfWeek** | **String** | Primeiro dia da semana canônica, definido pelo servidor. |
 **today** | **Date** | Data de hoje derivada do relógio do servidor no timezone do vínculo. |
 **days** | [PersonalStudentScheduleDayView] | Os sete dias do intervalo, em ordem crescente e sem lacuna. |
+**unscheduled** | [StudentScheduleUnscheduledWorkoutView] | Os treinos do conjunto semanal **Sem dia** nesta semana, na forma da agenda do aluno; vazia com &#x60;view&#x3D;SUGGESTED&#x60;, em sequência livre e quando não há nenhum. |
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
