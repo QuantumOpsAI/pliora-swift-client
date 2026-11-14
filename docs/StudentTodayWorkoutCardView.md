@@ -15,5 +15,6 @@ Name | Type | Description | Notes
 **satisfiedOn** | **Date** | Dia civil, nesta semana, da sessão que satisfez o treino de hoje; presente se e somente se &#x60;status&#x60; é &#x60;WEEK_SLOT_SATISFIED&#x60;. | [optional]
 **satisfiedWorkout** | [**StudentTodayCardNextScheduledWorkoutView**](StudentTodayCardNextScheduledWorkoutView.md) | O treino do slot de hoje — a data de hoje, o treino, o nome e o foco —, que já foi feito em &#x60;satisfiedOn&#x60;; presente se e somente se &#x60;status&#x60; é &#x60;WEEK_SLOT_SATISFIED&#x60;. | [optional]
 **offers** | [StudentTodayOfferView] | O que o aluno pode iniciar hoje, na ordem do servidor: presente **sempre** em &#x60;REST_DAY&#x60;, &#x60;WEEK_SLOT_SATISFIED&#x60; e &#x60;WORKOUT_COMPLETED&#x60;, ausente nos demais estados. Vazia quando não há nada a oferecer; nunca ausente nesses três estados. | [optional]
+**pendingBehind** | [**StudentTodayPendingBehindView**](StudentTodayPendingBehindView.md) | O pendente de dia passado e a proposta de **Empurrar a semana**; presente **só** em &#x60;WORKOUT_AVAILABLE&#x60;, com ativação por dias da semana em vigor e gatilho; ausente nos demais estados, na sequência livre e sem gatilho. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

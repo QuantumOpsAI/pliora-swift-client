@@ -31,8 +31,10 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
     public var satisfiedWorkout: StudentTodayCardNextScheduledWorkoutView?
     /** O que o aluno pode iniciar hoje, na ordem do servidor: presente **sempre** em `REST_DAY`, `WEEK_SLOT_SATISFIED` e `WORKOUT_COMPLETED`, ausente nos demais estados. Vazia quando não há nada a oferecer; nunca ausente nesses três estados. */
     public var offers: [StudentTodayOfferView]?
+    /** O pendente de dia passado e a proposta de **Empurrar a semana**; presente **só** em `WORKOUT_AVAILABLE`, com ativação por dias da semana em vigor e gatilho; ausente nos demais estados, na sequência livre e sem gatilho. */
+    public var pendingBehind: StudentTodayPendingBehindView?
 
-    public init(status: StudentTodayWorkoutCardStatus, pausedBy: RelationshipPausedBy? = nil, firstWorkout: Bool, prescribedWorkout: StudentTodayCardPrescribedWorkoutView?, openSession: StudentTodayCardOpenSessionView?, completedSession: StudentTodayCardCompletedSessionView?, nextScheduledWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, planStartsOn: Date? = nil, sequencePlan: StudentTodayCardSequencePlanView? = nil, satisfiedOn: Date? = nil, satisfiedWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, offers: [StudentTodayOfferView]? = nil) {
+    public init(status: StudentTodayWorkoutCardStatus, pausedBy: RelationshipPausedBy? = nil, firstWorkout: Bool, prescribedWorkout: StudentTodayCardPrescribedWorkoutView?, openSession: StudentTodayCardOpenSessionView?, completedSession: StudentTodayCardCompletedSessionView?, nextScheduledWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, planStartsOn: Date? = nil, sequencePlan: StudentTodayCardSequencePlanView? = nil, satisfiedOn: Date? = nil, satisfiedWorkout: StudentTodayCardNextScheduledWorkoutView? = nil, offers: [StudentTodayOfferView]? = nil, pendingBehind: StudentTodayPendingBehindView? = nil) {
         self.status = status
         self.pausedBy = pausedBy
         self.firstWorkout = firstWorkout
@@ -45,6 +47,7 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
         self.satisfiedOn = satisfiedOn
         self.satisfiedWorkout = satisfiedWorkout
         self.offers = offers
+        self.pendingBehind = pendingBehind
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -60,6 +63,7 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
         case satisfiedOn
         case satisfiedWorkout
         case offers
+        case pendingBehind
     }
 
     // Encodable protocol methods
@@ -78,6 +82,7 @@ public struct StudentTodayWorkoutCardView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(satisfiedOn, forKey: .satisfiedOn)
         try container.encodeIfPresent(satisfiedWorkout, forKey: .satisfiedWorkout)
         try container.encodeIfPresent(offers, forKey: .offers)
+        try container.encodeIfPresent(pendingBehind, forKey: .pendingBehind)
     }
 }
 
