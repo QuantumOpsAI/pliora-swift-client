@@ -15,6 +15,7 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
 
     public static let timeZoneRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let unscheduledRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
+    public static let extrasRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
     public static let arrangementRevisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Presente **só** com o vínculo pausado (`TRAINING_PAUSED`): então `days` vem vazio e `planMode` é ausente. Ausente em toda programação com dias. */
     public var planState: StudentTrainingPlanState?
@@ -32,10 +33,12 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
     public var days: [StudentScheduleDayView]
     /** Os treinos do conjunto semanal **Sem dia** na semana de `weekStart` (o grupo `Sem dia`, abaixo do domingo). Vazia quando não há nenhum, e sempre vazia em sequência livre (a Minha semana não se aplica a ela) e com o vínculo pausado; nunca ausente. */
     public var unscheduled: [StudentScheduleUnscheduledWorkoutView]
+    /** Os **treinos extras** da versão em vigor (a lista `Extras` da aba Treinos, `week.schedule.extras`), na ordem do plano. Valem **nos dois modos** — é a única parte da Minha semana que entra na sequência livre (`DEC-SEMANA-20`) —, e a lista é vazia quando o plano não tem extra e com o vínculo pausado; nunca ausente. */
+    public var extras: [StudentScheduleExtraWorkoutView]
     /** A `revision` do arranjo da semana (`getStudentWeekArrangement`), para o arrastar da AL1 gravar com `If-Match` sem outra leitura; presente só com `planMode: WEEKDAYS`. */
     public var arrangementRevision: String?
 
-    public init(planState: StudentTrainingPlanState? = nil, planMode: PlanActivationMode? = nil, from: Date, to: Date, weekStart: Date, timeZone: String, days: [StudentScheduleDayView], unscheduled: [StudentScheduleUnscheduledWorkoutView], arrangementRevision: String? = nil) {
+    public init(planState: StudentTrainingPlanState? = nil, planMode: PlanActivationMode? = nil, from: Date, to: Date, weekStart: Date, timeZone: String, days: [StudentScheduleDayView], unscheduled: [StudentScheduleUnscheduledWorkoutView], extras: [StudentScheduleExtraWorkoutView], arrangementRevision: String? = nil) {
         self.planState = planState
         self.planMode = planMode
         self.from = from
@@ -44,6 +47,7 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
         self.timeZone = timeZone
         self.days = days
         self.unscheduled = unscheduled
+        self.extras = extras
         self.arrangementRevision = arrangementRevision
     }
 
@@ -56,6 +60,7 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
         case timeZone
         case days
         case unscheduled
+        case extras
         case arrangementRevision
     }
 
@@ -71,6 +76,7 @@ public struct StudentScheduleView: Codable, JSONEncodable, Hashable {
         try container.encode(timeZone, forKey: .timeZone)
         try container.encode(days, forKey: .days)
         try container.encode(unscheduled, forKey: .unscheduled)
+        try container.encode(extras, forKey: .extras)
         try container.encodeIfPresent(arrangementRevision, forKey: .arrangementRevision)
     }
 }

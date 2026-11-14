@@ -47,13 +47,15 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
     public var blocks: [PrescribedBlock]?
     /** Exercícios prescritos, na ordem prescrita pelo personal, com as séries prescritas e a última execução comparável de cada um. */
     public var exercises: [WorkoutSummaryExerciseView]?
-    /** A colocação que o início deste treino teria hoje, pelo casamento de `startStudentWorkoutSession`: é daqui que a tela tira o aviso antes de iniciar, e o pedido de início a devolve em `expectedPlacement`. Obrigatória em toda leitura com treino; `UNSCHEDULED` para o treino Sem dia nesta semana (`Esse treino não tem dia nesta semana. Fazer hoje?`); `ON_SCHEDULE` em sequência livre. */
+    /** A colocação que o início deste treino teria hoje, pelo casamento de `startStudentWorkoutSession`: é daqui que a tela tira o aviso antes de iniciar, e o pedido de início a devolve em `expectedPlacement`. Obrigatória em toda leitura com treino; `UNSCHEDULED` para o treino Sem dia nesta semana (`Esse treino não tem dia nesta semana. Fazer hoje?`); `EXTRA` para o **treino extra**, nos dois modos (`Treino extra. Não faz parte dos dias da sua semana.`); `ON_SCHEDULE` para o treino da sequência em sequência livre. */
     public var placementToday: WorkoutPlacement?
+    /** O papel do treino no plano: `EXTRA` é o treino extra, e então `placementToday` é `EXTRA`; `WEEKLY` é o conjunto semanal (ou a sequência), e então `placementToday` nunca é `EXTRA`. Obrigatório em toda leitura com treino. */
+    public var role: WorkoutRole?
     /** Data do slot que o início hoje satisfaria; presente com `placementToday` `ANTICIPATED` ou `POSTPONED`, ausente nas demais colocações. */
     public var slotDate: Date?
     /** Dia desta semana (segunda a domingo) em que o aluno já concluiu este treino, para o aviso de repetição; ausente quando ele não o concluiu nesta semana. */
     public var doneThisWeekOn: Date?
-    /** `true` quando o aluno já concluiu algum treino hoje, para o aviso de segundo treino do dia. Em plano por dias da semana não é recusa: não existe limite de um treino por dia. Em sequência livre o início de outro treino no mesmo dia continua recusado (`WORKOUT_ALREADY_DONE_TODAY`, `Q-09`). */
+    /** `true` quando o aluno já concluiu algum treino hoje, para o aviso de segundo treino do dia, **ignorando extras**: a sessão de um extra não acende o aviso para um treino semanal ou da sequência, e a de um treino semanal ou da sequência não o acende para um extra. Em plano por dias da semana não é recusa: não existe limite de um treino por dia. Em sequência livre o início de outro treino **da sequência** no mesmo dia continua recusado (`WORKOUT_ALREADY_DONE_TODAY`, `Q-09`). */
     public var secondWorkoutToday: Bool?
     /** `true` quando hoje é dia de descanso obrigatório em vigor, marcado pelo personal: nenhum início é aceito hoje (`409 REST_REQUIRED_TODAY`), e a tela mostra `Seu personal pediu descanso neste dia.` no lugar do botão. Obrigatório em toda leitura com treino; `false` em sequência livre, que não tem descanso obrigatório. */
     public var restRequiredToday: Bool?
@@ -64,7 +66,7 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
     /** O intervalo mínimo entre repetições do mesmo treino, em dias, do plano em vigor — o mesmo valor que a ativação grava. Obrigatório com `blockedBy` `MIN_REST_INTERVAL`, e então a AL2 compõe com ele o aviso `Seu personal pede N dias entre repetições deste treino. Libera <data>.`; fora disso, presente sempre que o plano em vigor tem o intervalo e ausente quando não tem. */
     public var minDaysBetweenSameWorkout: Int?
 
-    public init(planState: StudentTrainingPlanState? = nil, workoutId: String? = nil, prescriptionVersionId: String? = nil, name: String? = nil, focus: String? = nil, estimatedDurationMinutes: DurationMinutesRange? = nil, exerciseCount: Int? = nil, setCount: Int? = nil, coachNotes: String? = nil, blocks: [PrescribedBlock]? = nil, exercises: [WorkoutSummaryExerciseView]? = nil, placementToday: WorkoutPlacement? = nil, slotDate: Date? = nil, doneThisWeekOn: Date? = nil, secondWorkoutToday: Bool? = nil, restRequiredToday: Bool? = nil, blockedBy: BlockedBy? = nil, availableFrom: Date? = nil, minDaysBetweenSameWorkout: Int? = nil) {
+    public init(planState: StudentTrainingPlanState? = nil, workoutId: String? = nil, prescriptionVersionId: String? = nil, name: String? = nil, focus: String? = nil, estimatedDurationMinutes: DurationMinutesRange? = nil, exerciseCount: Int? = nil, setCount: Int? = nil, coachNotes: String? = nil, blocks: [PrescribedBlock]? = nil, exercises: [WorkoutSummaryExerciseView]? = nil, placementToday: WorkoutPlacement? = nil, role: WorkoutRole? = nil, slotDate: Date? = nil, doneThisWeekOn: Date? = nil, secondWorkoutToday: Bool? = nil, restRequiredToday: Bool? = nil, blockedBy: BlockedBy? = nil, availableFrom: Date? = nil, minDaysBetweenSameWorkout: Int? = nil) {
         self.planState = planState
         self.workoutId = workoutId
         self.prescriptionVersionId = prescriptionVersionId
@@ -77,6 +79,7 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
         self.blocks = blocks
         self.exercises = exercises
         self.placementToday = placementToday
+        self.role = role
         self.slotDate = slotDate
         self.doneThisWeekOn = doneThisWeekOn
         self.secondWorkoutToday = secondWorkoutToday
@@ -99,6 +102,7 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
         case blocks
         case exercises
         case placementToday
+        case role
         case slotDate
         case doneThisWeekOn
         case secondWorkoutToday
@@ -124,6 +128,7 @@ public struct WorkoutSummaryView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(blocks, forKey: .blocks)
         try container.encodeIfPresent(exercises, forKey: .exercises)
         try container.encodeIfPresent(placementToday, forKey: .placementToday)
+        try container.encodeIfPresent(role, forKey: .role)
         try container.encodeIfPresent(slotDate, forKey: .slotDate)
         try container.encodeIfPresent(doneThisWeekOn, forKey: .doneThisWeekOn)
         try container.encodeIfPresent(secondWorkoutToday, forKey: .secondWorkoutToday)
@@ -139,6 +144,7 @@ extension WorkoutSummaryView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if planState == .unknownDefaultOpenApi { return true }
         if placementToday == .unknownDefaultOpenApi { return true }
+        if role == .unknownDefaultOpenApi { return true }
         if blockedBy == .unknownDefaultOpenApi { return true }
         return false
     }

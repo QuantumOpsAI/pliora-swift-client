@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Resumo de um modelo ativo para o cartão da biblioteca, sem o conteúdo. O conteúdo inteiro é &#x60;WorkoutTemplateView&#x60;. */
+/** Resumo de um modelo ativo para o cartão da biblioteca, sem o conteúdo. O conteúdo inteiro é &#x60;WorkoutTemplateView&#x60;. &#x60;role&#x60; é o mesmo da leitura inteira. */
 public struct WorkoutTemplateSummary: Codable, JSONEncodable, Hashable {
 
     public static let templateIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -22,6 +22,8 @@ public struct WorkoutTemplateSummary: Codable, JSONEncodable, Hashable {
     public static let revisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var templateId: String
+    /** O papel do modelo na biblioteca; `EXTRA` é modelo de extras. */
+    public var role: WorkoutRole
     /** Nome do modelo, o mesmo `content.name` da leitura inteira, autorado pelo personal e preservado verbatim. */
     public var name: String
     /** Descrição do modelo, autorada pelo personal e preservada verbatim UTF-8; ausente quando o personal não a escreveu. */
@@ -37,8 +39,9 @@ public struct WorkoutTemplateSummary: Codable, JSONEncodable, Hashable {
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var updatedAt: Date
 
-    public init(templateId: String, name: String, description: String? = nil, tags: [String], goal: WorkoutTemplateGoal? = nil, level: WorkoutTemplateLevel? = nil, workoutCount: Int, exerciseCount: Int, revision: String, updatedAt: Date) {
+    public init(templateId: String, role: WorkoutRole, name: String, description: String? = nil, tags: [String], goal: WorkoutTemplateGoal? = nil, level: WorkoutTemplateLevel? = nil, workoutCount: Int, exerciseCount: Int, revision: String, updatedAt: Date) {
         self.templateId = templateId
+        self.role = role
         self.name = name
         self.description = description
         self.tags = tags
@@ -52,6 +55,7 @@ public struct WorkoutTemplateSummary: Codable, JSONEncodable, Hashable {
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case templateId
+        case role
         case name
         case description
         case tags
@@ -68,6 +72,7 @@ public struct WorkoutTemplateSummary: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(templateId, forKey: .templateId)
+        try container.encode(role, forKey: .role)
         try container.encode(name, forKey: .name)
         try container.encodeIfPresent(description, forKey: .description)
         try container.encode(tags, forKey: .tags)
@@ -83,6 +88,7 @@ public struct WorkoutTemplateSummary: Codable, JSONEncodable, Hashable {
 
 extension WorkoutTemplateSummary: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
+        if role == .unknownDefaultOpenApi { return true }
         if goal == .unknownDefaultOpenApi { return true }
         if level == .unknownDefaultOpenApi { return true }
         return false

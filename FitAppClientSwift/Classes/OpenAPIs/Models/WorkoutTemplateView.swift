@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Modelo de treino do personal: um plano sem aluno. O conteúdo é o mesmo &#x60;PrescriptionDraftContent&#x60; do rascunho — o nome do modelo é &#x60;content.name&#x60; — e o resto são os metadados da biblioteca. &#x60;revision&#x60; é a revisão opaca do servidor, ecoada em &#x60;If-Match&#x60; na edição e no arquivamento; o cliente nunca a cria. O modelo não tem estado de publicação, versão, aluno nem carga de referência, e **não tem command de sync**. */
+/** Modelo de treino do personal: um plano sem aluno. O conteúdo é o mesmo &#x60;PrescriptionDraftContent&#x60; do rascunho — o nome do modelo é &#x60;content.name&#x60; — e o resto são os metadados da biblioteca. &#x60;revision&#x60; é a revisão opaca do servidor, ecoada em &#x60;If-Match&#x60; na edição e no arquivamento; o cliente nunca a cria. O modelo não tem estado de publicação, versão, aluno nem carga de referência, e **não tem command de sync**. &#x60;role&#x60; é o papel do modelo na biblioteca: &#x60;EXTRA&#x60; é **modelo de extras** (&#x60;DEC-SEMANA-15&#x60;, &#x60;DOC-PERSONAL-PRESCRIPTION&#x60; §8), reaproveitado entre alunos. O papel de cada treino copiado é o &#x60;role&#x60; do treino no conteúdo. */
 public struct WorkoutTemplateView: Codable, JSONEncodable, Hashable {
 
     public static let templateIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -19,6 +19,8 @@ public struct WorkoutTemplateView: Codable, JSONEncodable, Hashable {
     public static let revisionRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Identidade do modelo, criada pelo personal no device. */
     public var templateId: String
+    /** O papel do modelo na biblioteca; `EXTRA` é modelo de extras. */
+    public var role: WorkoutRole
     /** Descrição do modelo, autorada pelo personal e preservada verbatim UTF-8; ausente quando o personal não a escreveu. */
     public var description: String?
     /** Etiquetas do modelo, até dez, **na ordem em que o personal as escreveu**, que o servidor preserva. Uma etiqueta repetida — ignorando caixa e acento — é `422 VALIDATION_FAILED` no pedido, sem gravar. A lista não declara `uniqueItems` de propósito: o gerador a transformaria em conjunto não ordenado nos clientes, e a ordem das etiquetas é do personal. Ausente no pedido é nenhuma etiqueta. */
@@ -31,8 +33,9 @@ public struct WorkoutTemplateView: Codable, JSONEncodable, Hashable {
     public var updatedAt: Date
     public var content: PrescriptionDraftContent
 
-    public init(templateId: String, description: String? = nil, tags: [String], goal: WorkoutTemplateGoal? = nil, level: WorkoutTemplateLevel? = nil, revision: String, updatedAt: Date, content: PrescriptionDraftContent) {
+    public init(templateId: String, role: WorkoutRole, description: String? = nil, tags: [String], goal: WorkoutTemplateGoal? = nil, level: WorkoutTemplateLevel? = nil, revision: String, updatedAt: Date, content: PrescriptionDraftContent) {
         self.templateId = templateId
+        self.role = role
         self.description = description
         self.tags = tags
         self.goal = goal
@@ -44,6 +47,7 @@ public struct WorkoutTemplateView: Codable, JSONEncodable, Hashable {
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case templateId
+        case role
         case description
         case tags
         case goal
@@ -58,6 +62,7 @@ public struct WorkoutTemplateView: Codable, JSONEncodable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(templateId, forKey: .templateId)
+        try container.encode(role, forKey: .role)
         try container.encodeIfPresent(description, forKey: .description)
         try container.encode(tags, forKey: .tags)
         try container.encodeIfPresent(goal, forKey: .goal)
@@ -71,6 +76,7 @@ public struct WorkoutTemplateView: Codable, JSONEncodable, Hashable {
 
 extension WorkoutTemplateView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
+        if role == .unknownDefaultOpenApi { return true }
         if goal == .unknownDefaultOpenApi { return true }
         if level == .unknownDefaultOpenApi { return true }
         return false

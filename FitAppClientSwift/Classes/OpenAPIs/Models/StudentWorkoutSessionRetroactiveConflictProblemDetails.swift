@@ -23,6 +23,7 @@ public struct StudentWorkoutSessionRetroactiveConflictProblemDetails: Codable, J
         case idempotencyConflict = "IDEMPOTENCY_CONFLICT"
         case restRequiredToday = "REST_REQUIRED_TODAY"
         case minRestIntervalNotMet = "MIN_REST_INTERVAL_NOT_MET"
+        case workoutAlreadyDoneToday = "WORKOUT_ALREADY_DONE_TODAY"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)

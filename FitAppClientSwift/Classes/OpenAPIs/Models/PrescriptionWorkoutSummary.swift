@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Um treino da versão vigente, com a contagem de exercícios; o conteúdo dele só é lido em &#x60;getPersonalPrescriptionVersion&#x60;. */
+/** Um treino da versão vigente, com o papel no plano e a contagem de exercícios; o conteúdo dele só é lido em &#x60;getPersonalPrescriptionVersion&#x60;. */
 public struct PrescriptionWorkoutSummary: Codable, JSONEncodable, Hashable {
 
     public static let workoutIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -22,12 +22,15 @@ public struct PrescriptionWorkoutSummary: Codable, JSONEncodable, Hashable {
     /** Nome do treino, preservado verbatim e invariante de locale. */
     public var name: String
     public var position: Int
+    /** O papel do treino na versão; `EXTRA` é a seção `Extras` do plano. */
+    public var role: WorkoutRole
     public var exerciseCount: Int
 
-    public init(workoutId: String, name: String, position: Int, exerciseCount: Int) {
+    public init(workoutId: String, name: String, position: Int, role: WorkoutRole, exerciseCount: Int) {
         self.workoutId = workoutId
         self.name = name
         self.position = position
+        self.role = role
         self.exerciseCount = exerciseCount
     }
 
@@ -35,6 +38,7 @@ public struct PrescriptionWorkoutSummary: Codable, JSONEncodable, Hashable {
         case workoutId
         case name
         case position
+        case role
         case exerciseCount
     }
 
@@ -45,6 +49,15 @@ public struct PrescriptionWorkoutSummary: Codable, JSONEncodable, Hashable {
         try container.encode(workoutId, forKey: .workoutId)
         try container.encode(name, forKey: .name)
         try container.encode(position, forKey: .position)
+        try container.encode(role, forKey: .role)
         try container.encode(exerciseCount, forKey: .exerciseCount)
+    }
+}
+
+
+extension PrescriptionWorkoutSummary: UnknownCaseCheckable {
+    public var containsUnknownDefaultOpenApiCase: Bool {
+        if role == .unknownDefaultOpenApi { return true }
+        return false
     }
 }

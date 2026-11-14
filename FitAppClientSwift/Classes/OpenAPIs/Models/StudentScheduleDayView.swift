@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Um dia da programação. Transporta o treino prescrito para aquela data e o estado consolidado do dia. Não transporta horário, série, carga, repetição, alvo operacional ou qualquer fato de execução detalhado. Além do treino do dia, &#x60;placedSessions&#x60; lista as sessões feitas nesta data que não são o treino do dia: o treino antecipado, o adiado e a repetição. Um dia sem treino com sessões colocadas é &#x60;REST_DAY&#x60; com &#x60;placedSessions&#x60; não vazio, e a tela mostra as sessões, não descanso. Mais de um treino no mesmo dia (&#x60;collision&#x60; &#x60;STACK&#x60;, &#x60;DOC-STUDENT-WEEK-TECH&#x60; §3.6): o primeiro, em ordem do plano, fica nos campos do dia (&#x60;workoutId&#x60;, &#x60;status&#x60;, …) e os outros em &#x60;stackedSlots&#x60;. */
+/** Um dia da programação. Transporta o treino prescrito para aquela data e o estado consolidado do dia. Não transporta horário, série, carga, repetição, alvo operacional ou qualquer fato de execução detalhado. Além do treino do dia, &#x60;placedSessions&#x60; lista as sessões feitas nesta data que não são o treino do dia: o treino antecipado, o adiado, a repetição, o Sem dia e o extra. Um dia sem treino com sessões colocadas é &#x60;REST_DAY&#x60; com &#x60;placedSessions&#x60; não vazio, e a tela mostra as sessões, não descanso. Mais de um treino no mesmo dia (&#x60;collision&#x60; &#x60;STACK&#x60;, &#x60;DOC-STUDENT-WEEK-TECH&#x60; §3.6): o primeiro, em ordem do plano, fica nos campos do dia (&#x60;workoutId&#x60;, &#x60;status&#x60;, …) e os outros em &#x60;stackedSlots&#x60;. */
 public struct StudentScheduleDayView: Codable, JSONEncodable, Hashable {
 
     public static let workoutIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
@@ -31,7 +31,7 @@ public struct StudentScheduleDayView: Codable, JSONEncodable, Hashable {
     public var workoutFocus: String?
     /** A data, nesta semana, da sessão que satisfez o treino deste dia; presente **sempre e somente** com `status` `DONE_ELSEWHERE`. */
     public var doneOn: Date?
-    /** As sessões colocadas nesta data que não são o treino do dia — antecipada, adiada ou repetição —, em ordem de início. Vazia quando não há nenhuma; nunca ausente. Em sequência livre (`planMode: SEQUENCE`) é sempre vazia: a sessão da sequência é o treino do dia. */
+    /** As sessões colocadas nesta data que não são o treino do dia — antecipada, adiada, repetição, Sem dia ou extra —, em ordem de início. Vazia quando não há nenhuma; nunca ausente. Em sequência livre (`planMode: SEQUENCE`) só tem sessão de **treino extra** (`EXTRA`): a sessão da sequência é o treino do dia. */
     public var placedSessions: [StudentSchedulePlacedSessionView]
     /** Os outros treinos do mesmo dia quando há empilhamento (`Fazer os dois nesse dia`), em ordem do plano; o primeiro fica nos campos do dia. **Vazia quando não há empilhamento; nunca ausente.** Só existe num dia com treino — nunca em `REST_DAY` nem em `REST_REQUIRED` — e é sempre vazia em sequência livre (`planMode: SEQUENCE`). */
     public var stackedSlots: [StudentScheduleStackedSlotView]

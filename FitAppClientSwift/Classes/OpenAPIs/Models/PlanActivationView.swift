@@ -40,7 +40,7 @@ public struct PlanActivationView: Codable, JSONEncodable, Hashable {
     public var weekdaySlots: [PlanWeekdaySlot]?
     /** Ordem dos treinos, pelo `workoutId` da versão servida; presente somente em `SEQUENCE`. Lista ordenada. */
     public var sequence: [String]?
-    /** Treinos da versão servida que a programação **não alcança** — sem dia em `WEEKDAYS`, fora da sequência em `SEQUENCE` —, na ordem do plano; é onde cai o treino novo de uma revisão até o personal defini-lo. Vazio quando a programação alcança todos. */
+    /** Treinos **semanais** da versão servida que a programação **não alcança** — sem dia em `WEEKDAYS`, fora da sequência em `SEQUENCE` —, na ordem do plano; é onde cai o treino novo de uma revisão até o personal defini-lo. Vazio quando a programação alcança todos. **Nunca lista treino extra** (`role: EXTRA`): o extra não entra na programação e é servido à parte, nos dois modos. */
     public var unscheduledWorkoutIds: [String]
     /** Os dias de descanso obrigatório da ativação, como o personal os gravou, com a validade de cada um; presente somente em `WEEKDAYS` e ausente quando não há nenhum. Nunca nomeia um dia que algum slot nomeia, nem o mesmo dia duas vezes. */
     public var restRequired: [PlanRestRequiredWeekday]?

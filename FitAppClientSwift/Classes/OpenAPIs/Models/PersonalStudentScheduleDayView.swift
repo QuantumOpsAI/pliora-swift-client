@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Um dia da semana do aluno. &#x60;prescribed&#x60; e &#x60;executed&#x60; são blocos **separados**: o executado nunca reescreve nem substitui o prescrito, e um dia ainda não iniciado não inventa bloco de fato executado nem o preenche com valor neutro. &#x60;placedSessions&#x60; lista as sessões feitas nesta data fora do dia do treino delas — antecipada, adiada ou repetição —, na mesma forma da agenda do aluno e com o fato executado de cada uma. Mais de um treino no mesmo dia (&#x60;collision&#x60; &#x60;STACK&#x60;, &#x60;DOC-STUDENT-WEEK-TECH&#x60; §3.6): o primeiro, em ordem do plano, fica nos campos do dia e os outros em &#x60;stackedSlots&#x60;. */
+/** Um dia da semana do aluno. &#x60;prescribed&#x60; e &#x60;executed&#x60; são blocos **separados**: o executado nunca reescreve nem substitui o prescrito, e um dia ainda não iniciado não inventa bloco de fato executado nem o preenche com valor neutro. &#x60;placedSessions&#x60; lista as sessões feitas nesta data fora do dia do treino delas — antecipada, adiada, repetição, Sem dia ou extra —, na mesma forma da agenda do aluno e com o fato executado de cada uma. Mais de um treino no mesmo dia (&#x60;collision&#x60; &#x60;STACK&#x60;, &#x60;DOC-STUDENT-WEEK-TECH&#x60; §3.6): o primeiro, em ordem do plano, fica nos campos do dia e os outros em &#x60;stackedSlots&#x60;. */
 public struct PersonalStudentScheduleDayView: Codable, JSONEncodable, Hashable {
 
     public static let placedSessionsRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)

@@ -28,7 +28,7 @@ public struct StudentWorkoutSessionHistoryItem: Codable, JSONEncodable, Hashable
     public static let recordsRule = ArrayRule(minItems: nil, maxItems: 3, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var sessionId: String
-    /** A colocação da sessão na semana, fixada no início dela e nunca reescrita; a linha do histórico mostra o sufixo dela (antecipado, adiado, repetição). */
+    /** A colocação da sessão na semana, fixada no início dela e nunca reescrita; a linha do histórico mostra o sufixo dela (antecipado, adiado, repetição, extra). */
     public var placement: WorkoutPlacement
     /** Data do slot que a sessão satisfez; presente com `ANTICIPATED` e `POSTPONED`, ausente nas demais. */
     public var slotDate: Date?

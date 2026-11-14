@@ -17,7 +17,7 @@ public struct RecordStudentWorkoutSessionRetroactivelyRequest: Codable, JSONEnco
     public static let effortRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: 10, exclusiveMaximum: false, multipleOf: nil)
     /** Data civil passada no fuso do vínculo do aluno. */
     public var date: Date
-    /** UUID do treino prescrito. */
+    /** UUID do treino prescrito, semanal ou extra (`role` `EXTRA`). */
     public var workoutId: String
     /** Nota de esforço declarada de 0 a 10, opcional. Omitida quando o aluno pula a tela. */
     public var effort: Int?
