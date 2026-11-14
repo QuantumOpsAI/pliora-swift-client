@@ -9,6 +9,8 @@ Name | Type | Description | Notes
 **to** | **Date** | Última data civil devolvida, ecoando o intervalo efetivamente aplicado. |
 **weekStart** | **Date** | A segunda-feira da semana de &#x60;from&#x60;, no fuso do vínculo: a semana do aluno vai de segunda a domingo. Informativo; o cliente não recalcula a semana. |
 **timeZone** | **String** | Timezone IANA em que o servidor resolveu as datas civis e a noção de \&quot;hoje\&quot;. O cliente não reinterpreta as datas noutro timezone. |
-**days** | [StudentScheduleDayView] | Uma entrada por data civil entre &#x60;from&#x60; e &#x60;to&#x60;, inclusive, em ordem crescente e sem lacuna. Um dia sem treino prescrito é &#x60;REST_DAY&#x60;. Vazio somente com &#x60;planState: TRAINING_PAUSED&#x60;. |
+**days** | [StudentScheduleDayView] | Uma entrada por data civil entre &#x60;from&#x60; e &#x60;to&#x60;, inclusive, em ordem crescente e sem lacuna. Um dia sem treino prescrito é &#x60;REST_DAY&#x60;, ou &#x60;REST_REQUIRED&#x60; no descanso obrigatório em vigor sem sessão na data. Vazio somente com &#x60;planState: TRAINING_PAUSED&#x60;. |
+**unscheduled** | [StudentScheduleUnscheduledWorkoutView] | Os treinos do conjunto semanal **Sem dia** na semana de &#x60;weekStart&#x60; (o grupo &#x60;Sem dia&#x60;, abaixo do domingo). Vazia quando não há nenhum, e sempre vazia em sequência livre (a Minha semana não se aplica a ela) e com o vínculo pausado; nunca ausente. |
+**arrangementRevision** | **String** | A &#x60;revision&#x60; do arranjo da semana (&#x60;getStudentWeekArrangement&#x60;), para o arrastar da AL1 gravar com &#x60;If-Match&#x60; sem outra leitura; presente só com &#x60;planMode: WEEKDAYS&#x60;. | [optional]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

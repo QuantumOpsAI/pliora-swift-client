@@ -26,6 +26,7 @@ public struct PersonalStudentScheduleView: Codable, JSONEncodable, Hashable {
     public static let studentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let timeZoneRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let daysRule = ArrayRule(minItems: 7, maxItems: 7, uniqueItems: false)
+    public static let unscheduledRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var studentId: String
     /** Data civil no calendário ISO 8601, sem horário ou timezone. */
@@ -40,8 +41,10 @@ public struct PersonalStudentScheduleView: Codable, JSONEncodable, Hashable {
     public var today: Date
     /** Os sete dias do intervalo, em ordem crescente e sem lacuna. */
     public var days: [PersonalStudentScheduleDayView]
+    /** Os treinos do conjunto semanal **Sem dia** nesta semana, na forma da agenda do aluno; vazia com `view=SUGGESTED`, em sequência livre e quando não há nenhum. */
+    public var unscheduled: [StudentScheduleUnscheduledWorkoutView]
 
-    public init(studentId: String, from: Date, to: Date, timeZone: String, firstDayOfWeek: FirstDayOfWeek, today: Date, days: [PersonalStudentScheduleDayView]) {
+    public init(studentId: String, from: Date, to: Date, timeZone: String, firstDayOfWeek: FirstDayOfWeek, today: Date, days: [PersonalStudentScheduleDayView], unscheduled: [StudentScheduleUnscheduledWorkoutView]) {
         self.studentId = studentId
         self.from = from
         self.to = to
@@ -49,6 +52,7 @@ public struct PersonalStudentScheduleView: Codable, JSONEncodable, Hashable {
         self.firstDayOfWeek = firstDayOfWeek
         self.today = today
         self.days = days
+        self.unscheduled = unscheduled
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -59,6 +63,7 @@ public struct PersonalStudentScheduleView: Codable, JSONEncodable, Hashable {
         case firstDayOfWeek
         case today
         case days
+        case unscheduled
     }
 
     // Encodable protocol methods
@@ -72,6 +77,7 @@ public struct PersonalStudentScheduleView: Codable, JSONEncodable, Hashable {
         try container.encode(firstDayOfWeek, forKey: .firstDayOfWeek)
         try container.encode(today, forKey: .today)
         try container.encode(days, forKey: .days)
+        try container.encode(unscheduled, forKey: .unscheduled)
     }
 }
 

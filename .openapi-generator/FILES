@@ -528,6 +528,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleDayPrescribed.s
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleDayState.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleDayView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentSchedulePlacedSessionView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleStackedSlotView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentsForbiddenProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentsUnauthenticatedProblemDetails.swift
@@ -541,6 +542,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/PlanActivationMode.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlanActivationOutcome.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlanActivationView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlanRelationshipState.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PlanRestRequiredWeekday.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlanWeekday.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlanWeekdaySlot.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PlatformContactChannelGrant.swift
@@ -680,6 +682,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/SavePersonalSpecialtiesRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SavePersonalWorkStyleRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SaveStudentAnamnesisSectionRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SaveStudentProfileRequest.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/SaveStudentWeekArrangementRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SavedStudentProfileView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/ServiceUnavailableProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SessionCompletedDigestItem.swift
@@ -848,6 +851,8 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleDayStatus.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleDayView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentSchedulePlacedSessionView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleRangeProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleStackedSlotView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleUnscheduledWorkoutView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentScheduleView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentSequenceWorkoutView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentSessionDecisionDestination.swift
@@ -894,6 +899,13 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentUnrecordedSetClassificationItem
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentUnrecordedSetClassificationRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentUnrecordedSetClassificationResponse.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentUnrecordedSetClassificationResponseClassifiedSetsInner.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekArrangementConflictProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekArrangementMove.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekArrangementNotAvailableProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekArrangementPreconditionProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekArrangementValidationProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekArrangementView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeekArrangementWorkoutView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeeklyReviewDestination.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWeeklyReviewDestinationData.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentWorkoutExecutionConflictProblemDetails.swift
@@ -1586,6 +1598,7 @@ docs/PersonalStudentScheduleDayPrescribed.md
 docs/PersonalStudentScheduleDayState.md
 docs/PersonalStudentScheduleDayView.md
 docs/PersonalStudentSchedulePlacedSessionView.md
+docs/PersonalStudentScheduleStackedSlotView.md
 docs/PersonalStudentScheduleView.md
 docs/PersonalStudentsForbiddenProblemDetails.md
 docs/PersonalStudentsUnauthenticatedProblemDetails.md
@@ -1599,6 +1612,7 @@ docs/PlanActivationMode.md
 docs/PlanActivationOutcome.md
 docs/PlanActivationView.md
 docs/PlanRelationshipState.md
+docs/PlanRestRequiredWeekday.md
 docs/PlanWeekday.md
 docs/PlanWeekdaySlot.md
 docs/PlatformAPI.md
@@ -1741,6 +1755,7 @@ docs/SavePersonalSpecialtiesRequest.md
 docs/SavePersonalWorkStyleRequest.md
 docs/SaveStudentAnamnesisSectionRequest.md
 docs/SaveStudentProfileRequest.md
+docs/SaveStudentWeekArrangementRequest.md
 docs/SavedStudentProfileView.md
 docs/ServiceUnavailableProblemDetails.md
 docs/SessionCompletedDigestItem.md
@@ -1913,6 +1928,8 @@ docs/StudentScheduleDayStatus.md
 docs/StudentScheduleDayView.md
 docs/StudentSchedulePlacedSessionView.md
 docs/StudentScheduleRangeProblemDetails.md
+docs/StudentScheduleStackedSlotView.md
+docs/StudentScheduleUnscheduledWorkoutView.md
 docs/StudentScheduleView.md
 docs/StudentSequenceWorkoutView.md
 docs/StudentSessionDecisionDestination.md
@@ -1960,6 +1977,13 @@ docs/StudentUnrecordedSetClassificationItem.md
 docs/StudentUnrecordedSetClassificationRequest.md
 docs/StudentUnrecordedSetClassificationResponse.md
 docs/StudentUnrecordedSetClassificationResponseClassifiedSetsInner.md
+docs/StudentWeekArrangementConflictProblemDetails.md
+docs/StudentWeekArrangementMove.md
+docs/StudentWeekArrangementNotAvailableProblemDetails.md
+docs/StudentWeekArrangementPreconditionProblemDetails.md
+docs/StudentWeekArrangementValidationProblemDetails.md
+docs/StudentWeekArrangementView.md
+docs/StudentWeekArrangementWorkoutView.md
 docs/StudentWeeklyReviewDestination.md
 docs/StudentWeeklyReviewDestinationData.md
 docs/StudentWorkoutExecutionConflictProblemDetails.md

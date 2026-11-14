@@ -10,17 +10,20 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Um dia da programação. Transporta o treino prescrito para aquela data e o estado consolidado do dia. Não transporta horário, série, carga, repetição, alvo operacional ou qualquer fato de execução detalhado. Além do treino do dia, &#x60;placedSessions&#x60; lista as sessões feitas nesta data que não são o treino do dia: o treino antecipado, o adiado e a repetição. Um dia sem treino com sessões colocadas é &#x60;REST_DAY&#x60; com &#x60;placedSessions&#x60; não vazio, e a tela mostra as sessões, não descanso. */
+/** Um dia da programação. Transporta o treino prescrito para aquela data e o estado consolidado do dia. Não transporta horário, série, carga, repetição, alvo operacional ou qualquer fato de execução detalhado. Além do treino do dia, &#x60;placedSessions&#x60; lista as sessões feitas nesta data que não são o treino do dia: o treino antecipado, o adiado e a repetição. Um dia sem treino com sessões colocadas é &#x60;REST_DAY&#x60; com &#x60;placedSessions&#x60; não vazio, e a tela mostra as sessões, não descanso. Mais de um treino no mesmo dia (&#x60;collision&#x60; &#x60;STACK&#x60;, &#x60;DOC-STUDENT-WEEK-TECH&#x60; §3.6): o primeiro, em ordem do plano, fica nos campos do dia (&#x60;workoutId&#x60;, &#x60;status&#x60;, …) e os outros em &#x60;stackedSlots&#x60;. */
 public struct StudentScheduleDayView: Codable, JSONEncodable, Hashable {
 
     public static let workoutIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let workoutNameRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let workoutFocusRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let placedSessionsRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
+    public static let stackedSlotsRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
+    public static let suggestedWeekdaysRule = ArrayRule(minItems: 1, maxItems: 7, uniqueItems: true)
+    public static let timesThisWeekRule = NumericRule<Int>(minimum: 0, exclusiveMinimum: false, maximum: nil, exclusiveMaximum: false, multipleOf: nil)
     /** Data civil no calendário ISO 8601, sem horário ou timezone. */
     public var date: Date
     public var status: StudentScheduleDayStatus
-    /** Identificador público opaco do treino prescrito para esta data; nulo quando não há treino prescrito (`REST_DAY`). */
+    /** Identificador público opaco do treino prescrito para esta data; nulo quando não há treino prescrito (`REST_DAY` e `REST_REQUIRED`). */
     public var workoutId: String?
     /** Nome do treino prescrito {ex. \"Treino A\"}; nulo quando não há treino. Conteúdo do domínio preservado verbatim UTF-8 e invariante de locale. */
     public var workoutName: String?
@@ -30,8 +33,16 @@ public struct StudentScheduleDayView: Codable, JSONEncodable, Hashable {
     public var doneOn: Date?
     /** As sessões colocadas nesta data que não são o treino do dia — antecipada, adiada ou repetição —, em ordem de início. Vazia quando não há nenhuma; nunca ausente. Em sequência livre (`planMode: SEQUENCE`) é sempre vazia: a sessão da sequência é o treino do dia. */
     public var placedSessions: [StudentSchedulePlacedSessionView]
+    /** Os outros treinos do mesmo dia quando há empilhamento (`Fazer os dois nesse dia`), em ordem do plano; o primeiro fica nos campos do dia. **Vazia quando não há empilhamento; nunca ausente.** Só existe num dia com treino — nunca em `REST_DAY` nem em `REST_REQUIRED` — e é sempre vazia em sequência livre (`planMode: SEQUENCE`). */
+    public var stackedSlots: [StudentScheduleStackedSlotView]
+    /** Os dias sugeridos pelo personal para o treino deste dia, **só quando** o dia arranjado pelo aluno difere da sugestão (`sugerido: terça`); ausente quando o dia segue a sugestão, sem treino e em sequência livre. */
+    public var suggestedWeekdays: Set<PlanWeekday>?
+    /** Dia civil em que o aluno concluiu o treino deste dia pela última vez (`Última vez: …`); ausente sem treino e quando nunca o concluiu. */
+    public var lastCompletedOn: Date?
+    /** Quantas sessões concluídas do treino deste dia o aluno tem nesta semana (`N vez(es) nesta semana`); presente quando o dia tem treino. */
+    public var timesThisWeek: Int?
 
-    public init(date: Date, status: StudentScheduleDayStatus, workoutId: String?, workoutName: String?, workoutFocus: String?, doneOn: Date? = nil, placedSessions: [StudentSchedulePlacedSessionView]) {
+    public init(date: Date, status: StudentScheduleDayStatus, workoutId: String?, workoutName: String?, workoutFocus: String?, doneOn: Date? = nil, placedSessions: [StudentSchedulePlacedSessionView], stackedSlots: [StudentScheduleStackedSlotView], suggestedWeekdays: Set<PlanWeekday>? = nil, lastCompletedOn: Date? = nil, timesThisWeek: Int? = nil) {
         self.date = date
         self.status = status
         self.workoutId = workoutId
@@ -39,6 +50,10 @@ public struct StudentScheduleDayView: Codable, JSONEncodable, Hashable {
         self.workoutFocus = workoutFocus
         self.doneOn = doneOn
         self.placedSessions = placedSessions
+        self.stackedSlots = stackedSlots
+        self.suggestedWeekdays = suggestedWeekdays
+        self.lastCompletedOn = lastCompletedOn
+        self.timesThisWeek = timesThisWeek
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -49,6 +64,10 @@ public struct StudentScheduleDayView: Codable, JSONEncodable, Hashable {
         case workoutFocus
         case doneOn
         case placedSessions
+        case stackedSlots
+        case suggestedWeekdays
+        case lastCompletedOn
+        case timesThisWeek
     }
 
     // Encodable protocol methods
@@ -62,6 +81,10 @@ public struct StudentScheduleDayView: Codable, JSONEncodable, Hashable {
         try container.encode(workoutFocus, forKey: .workoutFocus)
         try container.encodeIfPresent(doneOn, forKey: .doneOn)
         try container.encode(placedSessions, forKey: .placedSessions)
+        try container.encode(stackedSlots, forKey: .stackedSlots)
+        try container.encodeIfPresent(suggestedWeekdays, forKey: .suggestedWeekdays)
+        try container.encodeIfPresent(lastCompletedOn, forKey: .lastCompletedOn)
+        try container.encodeIfPresent(timesThisWeek, forKey: .timesThisWeek)
     }
 }
 

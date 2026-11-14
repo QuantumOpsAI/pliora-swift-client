@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Um treino que o aluno pode iniciar hoje, oferecido pelo cartão em &#x60;REST_DAY&#x60;, &#x60;WEEK_SLOT_SATISFIED&#x60; e &#x60;WORKOUT_COMPLETED&#x60;. Lista e ordem são do servidor: os slots pendentes da semana corrente, sem o de hoje e em ordem de data. &#x60;placement&#x60; é a colocação que o início teria hoje — &#x60;ANTICIPATED&#x60; para um slot futuro desta semana, &#x60;POSTPONED&#x60; para um slot passado — e o pedido de início a devolve em &#x60;expectedPlacement&#x60;; &#x60;slotDate&#x60; é a data desse slot. &#x60;blockedBy&#x60; e &#x60;availableFrom&#x60; são do intervalo mínimo entre repetições, que entra em 0.121.0: nesta versão nunca são produzidos; o item bloqueado é listado, e o início dele é recusado. */
+/** Um treino que o aluno pode iniciar hoje, oferecido pelo cartão em &#x60;REST_DAY&#x60;, &#x60;WEEK_SLOT_SATISFIED&#x60; e &#x60;WORKOUT_COMPLETED&#x60;. Lista e ordem são do servidor (&#x60;LS-7&#x60;): os slots pendentes da semana corrente, sem o de hoje e em ordem de data, e depois os treinos **Sem dia** da semana, com &#x60;placement&#x60; &#x60;UNSCHEDULED&#x60; e sem &#x60;slotDate&#x60;. &#x60;placement&#x60; é a colocação que o início teria hoje — &#x60;ANTICIPATED&#x60; para um slot futuro desta semana, &#x60;POSTPONED&#x60; para um slot passado — e o pedido de início a devolve em &#x60;expectedPlacement&#x60;; &#x60;slotDate&#x60; é a data desse slot. &#x60;blockedBy&#x60; e &#x60;availableFrom&#x60; dizem que o intervalo mínimo entre repetições do mesmo treino recusaria o início hoje e o primeiro dia em que ele é aceito, e &#x60;minDaysBetweenSameWorkout&#x60;, obrigatório com &#x60;blockedBy&#x60;, o intervalo do plano em vigor, com que a tela compõe o aviso; o item bloqueado é listado, para a tela explicar, e o início dele é recusado (&#x60;409 MIN_REST_INTERVAL_NOT_MET&#x60;). */
 public struct StudentTodayOfferView: Codable, JSONEncodable, Hashable {
 
     public enum BlockedBy: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -21,6 +21,7 @@ public struct StudentTodayOfferView: Codable, JSONEncodable, Hashable {
     public static let nameRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let focusRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescriptionVersionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let minDaysBetweenSameWorkoutRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: 14, exclusiveMaximum: false, multipleOf: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var workoutId: String
     /** Nome do treino, conteúdo autorado preservado verbatim e invariante de locale. */
@@ -29,16 +30,18 @@ public struct StudentTodayOfferView: Codable, JSONEncodable, Hashable {
     public var focus: String?
     /** A versão em vigor que o início deste treino leva. */
     public var prescriptionVersionId: String
-    /** A colocação que o início teria hoje: `ANTICIPATED` ou `POSTPONED` nesta versão (`UNSCHEDULED` a partir de 0.122.0, `EXTRA` a partir de 0.123.0). */
+    /** A colocação que o início teria hoje: `ANTICIPATED` ou `POSTPONED` para um slot pendente, `UNSCHEDULED` para um treino Sem dia nesta semana (`EXTRA` a partir de 0.123.0). */
     public var placement: WorkoutPlacement
     /** Data do slot pendente que o início satisfaria; presente com `ANTICIPATED` e `POSTPONED`, ausente nas demais. */
     public var slotDate: Date?
-    /** Por que o início deste item seria recusado hoje: `MIN_REST_INTERVAL` é o intervalo mínimo entre repetições, que entra em 0.121.0; nesta versão nunca é produzido. Vem com `availableFrom`. */
+    /** Por que o início deste item seria recusado hoje: `MIN_REST_INTERVAL` é o intervalo mínimo entre repetições do mesmo treino, que não foi cumprido. Ausente quando o item pode ser iniciado. Vem com `availableFrom`. */
     public var blockedBy: BlockedBy?
     /** Primeiro dia em que o início deixa de ser recusado; presente só com `blockedBy`. */
     public var availableFrom: Date?
+    /** O intervalo mínimo entre repetições do mesmo treino, em dias, do plano em vigor, obrigatório com `blockedBy` `MIN_REST_INTERVAL`: a tela compõe com ele `Seu personal pede N dias entre repetições deste treino. Libera <data>.`. */
+    public var minDaysBetweenSameWorkout: Int?
 
-    public init(workoutId: String, name: String, focus: String?, prescriptionVersionId: String, placement: WorkoutPlacement, slotDate: Date? = nil, blockedBy: BlockedBy? = nil, availableFrom: Date? = nil) {
+    public init(workoutId: String, name: String, focus: String?, prescriptionVersionId: String, placement: WorkoutPlacement, slotDate: Date? = nil, blockedBy: BlockedBy? = nil, availableFrom: Date? = nil, minDaysBetweenSameWorkout: Int? = nil) {
         self.workoutId = workoutId
         self.name = name
         self.focus = focus
@@ -47,6 +50,7 @@ public struct StudentTodayOfferView: Codable, JSONEncodable, Hashable {
         self.slotDate = slotDate
         self.blockedBy = blockedBy
         self.availableFrom = availableFrom
+        self.minDaysBetweenSameWorkout = minDaysBetweenSameWorkout
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -58,6 +62,7 @@ public struct StudentTodayOfferView: Codable, JSONEncodable, Hashable {
         case slotDate
         case blockedBy
         case availableFrom
+        case minDaysBetweenSameWorkout
     }
 
     // Encodable protocol methods
@@ -72,6 +77,7 @@ public struct StudentTodayOfferView: Codable, JSONEncodable, Hashable {
         try container.encodeIfPresent(slotDate, forKey: .slotDate)
         try container.encodeIfPresent(blockedBy, forKey: .blockedBy)
         try container.encodeIfPresent(availableFrom, forKey: .availableFrom)
+        try container.encodeIfPresent(minDaysBetweenSameWorkout, forKey: .minDaysBetweenSameWorkout)
     }
 }
 

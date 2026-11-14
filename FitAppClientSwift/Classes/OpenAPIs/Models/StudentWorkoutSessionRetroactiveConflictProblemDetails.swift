@@ -21,11 +21,14 @@ public struct StudentWorkoutSessionRetroactiveConflictProblemDetails: Codable, J
         case activeSessionExists = "ACTIVE_SESSION_EXISTS"
         case noActivePrescription = "NO_ACTIVE_PRESCRIPTION"
         case idempotencyConflict = "IDEMPOTENCY_CONFLICT"
+        case restRequiredToday = "REST_REQUIRED_TODAY"
+        case minRestIntervalNotMet = "MIN_REST_INTERVAL_NOT_MET"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public static let titleRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let correlationIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let sessionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let minDaysBetweenSameWorkoutRule = NumericRule<Int>(minimum: 1, exclusiveMinimum: false, maximum: 14, exclusiveMaximum: false, multipleOf: nil)
     /** URI estável que identifica a classe do problema. */
     public var type: String
     /** Resumo legível e estável para a classe do problema. server_localized; `code` é a autoridade estável para lógica de cliente, `title` nunca deve ser usado como chave de decisão. */
@@ -42,8 +45,12 @@ public struct StudentWorkoutSessionRetroactiveConflictProblemDetails: Codable, J
     public var fieldErrors: [FieldError]?
     /** Identidade canônica da sessão aberta do aluno, presente em ACTIVE_SESSION_EXISTS. */
     public var sessionId: String?
+    /** Primeiro dia civil em que o registro deste treino é aceito, presente **sempre e somente** em `MIN_REST_INTERVAL_NOT_MET`. */
+    public var availableFrom: Date?
+    /** O intervalo mínimo entre repetições do mesmo treino, em dias, do plano em vigor, presente **sempre e somente** em `MIN_REST_INTERVAL_NOT_MET`, ao lado de `availableFrom`: a AL2 compõe a frase `Seu personal pede N dias entre repetições deste treino. Libera <data>.` com este número, sem calcular nada. */
+    public var minDaysBetweenSameWorkout: Int?
 
-    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil, sessionId: String? = nil) {
+    public init(type: String, title: String, status: Status, code: Code, detail: String? = nil, instance: String? = nil, correlationId: String, fieldErrors: [FieldError]? = nil, sessionId: String? = nil, availableFrom: Date? = nil, minDaysBetweenSameWorkout: Int? = nil) {
         self.type = type
         self.title = title
         self.status = status
@@ -53,6 +60,8 @@ public struct StudentWorkoutSessionRetroactiveConflictProblemDetails: Codable, J
         self.correlationId = correlationId
         self.fieldErrors = fieldErrors
         self.sessionId = sessionId
+        self.availableFrom = availableFrom
+        self.minDaysBetweenSameWorkout = minDaysBetweenSameWorkout
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
@@ -65,6 +74,8 @@ public struct StudentWorkoutSessionRetroactiveConflictProblemDetails: Codable, J
         case correlationId
         case fieldErrors
         case sessionId
+        case availableFrom
+        case minDaysBetweenSameWorkout
     }
 
     // Encodable protocol methods
@@ -80,6 +91,8 @@ public struct StudentWorkoutSessionRetroactiveConflictProblemDetails: Codable, J
         try container.encode(correlationId, forKey: .correlationId)
         try container.encodeIfPresent(fieldErrors, forKey: .fieldErrors)
         try container.encodeIfPresent(sessionId, forKey: .sessionId)
+        try container.encodeIfPresent(availableFrom, forKey: .availableFrom)
+        try container.encodeIfPresent(minDaysBetweenSameWorkout, forKey: .minDaysBetweenSameWorkout)
     }
 }
 
