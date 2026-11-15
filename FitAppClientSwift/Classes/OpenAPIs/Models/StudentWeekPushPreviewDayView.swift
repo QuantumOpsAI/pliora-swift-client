@@ -10,17 +10,17 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Um dia da prévia de Empurrar a semana. Dia anterior a hoje vem com &#x60;past: true&#x60; e como a agenda já o mostra: dias passados não mudam e nunca ganham treino. &#x60;workouts&#x60; vazio é descanso; &#x60;restRequired&#x60; é descanso obrigatório em vigor, que nunca recebe treino. **O mesmo &#x60;workoutId&#x60; pode aparecer duas vezes em &#x60;days&#x60;**: no dia passado, com &#x60;moved: false&#x60;, como a agenda já o mostra, e no destino de hoje em diante, com &#x60;moved: true&#x60;; &#x60;workoutId&#x60; sozinho não é chave única da prévia (a chave é o dia mais o treino). Entre os dias de hoje em diante, um treino aparece no máximo uma vez. */
+/** Um dia da prévia de Empurrar a semana. Dia anterior a hoje vem com &#x60;past: true&#x60; e como a agenda o mostrará depois de confirmar: dias passados nunca ganham treino, e o slot passado do treino movido é retirado (&#x60;DEC-SEMANA-28&#x60;, &#x60;#912&#x60;-40), então **o treino movido não aparece no dia passado**. &#x60;workouts&#x60; vazio é descanso; &#x60;restRequired&#x60; é descanso obrigatório em vigor, que nunca recebe treino. **Cada &#x60;workoutId&#x60; aparece no máximo uma vez em &#x60;days&#x60; mais &#x60;unscheduled&#x60;**, e &#x60;moved: true&#x60; só no destino: o treino movido aparece exatamente uma vez, com &#x60;moved: true&#x60;, e nunca num dia passado. A exceção é o treino de vários dias (&#x60;LS-10&#x60;), que não se move: ele aparece em cada dia dele, sempre com &#x60;moved: false&#x60; e nunca em &#x60;moves&#x60;. */
 public struct StudentWeekPushPreviewDayView: Codable, JSONEncodable, Hashable {
 
     public static let workoutsRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
     /** Data civil no calendário ISO 8601, sem horário ou timezone. */
     public var date: Date
-    /** `true` para dia anterior a hoje: como a agenda o mostra; não muda. */
+    /** `true` para dia anterior a hoje: nunca ganha treino. */
     public var past: Bool
     /** `true` para dia de descanso obrigatório em vigor. */
     public var restRequired: Bool
-    /** Os treinos do dia depois dos `moves`, em ordem do plano; vazio é descanso. O pendente levado a outro dia continua no dia passado dele, com `moved: false`. */
+    /** Os treinos do dia depois dos `moves`, em ordem do plano; vazio é descanso. O pendente levado a outro dia não aparece no dia passado dele: o slot passado é retirado. */
     public var workouts: [StudentWeekPushPreviewWorkoutView]
 
     public init(date: Date, past: Bool, restRequired: Bool, workouts: [StudentWeekPushPreviewWorkoutView]) {
