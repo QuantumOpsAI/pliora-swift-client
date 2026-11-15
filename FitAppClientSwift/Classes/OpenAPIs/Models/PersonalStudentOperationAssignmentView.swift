@@ -14,7 +14,7 @@ import AnyCodable
 public struct PersonalStudentOperationAssignmentView: Codable, JSONEncodable, Hashable {
 
     public var state: PersonalStudentOperationAssignmentState
-    /** Referência da atribuição vigente — atribuição, treino e a versão de prescrição fixada nela —, reusando a mesma referência prescrita que a semana do aluno publica, para que as duas leituras nunca divirjam. Ela nunca transporta conteúdo de série, carga ou repetição. Presente exatamente quando `state` é `ASSIGNED_PUBLISHED`. */
+    /** Referência da atribuição vigente — atribuição, treino, com nome e foco, e a versão de prescrição fixada nela —, reusando a mesma referência prescrita que a semana do aluno publica, para que as duas leituras nunca divirjam. Ela nunca transporta conteúdo de série, carga ou repetição. Presente exatamente quando `state` é `ASSIGNED_PUBLISHED`. */
     public var current: PersonalStudentScheduleDayPrescribed?
 
     public init(state: PersonalStudentOperationAssignmentState, current: PersonalStudentScheduleDayPrescribed? = nil) {
