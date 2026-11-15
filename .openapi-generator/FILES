@@ -527,6 +527,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleDayExecuted.swi
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleDayPrescribed.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleDayState.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleDayView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleForbiddenProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentSchedulePlacedSessionView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleStackedSlotView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/PersonalStudentScheduleView.swift
@@ -1604,6 +1605,7 @@ docs/PersonalStudentScheduleDayExecuted.md
 docs/PersonalStudentScheduleDayPrescribed.md
 docs/PersonalStudentScheduleDayState.md
 docs/PersonalStudentScheduleDayView.md
+docs/PersonalStudentScheduleForbiddenProblemDetails.md
 docs/PersonalStudentSchedulePlacedSessionView.md
 docs/PersonalStudentScheduleStackedSlotView.md
 docs/PersonalStudentScheduleView.md

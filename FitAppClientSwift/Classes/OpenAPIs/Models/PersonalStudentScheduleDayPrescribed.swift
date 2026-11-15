@@ -10,29 +10,39 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Referência **prescrita** do dia (selo &#x60;P&#x60;), por identidade; nunca transporta conteúdo de série, carga ou repetição. */
+/** Referência **prescrita** do dia (selo &#x60;P&#x60;), por identidade, com o nome e o foco do treino como a versão fixada os autorou (&#x60;L-1&#x60; de &#x60;DOC-UX-PERSONAL-STUDENT-WEEK-SCREEN&#x60; §9): o cartão do dia e o de cada &#x60;stackedSlots[]&#x60; mostram o nome do treino sem juntar com a leitura do plano. Nunca transporta conteúdo de série, carga ou repetição. */
 public struct PersonalStudentScheduleDayPrescribed: Codable, JSONEncodable, Hashable {
 
     public static let assignmentIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let workoutIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let prescriptionVersionIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let nameRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let focusRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var assignmentId: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var workoutId: String
     /** Versão fixada na atribuição; permanece a mesma quando uma versão nova é publicada depois. */
     public var prescriptionVersionId: String
+    /** Nome do treino, conteúdo autorado preservado verbatim e invariante de locale. */
+    public var name: String
+    /** Foco declarado do treino, preservado verbatim; nulo somente para versão publicada antes de o foco autorado existir. */
+    public var focus: String?
 
-    public init(assignmentId: String, workoutId: String, prescriptionVersionId: String) {
+    public init(assignmentId: String, workoutId: String, prescriptionVersionId: String, name: String, focus: String?) {
         self.assignmentId = assignmentId
         self.workoutId = workoutId
         self.prescriptionVersionId = prescriptionVersionId
+        self.name = name
+        self.focus = focus
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case assignmentId
         case workoutId
         case prescriptionVersionId
+        case name
+        case focus
     }
 
     // Encodable protocol methods
@@ -42,5 +52,7 @@ public struct PersonalStudentScheduleDayPrescribed: Codable, JSONEncodable, Hash
         try container.encode(assignmentId, forKey: .assignmentId)
         try container.encode(workoutId, forKey: .workoutId)
         try container.encode(prescriptionVersionId, forKey: .prescriptionVersionId)
+        try container.encode(name, forKey: .name)
+        try container.encode(focus, forKey: .focus)
     }
 }
