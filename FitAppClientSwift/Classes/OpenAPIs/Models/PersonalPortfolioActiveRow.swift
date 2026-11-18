@@ -40,7 +40,7 @@ public struct PersonalPortfolioActiveRow: Codable, JSONEncodable, Hashable {
     public var assignment: PersonalStudentOperationAssignmentView
     /** Referência da última sessão **concluída**, por identidade. Ausente quando não há sessão concluída — ausência é ausência, nunca data zero. */
     public var lastCompletedSession: PersonalStudentScheduleDayExecuted?
-    /** Instante **do servidor** da atividade operacional mais recente deste vínculo. Ausente quando nenhum fato operacional existe. */
+    /** Instante **do servidor** da atividade operacional mais recente deste vínculo. Ausente quando nenhum fato operacional existe. Acompanha a atribuição de `assignment.current`, também quando ela é a próxima (`startsOn` presente): o mais recente entre o instante da atribuição e o da publicação da versão fixada nela entra no conjunto, e o campo deixa de vir ausente. */
     public var lastOperationalActivityAt: Date?
     /** Motivos de atenção vigentes do vínculo, completos e na projeção mínima `AttentionReasonReference` — a mesma dos grupos da fila. Lista vazia é exatamente nenhum motivo vigente, nunca afirmação de saúde. */
     public var attentionReasons: [AttentionReasonReference]

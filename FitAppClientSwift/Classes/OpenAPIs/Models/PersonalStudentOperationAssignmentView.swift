@@ -10,21 +10,25 @@ import Foundation
 import AnyCodable
 #endif
 
-/** As combinações proibidas da atribuição, na forma que o gate de compatibilidade percorre: atribuída sem a referência que a identifica, e referência publicada sem atribuição vigente. */
+/** As combinações proibidas da atribuição, na forma que o gate de compatibilidade percorre: atribuída sem a referência que a identifica, referência publicada sem atribuição, e data de início da próxima atribuição sem atribuição. */
 public struct PersonalStudentOperationAssignmentView: Codable, JSONEncodable, Hashable {
 
     public var state: PersonalStudentOperationAssignmentState
-    /** Referência da atribuição vigente — atribuição, treino, com nome e foco, e a versão de prescrição fixada nela —, reusando a mesma referência prescrita que a semana do aluno publica, para que as duas leituras nunca divirjam. Ela nunca transporta conteúdo de série, carga ou repetição. Presente exatamente quando `state` é `ASSIGNED_PUBLISHED`. */
+    /** Referência da atribuição desta leitura, vigente ou, sem vigente, a próxima — atribuição, treino, com nome e foco, e a versão de prescrição fixada nela —, reusando a mesma referência prescrita que a semana do aluno publica, para que as duas leituras nunca divirjam. Ela nunca transporta conteúdo de série, carga ou repetição. Presente exatamente quando `state` é `ASSIGNED_PUBLISHED`. */
     public var current: PersonalStudentScheduleDayPrescribed?
+    /** Data civil da atribuição em `current` quando ela é a **próxima**: presente **exatamente** quando não há nenhuma atribuição publicada com data até hoje, no fuso do vínculo, em `asOf`, e `current` é a atribuição de menor data depois de hoje; ausente quando `current` é a vigente e sempre ausente com `NO_ASSIGNMENT`. O cliente não compara datas: mostra a segunda linha \"Começa em <data>\" quando este campo chega, formatando a data civil sem hora e sem conversão de fuso, e deixa de mostrá-la na leitura em que ele some. */
+    public var startsOn: Date?
 
-    public init(state: PersonalStudentOperationAssignmentState, current: PersonalStudentScheduleDayPrescribed? = nil) {
+    public init(state: PersonalStudentOperationAssignmentState, current: PersonalStudentScheduleDayPrescribed? = nil, startsOn: Date? = nil) {
         self.state = state
         self.current = current
+        self.startsOn = startsOn
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case state
         case current
+        case startsOn
     }
 
     // Encodable protocol methods
@@ -33,6 +37,7 @@ public struct PersonalStudentOperationAssignmentView: Codable, JSONEncodable, Ha
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(state, forKey: .state)
         try container.encodeIfPresent(current, forKey: .current)
+        try container.encodeIfPresent(startsOn, forKey: .startsOn)
     }
 }
 
