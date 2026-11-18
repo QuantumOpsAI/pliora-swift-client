@@ -41,7 +41,7 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
     /** Copiado pelo servidor da série prescrita ao persistir a execução (`DOC-STUDENT-WORKOUT-TECH` §6.5). O cliente não o envia nem o edita. */
     public var repsPerSide: Bool?
     /** Copiado pelo servidor da prescrição ao persistir a execução (`DOC-STUDENT-WORKOUT-TECH` §6.4). O cliente não o envia nem o edita. `null` é `leitura não informada`, que só se compara com `null`. Na alternativa executada sem orientação própria, é a leitura sugerida pelo equipamento dela, nunca a do exercício original. */
-    public var loadBasis: LoadBasis?
+    public var loadBasis: WorkoutControlOptional<LoadBasis>
     /** true quando a série for adicional acrescentada durante a sessão ou após o término (`DOC-STUDENT-WORKOUT-TECH` §2.5.1). */
     public var isAdditional: Bool?
     /** floor(tempo ativo medido pelo servidor em ms/1000), persistido uma vez somente após início real explícito de série que termina COMPLETED/PARTIAL. Pode ser 0 em série não temporal com menos de 1 s; ausente em SKIPPED ou sem início real, nunca estimado de startedAt/completedAt legado nem preenchido por emenda. Na série por tempo, coincide com measuredDurationSeconds>= 1; correção de actual.durationSeconds nunca altera duração ativa ou medida. Não é aceito em nenhum input e não tem default. */
@@ -60,7 +60,7 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var completedAt: WorkoutControlTimestamp
 
-    public init(viewType: ViewType, setExecutionId: String, exerciseExecutionId: String, prescribedSetId: String, setIndex: Int, status: ExecutedSetStatus, target: ExecutionTargetValues, actual: WorkoutSetValues?, repsPerSide: Bool? = nil, loadBasis: LoadBasis? = nil, isAdditional: Bool? = nil, activeDurationSeconds: Int64? = nil, measuredDurationSeconds: Int? = nil, adjustedDurationSeconds: Int? = nil, executedVariantId: String, equipmentInstanceId: String?, observation: String?, startedAt: WorkoutControlTimestamp, completedAt: WorkoutControlTimestamp) {
+    public init(viewType: ViewType, setExecutionId: String, exerciseExecutionId: String, prescribedSetId: String, setIndex: Int, status: ExecutedSetStatus, target: ExecutionTargetValues, actual: WorkoutSetValues?, repsPerSide: Bool? = nil, loadBasis: WorkoutControlOptional<LoadBasis> = .absent, isAdditional: Bool? = nil, activeDurationSeconds: Int64? = nil, measuredDurationSeconds: Int? = nil, adjustedDurationSeconds: Int? = nil, executedVariantId: String, equipmentInstanceId: String?, observation: String?, startedAt: WorkoutControlTimestamp, completedAt: WorkoutControlTimestamp) {
         self.viewType = viewType
         self.setExecutionId = setExecutionId
         self.exerciseExecutionId = exerciseExecutionId
@@ -117,7 +117,7 @@ public struct SetExecutionSyncView: Codable, JSONEncodable, Hashable {
         try container.encode(target, forKey: .target)
         try container.encode(actual, forKey: .actual)
         try container.encodeIfPresent(repsPerSide, forKey: .repsPerSide)
-        try container.encodeIfPresent(loadBasis, forKey: .loadBasis)
+        try container.encode(loadBasis, forKey: .loadBasis)
         try container.encodeIfPresent(isAdditional, forKey: .isAdditional)
         try container.encodeIfPresent(activeDurationSeconds, forKey: .activeDurationSeconds)
         try container.encodeIfPresent(measuredDurationSeconds, forKey: .measuredDurationSeconds)
@@ -135,7 +135,7 @@ extension SetExecutionSyncView: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
         if viewType == .unknownDefaultOpenApi { return true }
         if status == .unknownDefaultOpenApi { return true }
-        if loadBasis == .unknownDefaultOpenApi { return true }
+        if case .value(.unknownDefaultOpenApi) = loadBasis { return true }
         return false
     }
 }
