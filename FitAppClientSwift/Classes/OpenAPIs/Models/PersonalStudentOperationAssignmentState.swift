@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Estado da atribuição vigente deste aluno. &#x60;NO_ASSIGNMENT&#x60;: não há atribuição vigente — estado declarado, nunca lista vazia, campo nulo ou data zero. &#x60;ASSIGNED_PUBLISHED&#x60;: existe prescrição publicada e atribuída, e a referência acompanha a versão fixada na atribuição. **Rascunho não é estado desta projeção**: um rascunho não é aplicável à carteira, não vira atribuição e não move este estado — enquanto só existir rascunho, o estado é &#x60;NO_ASSIGNMENT&#x60;. A autoria e o versionamento do rascunho continuam em &#x60;Personal Prescription&#x60;. */
+/** Estado da atribuição deste aluno nesta leitura. &#x60;NO_ASSIGNMENT&#x60;: não há atribuição publicada **nem até hoje nem adiante**, no fuso do vínculo, em &#x60;asOf&#x60; — estado declarado, nunca lista vazia, campo nulo ou data zero. &#x60;ASSIGNED_PUBLISHED&#x60;: existe prescrição publicada e atribuída — a **vigente**, isto é, a atribuição publicada mais recente com data até hoje, ou, quando não há nenhuma até hoje, a **próxima**, a de menor data depois de hoje —, e a referência acompanha a versão fixada nessa atribuição. **Rascunho não é estado desta projeção**: um rascunho não é aplicável à carteira, não vira atribuição e não move este estado — enquanto só existir rascunho, o estado é &#x60;NO_ASSIGNMENT&#x60;. A autoria e o versionamento do rascunho continuam em &#x60;Personal Prescription&#x60;. */
 public enum PersonalStudentOperationAssignmentState: String, Codable, CaseIterable, CaseIterableDefaultsLast {
     case noAssignment = "NO_ASSIGNMENT"
     case assignedPublished = "ASSIGNED_PUBLISHED"

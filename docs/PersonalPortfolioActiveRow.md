@@ -15,7 +15,7 @@ Name | Type | Description | Notes
 **prescriptionEligibility** | [**StudentPrescriptionEligibilityView**](StudentPrescriptionEligibilityView.md) | Elegibilidade para prescrição exatamente como a superfície de onboarding a publica — reusada, nunca um segundo vocabulário. |
 **assignment** | [**PersonalStudentOperationAssignmentView**](PersonalStudentOperationAssignmentView.md) |  |
 **lastCompletedSession** | [**PersonalStudentScheduleDayExecuted**](PersonalStudentScheduleDayExecuted.md) | Referência da última sessão **concluída**, por identidade. Ausente quando não há sessão concluída — ausência é ausência, nunca data zero. | [optional]
-**lastOperationalActivityAt** | **Date** | Instante **do servidor** da atividade operacional mais recente deste vínculo. Ausente quando nenhum fato operacional existe. | [optional]
+**lastOperationalActivityAt** | **Date** | Instante **do servidor** da atividade operacional mais recente deste vínculo. Ausente quando nenhum fato operacional existe. Acompanha a atribuição de &#x60;assignment.current&#x60;, também quando ela é a próxima (&#x60;startsOn&#x60; presente): o mais recente entre o instante da atribuição e o da publicação da versão fixada nela entra no conjunto, e o campo deixa de vir ausente. | [optional]
 **attentionReasons** | [AttentionReasonReference] | Motivos de atenção vigentes do vínculo, completos e na projeção mínima &#x60;AttentionReasonReference&#x60; — a mesma dos grupos da fila. Lista vazia é exatamente nenhum motivo vigente, nunca afirmação de saúde. |
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
