@@ -8,7 +8,7 @@
     "version": "7.24.0"
   },
   "releaseVersion": "0.129.0",
-  "sourceCommit": "eb64c09df86f739484af42f4e0c3717abb9ded3e",
+  "sourceCommit": "6203f9d502b312ce55e56f22fbd1ae2e17e4e0a0",
   "sourceRepository": "https://github.com/QuantumOpsAI/pliora-contracts",
   "specPath": "openapi/fitapp-experience-api-v1.yaml",
   "specSha256": "c6fb75b699da7676c2d30a6e9da73e840525bdf9b5ccd5fd455f9f44b9e7269c",
