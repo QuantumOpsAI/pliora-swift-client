@@ -39,9 +39,9 @@ public struct ExecutionTargetValues: Codable, JSONEncodable, Hashable {
     public var durationSeconds: Int?
     /** Origem do alvo. `PERCENT_OF_REFERENCE` é o valor calculado de uma série prescrita em percentual da carga de referência confirmada pelo personal e só existe com `loadValue` e `loadUnit` presentes; a estimativa sugerida do histórico **nunca** é origem de alvo. */
     public var source: Source
-    public var expectedRpe: Double?
+    public var expectedRpe: WorkoutControlOptional<Double>
 
-    public init(loadValue: Double?, loadUnit: LoadUnit?, reps: Int?, durationSeconds: Int? = nil, source: Source, expectedRpe: Double? = nil) {
+    public init(loadValue: Double?, loadUnit: LoadUnit?, reps: Int?, durationSeconds: Int? = nil, source: Source, expectedRpe: WorkoutControlOptional<Double> = .absent) {
         self.loadValue = loadValue
         self.loadUnit = loadUnit
         self.reps = reps
@@ -68,7 +68,7 @@ public struct ExecutionTargetValues: Codable, JSONEncodable, Hashable {
         try container.encode(reps, forKey: .reps)
         try container.encodeIfPresent(durationSeconds, forKey: .durationSeconds)
         try container.encode(source, forKey: .source)
-        try container.encodeIfPresent(expectedRpe, forKey: .expectedRpe)
+        try container.encode(expectedRpe, forKey: .expectedRpe)
     }
 }
 

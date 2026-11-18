@@ -29,9 +29,9 @@ public struct WorkoutSetValues: Codable, JSONEncodable, Hashable {
     public var reps: Int?
     /** Duração da série por tempo, em segundos. Na realizada, o excedente sobre a duração alvo é fato e não erro, e este é o valor **em vigor**: o medido pelo cronômetro e o corrigido pelo aluno são campos próprios da série executada (`measuredDurationSeconds` e `adjustedDurationSeconds`). */
     public var durationSeconds: Int?
-    public var rpe: Double?
+    public var rpe: WorkoutControlOptional<Double>
 
-    public init(loadValue: Double?, loadUnit: LoadUnit?, reps: Int?, durationSeconds: Int? = nil, rpe: Double? = nil) {
+    public init(loadValue: Double?, loadUnit: LoadUnit?, reps: Int?, durationSeconds: Int? = nil, rpe: WorkoutControlOptional<Double> = .absent) {
         self.loadValue = loadValue
         self.loadUnit = loadUnit
         self.reps = reps
@@ -55,7 +55,7 @@ public struct WorkoutSetValues: Codable, JSONEncodable, Hashable {
         try container.encode(loadUnit, forKey: .loadUnit)
         try container.encode(reps, forKey: .reps)
         try container.encodeIfPresent(durationSeconds, forKey: .durationSeconds)
-        try container.encodeIfPresent(rpe, forKey: .rpe)
+        try container.encode(rpe, forKey: .rpe)
     }
 }
 
