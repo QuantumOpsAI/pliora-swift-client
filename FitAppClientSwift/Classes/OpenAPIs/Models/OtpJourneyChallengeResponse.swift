@@ -24,6 +24,7 @@ public struct OtpJourneyChallengeResponse: Codable, JSONEncodable, Hashable {
     public var challengeId: String
     /** Instante RFC 3339 / ISO 8601 com offset explícito. */
     public var expiresAt: Date
+    /** Segundos inteiros que faltam para o reenvio ser liberado. No primeiro pedido é o intervalo de reenvio inteiro; na reapresentação é o que resta dele. */
     public var retryAfterSeconds: Int
     /** Dica mascarada e uniforme, nunca confirmação de existência de conta. */
     public var destinationHint: String
