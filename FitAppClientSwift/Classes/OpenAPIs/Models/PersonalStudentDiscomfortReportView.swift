@@ -10,21 +10,25 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Contexto protegido de **um** relato de desconforto, lido pelo personal do vínculo ativo. Ele carrega o fato estruturado, o contexto de execução em que o relato ocorreu e o estado de reconhecimento — e nada além disso. **O fato não é republicado numa forma própria:** &#x60;report&#x60; reusa, sem alteração, a mesma estrutura que a fila já publica, para que não exista um segundo ponto de verdade sobre um fato que este contrato já descreve. **A observação escrita pelo aluno não trafega aqui**, e nenhum campo indica que ela existe. Nenhum campo desta estrutura é diagnóstico, condição de saúde, classificação clínica ou avaliação, e nenhum é agregação de relatos: não há contagem, média de intensidade, área mais frequente nem rótulo de desfecho. */
+/** Contexto protegido de **um** relato de desconforto, lido pelo personal do vínculo ativo. Ele carrega o fato estruturado, o contexto de execução em que o relato ocorreu e o estado de reconhecimento — e nada além disso. **O fato não é republicado numa forma própria:** &#x60;report&#x60; reusa, sem alteração, a mesma estrutura que a fila já publica, para que não exista um segundo ponto de verdade sobre um fato que este contrato já descreve. **A observação escrita pelo aluno não trafega aqui**, e nenhum campo indica que ela existe. Nenhum campo desta estrutura é diagnóstico, condição de saúde, classificação clínica ou avaliação, e nenhum é agregação de relatos: não há contagem, média de intensidade, área mais frequente nem rótulo de desfecho. &#x60;exerciseLabel&#x60; nomeia o exercício de &#x60;report.exerciseId&#x60;, para que a tela diga de qual exercício é o relato sem imprimir identificador. */
 public struct PersonalStudentDiscomfortReportView: Codable, JSONEncodable, Hashable {
 
+    public static let exerciseLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     /** Instante do servidor em que esta leitura foi calculada, obrigatório. Nunca o relógio do dispositivo; o cliente apenas formata. */
     public var asOf: Date
     /** O fato estruturado do relato, **exatamente** como a fila já o publica. O vocabulário é reusado sem alteração — `area`, `sensation` e `intensity` são os mesmos conjuntos de `ExecutionDiscomfortReportPayload` —, e o texto livre continua ausente por construção. */
     public var report: PersonalAttentionDiscomfortParameters
+    /** Rótulo do exercício de `report.exerciseId` na prescrição sob a qual o relato foi feito — o `displayName` que o personal deu, o mesmo que a versão publicada e o bundle exibem —, preservado sem tradução e sem substituir `exerciseId`. O catálogo não é guardado (ADR-0014): nenhum nome vem dele. Fica fora de `report` de propósito: `report` é a forma que a fila também publica, e a referência do desconforto na coleção não ganha rótulo. */
+    public var exerciseLabel: String
     /** Contexto de execução daquele exercício naquela sessão, dentro do conteúdo mínimo do acompanhamento. **Ausente é ausente:** quando o bloco não está disponível ele não vem, e a sua ausência nunca é zero, nunca é série vazia apresentada como fato e nunca afirma que nada aconteceu. O fato do relato continua sendo entregue. */
     public var executionContext: PersonalStudentDiscomfortExecutionContextView?
     /** Estado de reconhecimento daquele relato por esta conta, reusando a projeção que o próprio ato publica — autoria e instante, sem conteúdo. `null` quando ninguém reconheceu ainda: é ausência de ato, nunca negação, nunca zero e nunca afirmação de que o relato foi avaliado, tratado ou resolvido. */
     public var acknowledgement: PersonalDiscomfortAcknowledgementView?
 
-    public init(asOf: Date, report: PersonalAttentionDiscomfortParameters, executionContext: PersonalStudentDiscomfortExecutionContextView? = nil, acknowledgement: PersonalDiscomfortAcknowledgementView?) {
+    public init(asOf: Date, report: PersonalAttentionDiscomfortParameters, exerciseLabel: String, executionContext: PersonalStudentDiscomfortExecutionContextView? = nil, acknowledgement: PersonalDiscomfortAcknowledgementView?) {
         self.asOf = asOf
         self.report = report
+        self.exerciseLabel = exerciseLabel
         self.executionContext = executionContext
         self.acknowledgement = acknowledgement
     }
@@ -32,6 +36,7 @@ public struct PersonalStudentDiscomfortReportView: Codable, JSONEncodable, Hasha
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case asOf
         case report
+        case exerciseLabel
         case executionContext
         case acknowledgement
     }
@@ -42,6 +47,7 @@ public struct PersonalStudentDiscomfortReportView: Codable, JSONEncodable, Hasha
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(asOf, forKey: .asOf)
         try container.encode(report, forKey: .report)
+        try container.encode(exerciseLabel, forKey: .exerciseLabel)
         try container.encodeIfPresent(executionContext, forKey: .executionContext)
         try container.encode(acknowledgement, forKey: .acknowledgement)
     }

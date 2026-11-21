@@ -10,7 +10,7 @@ import Foundation
 import AnyCodable
 #endif
 
-/** Referência mínima da substituição recorrente. Viajam a &#x60;window&#x60; e as referências opacas que o destino &#x60;STUDENT_EXERCISE_EXECUTION_REPORT&#x60; precisa — &#x60;exerciseId&#x60;, &#x60;prescribedVariantId&#x60; e &#x60;equipmentContextKey&#x60; quando discrimina. O motivo estruturado da substituição, os rótulos e o catálogo de opções ficam na leitura protegida do destino e nunca viajam na coleção. */
+/** Referência mínima da substituição recorrente. Viajam a &#x60;window&#x60;, as referências opacas que o destino &#x60;STUDENT_EXERCISE_EXECUTION_REPORT&#x60; precisa — &#x60;exerciseId&#x60;, &#x60;prescribedVariantId&#x60; e &#x60;equipmentContextKey&#x60; quando discrimina — e, ao lado de cada identificador, o rótulo legível do exercício e da variante prescrita, para que a linha diga de qual exercício é o motivo (&#x60;DOC-PERSONAL-DESTINATIONS&#x60; §12.1). Rótulo de exercício não é parâmetro clínico. O motivo estruturado da substituição e o catálogo de opções ficam na leitura protegida do destino e nunca viajam na coleção. */
 public struct AttentionSubstitutionReasonReference: Codable, JSONEncodable, Hashable {
 
     public enum ReasonCode: String, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -27,7 +27,9 @@ public struct AttentionSubstitutionReasonReference: Codable, JSONEncodable, Hash
     }
     public static let reasonIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
     public static let exerciseIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let exerciseLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let prescribedVariantIdRule = StringRule(minLength: 1, maxLength: nil, pattern: nil)
+    public static let prescribedVariantLabelRule = StringRule(minLength: 1, maxLength: 120, pattern: nil)
     public static let equipmentContextKeyRule = StringRule(minLength: 1, maxLength: 64, pattern: nil)
     /** Identidade estável e reprodutível do motivo; opaca e nunca decodificada. */
     public var reasonId: String
@@ -37,19 +39,25 @@ public struct AttentionSubstitutionReasonReference: Codable, JSONEncodable, Hash
     public var destination: Destination
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var exerciseId: String
+    /** Rótulo do exercício na prescrição — o `displayName` que o personal deu, o mesmo que a versão publicada e o bundle exibem —, preservado sem tradução e sem substituir `exerciseId`. O catálogo não é guardado (ADR-0014): nenhum nome vem dele. É o mesmo valor que `PersonalAttentionSubstitutionParameters.exerciseLabel` publica no destino. */
+    public var exerciseLabel: String
     /** Identificador público opaco. O cliente não deve inferir semântica, ordem ou tipo interno. */
     public var prescribedVariantId: String
+    /** Rótulo da variante prescrita, preservado sem tradução e sem substituir `prescribedVariantId`. Uma variante de exercício do catálogo, que tem uma só, leva o `displayName` da prescrição; o catálogo não é guardado (ADR-0014) e nenhum nome vem dele. É o mesmo valor que `PersonalAttentionSubstitutionParameters.prescribedVariantLabel` publica no destino. */
+    public var prescribedVariantLabel: String
     /** Contexto de equipamento que discrimina o par `exerciseId` + `prescribedVariantId`, presente somente quando o relatório o exige; código de máquina opaco que o cliente devolve verbatim e nunca interpreta. */
     public var equipmentContextKey: String?
 
-    public init(reasonId: String, reasonCode: ReasonCode, origin: Origin, window: PersonalAttentionWindow, destination: Destination, exerciseId: String, prescribedVariantId: String, equipmentContextKey: String? = nil) {
+    public init(reasonId: String, reasonCode: ReasonCode, origin: Origin, window: PersonalAttentionWindow, destination: Destination, exerciseId: String, exerciseLabel: String, prescribedVariantId: String, prescribedVariantLabel: String, equipmentContextKey: String? = nil) {
         self.reasonId = reasonId
         self.reasonCode = reasonCode
         self.origin = origin
         self.window = window
         self.destination = destination
         self.exerciseId = exerciseId
+        self.exerciseLabel = exerciseLabel
         self.prescribedVariantId = prescribedVariantId
+        self.prescribedVariantLabel = prescribedVariantLabel
         self.equipmentContextKey = equipmentContextKey
     }
 
@@ -60,7 +68,9 @@ public struct AttentionSubstitutionReasonReference: Codable, JSONEncodable, Hash
         case window
         case destination
         case exerciseId
+        case exerciseLabel
         case prescribedVariantId
+        case prescribedVariantLabel
         case equipmentContextKey
     }
 
@@ -74,7 +84,9 @@ public struct AttentionSubstitutionReasonReference: Codable, JSONEncodable, Hash
         try container.encode(window, forKey: .window)
         try container.encode(destination, forKey: .destination)
         try container.encode(exerciseId, forKey: .exerciseId)
+        try container.encode(exerciseLabel, forKey: .exerciseLabel)
         try container.encode(prescribedVariantId, forKey: .prescribedVariantId)
+        try container.encode(prescribedVariantLabel, forKey: .prescribedVariantLabel)
         try container.encodeIfPresent(equipmentContextKey, forKey: .equipmentContextKey)
     }
 }
