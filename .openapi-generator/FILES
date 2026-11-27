@@ -230,6 +230,15 @@ FitAppClientSwift/Classes/OpenAPIs/Models/GetStudentWorkoutControlOperation404Re
 FitAppClientSwift/Classes/OpenAPIs/Models/GetStudentWorkoutControlOperation422Response.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/GrantNotificationPurposeCommand.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/GrantPersonalStudentAnamnesisExemptionRequest.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/HealthMetricsConsentConflictProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/HealthMetricsConsentDecision.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/HealthMetricsConsentPreconditionFailedProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/HealthMetricsConsentPreconditionRequiredProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/HealthMetricsConsentValidationProblemDetails.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/HealthMetricsConsentView.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/HealthMetricsDocumentPresentation.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/HealthMetricsEffectiveAccess.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/HealthMetricsPurpose.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/HealthView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/IdentityContextResponse.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/IdentityEmailKind.swift
@@ -742,6 +751,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/SetAmendmentSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SetExecutionSyncView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SetPersonalStudentAnamnesisRequirementRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SetStudentBodyAuthorizationRequest.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/SetStudentHealthMetricsConsentRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SocialIdentityJourneyRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/SocialIdentityProofRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StartAccountEmailConfirmationAttemptRequest.swift
@@ -826,6 +836,7 @@ FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseProgressView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseSkipResponse.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentExerciseSplitResponse.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentGoalTimeframe.swift
+FitAppClientSwift/Classes/OpenAPIs/Models/StudentHeartRateReferenceView.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentInvitationAcceptanceConflictProblemDetails.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentInvitationAcceptanceContextRequest.swift
 FitAppClientSwift/Classes/OpenAPIs/Models/StudentInvitationAcceptanceContextView.swift
@@ -1342,6 +1353,15 @@ docs/GetStudentWorkoutControlOperation404Response.md
 docs/GetStudentWorkoutControlOperation422Response.md
 docs/GrantNotificationPurposeCommand.md
 docs/GrantPersonalStudentAnamnesisExemptionRequest.md
+docs/HealthMetricsConsentConflictProblemDetails.md
+docs/HealthMetricsConsentDecision.md
+docs/HealthMetricsConsentPreconditionFailedProblemDetails.md
+docs/HealthMetricsConsentPreconditionRequiredProblemDetails.md
+docs/HealthMetricsConsentValidationProblemDetails.md
+docs/HealthMetricsConsentView.md
+docs/HealthMetricsDocumentPresentation.md
+docs/HealthMetricsEffectiveAccess.md
+docs/HealthMetricsPurpose.md
 docs/HealthView.md
 docs/IdentityAPI.md
 docs/IdentityContextResponse.md
@@ -1871,6 +1891,7 @@ docs/SetAmendmentSyncView.md
 docs/SetExecutionSyncView.md
 docs/SetPersonalStudentAnamnesisRequirementRequest.md
 docs/SetStudentBodyAuthorizationRequest.md
+docs/SetStudentHealthMetricsConsentRequest.md
 docs/SocialIdentityJourneyRequest.md
 docs/SocialIdentityProofRequest.md
 docs/StartAccountEmailConfirmationAttemptRequest.md
@@ -1955,6 +1976,7 @@ docs/StudentExerciseProgressView.md
 docs/StudentExerciseSkipResponse.md
 docs/StudentExerciseSplitResponse.md
 docs/StudentGoalTimeframe.md
+docs/StudentHeartRateReferenceView.md
 docs/StudentInvitationAcceptanceConflictProblemDetails.md
 docs/StudentInvitationAcceptanceContextRequest.md
 docs/StudentInvitationAcceptanceContextView.md

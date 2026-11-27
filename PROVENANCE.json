@@ -1,11 +1,11 @@
 {
-  "bundleSha256": "aec5408293f3902c4f7714e5b087230ae9ef4aa0846f6dd775d1363100f8da42",
-  "contractVersion": "0.133.0",
+  "bundleSha256": "6505c7d8ceb0e407cbf0ee6d39095e5a692caf3fa5f189f59338aba22f190dfa",
+  "contractVersion": "0.134.0",
   "generator": {
-    "kotlin": "library=jvm-okhttp4,artifactId=fitapp-client-kotlin,groupId=com.fitapp.client,packageName=com.fitapp.client,artifactVersion=0.133.0.1,enumUnknownDefaultCase=true",
-    "swift": "projectName=FitAppClientSwift,library=alamofire,podVersion=0.133.0,useSPM=true,enumUnknownDefaultCase=true",
+    "kotlin": "library=jvm-okhttp4,artifactId=fitapp-client-kotlin,groupId=com.fitapp.client,packageName=com.fitapp.client,artifactVersion=0.134.0.1,enumUnknownDefaultCase=true",
+    "swift": "projectName=FitAppClientSwift,library=alamofire,podVersion=0.134.0,useSPM=true,enumUnknownDefaultCase=true",
     "tool": "openapi-generator-cli",
-    "typescript": "npmName=@pliora/experience-api-client,npmVersion=0.133.0,supportsES6=true,typescriptThreePlus=true,useSingleRequestParameter=true,prefixParameterInterfaces=true,enumUnknownDefaultCase=true,gitHost=github.com,gitUserId=QuantumOpsAI,gitRepoId=pliora-contracts",
+    "typescript": "npmName=@pliora/experience-api-client,npmVersion=0.134.0,supportsES6=true,typescriptThreePlus=true,useSingleRequestParameter=true,prefixParameterInterfaces=true,enumUnknownDefaultCase=true,gitHost=github.com,gitUserId=QuantumOpsAI,gitRepoId=pliora-contracts",
     "typescriptCliOptions": [
       "--git-host",
       "github.com",
@@ -16,10 +16,10 @@
     ],
     "version": "7.24.0"
   },
-  "releaseVersion": "0.133.0",
-  "sourceCommit": "d046f1e255e09144d610ee6987422b760b7eca86",
+  "releaseVersion": "0.134.0",
+  "sourceCommit": "5a4d645a1c6cd4e0516bc6995a00be5ffe66624b",
   "sourceRepository": "https://github.com/QuantumOpsAI/pliora-contracts",
   "specPath": "openapi/fitapp-experience-api-v1.yaml",
-  "specSha256": "665952bf1f01dd0222794521ab9738ee3cbe9bf34d1bfcc6777990e8c5239d3d",
-  "swiftClientSha256": "155ff1d80c59c2503ecf604c5592a445de60d7eee310116ece2e6164ac3c244c"
+  "specSha256": "3b86bfcd3d9724d5dac735c8a467928adbc821c90dc57a4df82af3a99c4b195a",
+  "swiftClientSha256": "71eca34974ffa80fe472a01cfcdc048c17404e1f231d940b67367f98e58c0238"
 }

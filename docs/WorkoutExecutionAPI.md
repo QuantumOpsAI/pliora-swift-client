@@ -12,6 +12,8 @@ Method | HTTP request | Description
 [**confirmStudentExerciseSkip**](WorkoutExecutionAPI.md#confirmstudentexerciseskip) | **POST** /student/workout-sessions/{sessionId}/skips | Confirmar explicitamente que um exercício não será realizado
 [**deferStudentExerciseExecution**](WorkoutExecutionAPI.md#deferstudentexerciseexecution) | **POST** /student/workout-sessions/{sessionId}/deferrals | Adiar um exercício, preservando-o como pendência aberta
 [**executeStudentWorkoutControlAction**](WorkoutExecutionAPI.md#executestudentworkoutcontrolaction) | **POST** /student/workout-sessions/{sessionId}/control/actions | Aplicar uma intenção de controle e recuperar seu recibo confirmado
+[**getStudentHealthMetricsConsent**](WorkoutExecutionAPI.md#getstudenthealthmetricsconsent) | **GET** /student/health-metrics/consent | Ler o consentimento de dados de saúde do treino
+[**getStudentHeartRateReference**](WorkoutExecutionAPI.md#getstudentheartratereference) | **GET** /student/health-metrics/heart-rate-reference | Ler a referência de frequência cardíaca máxima do aluno
 [**getStudentSetExecution**](WorkoutExecutionAPI.md#getstudentsetexecution) | **GET** /student/workout-sessions/{sessionId}/set-executions/{setExecutionId} | Ler a série executada e a revisão que as escritas revisionais exigem
 [**getStudentWorkoutControl**](WorkoutExecutionAPI.md#getstudentworkoutcontrol) | **GET** /student/workout-sessions/{sessionId}/control | Ler o controle consistente da sessão e seus checkpoints
 [**getStudentWorkoutControlOperation**](WorkoutExecutionAPI.md#getstudentworkoutcontroloperation) | **GET** /student/workout-sessions/{sessionId}/control/operations/{operationId} | Recuperar recibo confirmado com autorização atual
@@ -24,6 +26,7 @@ Method | HTTP request | Description
 [**reportStudentDiscomfort**](WorkoutExecutionAPI.md#reportstudentdiscomfort) | **POST** /student/workout-sessions/{sessionId}/discomfort-reports | Relatar desconforto durante a execução
 [**resumeStudentDeferredExercise**](WorkoutExecutionAPI.md#resumestudentdeferredexercise) | **POST** /student/workout-sessions/{sessionId}/deferrals/{deferralId}/resumption | Retomar um exercício adiado, sem apagar o fato do adiamento
 [**resumeStudentWorkoutSession**](WorkoutExecutionAPI.md#resumestudentworkoutsession) | **POST** /student/workout-sessions/{sessionId}/resumption | Retomar a sessão interrompida, voltando a &#x60;IN_PROGRESS&#x60;
+[**setStudentHealthMetricsConsent**](WorkoutExecutionAPI.md#setstudenthealthmetricsconsent) | **PUT** /student/health-metrics/consent | Registrar a decisão do aluno sobre os dados de saúde do treino
 [**setStudentObservationSharing**](WorkoutExecutionAPI.md#setstudentobservationsharing) | **PUT** /student/workout-sessions/{sessionId}/observation-sharing | Mostrar ou não ao personal uma observação do aluno
 [**splitStudentExerciseExecutionBlock**](WorkoutExecutionAPI.md#splitstudentexerciseexecutionblock) | **POST** /student/workout-sessions/{sessionId}/splits | Separar só hoje um bloco combinado na sessão
 [**startStudentExerciseExecution**](WorkoutExecutionAPI.md#startstudentexerciseexecution) | **POST** /student/workout-sessions/{sessionId}/exercise-executions | Iniciar a execução de um exercício da sessão
@@ -482,6 +485,106 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStudentHealthMetricsConsent**
+```swift
+    open class func getStudentHealthMetricsConsent(acceptLanguage: String? = nil, completion: @escaping (_ data: HealthMetricsConsentView?, _ error: Error?) -> Void)
+```
+
+Ler o consentimento de dados de saúde do treino
+
+Estado do consentimento de dados de saúde do treino **da conta** (`DOC-WEARABLE-HEALTH-RUNTIME-SERVER` §3): a `decision` gravada (`NOT_DECIDED`, `GRANTED` ou `REVOKED`), a `effectiveAccess` reavaliada pelo servidor a cada chamada e, quando há documento configurado para a finalidade `WORKOUT_HEALTH_METRICS` e `effectiveAccess` não é `ALLOWED`, a `presentation` emitida para uma nova escolha — emitida a cada leitura, vinculada a esta conta e ao locale negociado, com validade **absoluta de 15 minutos** que nenhuma consulta prorroga. Versão, texto e digest do documento são escolhidos pelo servidor; a leitura não grava decisão nenhuma. `effectiveAccess` é `ALLOWED` somente com `decision` `GRANTED` e `acceptedDocumentVersion` igual ou maior que a versão mínima aceita; `RENEWAL_REQUIRED` quando a versão aceita ficou abaixo da mínima — as escritas de saúde são recusadas até um novo `GRANTED` —; `UNAVAILABLE` significa ausência de documento configurado — não é `REVOKED` nem consentimento presumido, e a UI não habilita escolha nesse estado; `DENIED` em `NOT_DECIDED` ou `REVOKED`. `revision` e o `ETag` desta resposta são o mesmo valor e são o `If-Match` que `setStudentHealthMetricsConsent` exige: o estado inicial `NOT_DECIDED` responde revisão `0` com `ETag` próprio. O consentimento é **da conta, não do vínculo** — vale em qualquer vínculo e sobrevive à troca de personal —, não é um quarto `StudentConsentType` do aceite do convite e é a porta de toda escrita de dado de saúde no servidor: sem `GRANTED`, os resumos de intensidade são recusados.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Ler o consentimento de dados de saúde do treino
+WorkoutExecutionAPI.getStudentHealthMetricsConsent(acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**HealthMetricsConsentView**](HealthMetricsConsentView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStudentHeartRateReference**
+```swift
+    open class func getStudentHeartRateReference(acceptLanguage: String? = nil, completion: @escaping (_ data: StudentHeartRateReferenceView?, _ error: Error?) -> Void)
+```
+
+Ler a referência de frequência cardíaca máxima do aluno
+
+Referência de frequência cardíaca máxima para o cálculo das zonas de esforço **no celular** (`DOC-WEARABLE-HEALTH-RUNTIME-SERVER` §8). Quando a conta tem data de nascimento verificada no aceite, `AVAILABLE` com `maxHeartRateReferenceBpm` (Tanaka, Monahan e Seals, 2001) e `validOn` — a data UTC do cálculo, que o app relê quando a data local passa; sem data de nascimento, `BIRTH_DATE_UNKNOWN` — não é erro, o app segue sem zonas. A idade **nunca viaja** (minimização). Não exige consentimento de saúde: a referência não é dado do relógio nem do histórico de saúde. É leitura sem corpo e sem recurso endereçado: não carrega `404`, `409`, `422` nem `429`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Ler a referência de frequência cardíaca máxima do aluno
+WorkoutExecutionAPI.getStudentHeartRateReference(acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**StudentHeartRateReferenceView**](StudentHeartRateReferenceView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -1146,6 +1249,60 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **setStudentHealthMetricsConsent**
+```swift
+    open class func setStudentHealthMetricsConsent(ifMatch: String, setStudentHealthMetricsConsentRequest: SetStudentHealthMetricsConsentRequest, acceptLanguage: String? = nil, completion: @escaping (_ data: HealthMetricsConsentView?, _ error: Error?) -> Void)
+```
+
+Registrar a decisão do aluno sobre os dados de saúde do treino
+
+Grava a decisão explícita do aluno sobre a finalidade `WORKOUT_HEALTH_METRICS` (`DOC-WEARABLE-HEALTH-RUNTIME-SERVER` §3). O corpo fecha com `decision` — `GRANTED` ou `REVOKED`, porque `NOT_DECIDED` é o **estado inicial**, nunca um ato que se escreve. `GRANTED` exige o `presentationId` de uma apresentação emitida por `getStudentHealthMetricsConsent` à mesma conta e locale, ainda válida e do documento ainda aceitável: ausente ou desconhecida responde `409 HEALTH_METRICS_DOCUMENT_UNAVAILABLE`; apresentação de outra conta, expirada, com `documentVersion` diferente da configurada agora ou `documentLocale` diferente do negociado responde `409 HEALTH_METRICS_PRESENTATION_CHANGED` — texto atualizado exige nova leitura e nova escolha explícita, **nunca aceite presumido**. `REVOKED` não exige documento — ninguém precisa aceitar texto para retirar acesso —, mas exige consentimento concedido: `REVOKED` em `NOT_DECIDED` é `409 HEALTH_METRICS_CONSENT_NOT_GRANTED`. **`REVOKED` apaga** os resumos de intensidade da conta na mesma transação e responde `deletedSummaryCount` com o número de resumos apagados (`0` na repetição e enquanto a tabela de resumos não existe — a fatia S1 ainda não a tem, então hoje é sempre `0`). **Sem `Idempotency-Key`**: a repetição é idempotente pelo estado — um `GRANTED` repetido com a mesma `presentationId` do último ato e um `REVOKED` repetido respondem `200` com o estado corrente, sem novo efeito (§3.2). `If-Match` carrega o `ETag` **deste recurso**: ausente, vazio ou `*` é `428 PRECONDITION_REQUIRED`; divergente é `412 PRECONDITION_FAILED` com `currentRevision` — inclusive a corrida no primeiro `INSERT` da projeção. O corpo não recebe `authorId`, `acceptedAt`, texto nem digest do documento: autor e instante são do servidor, e campo forjado é `422`.
+
+### Example
+```swift
+// The following code samples are still beta. For any issue, please report via http://github.com/OpenAPITools/openapi-generator/issues/new
+import FitAppClientSwift
+
+let ifMatch = "ifMatch_example" // String | `ETag` exato do **consentimento de dados de saúde** da conta — o mesmo valor de `revision` emitido por `getStudentHealthMetricsConsent` ou pelo último `setStudentHealthMetricsConsent`, enviado verbatim. Não é o `ETag` de outro recurso e nunca se deriva de `revision`. O curinga `*` não é elegível — quem nunca leu o recurso também o enviaria, e derrubaria a precondição —; ausente, vazio ou `*` é `428 PRECONDITION_REQUIRED` e divergente é `412 PRECONDITION_FAILED` com `currentRevision`, sem ato gravado.
+let setStudentHealthMetricsConsentRequest = SetStudentHealthMetricsConsentRequest(decision: "decision_example", presentationId: "presentationId_example") // SetStudentHealthMetricsConsentRequest |
+let acceptLanguage = "acceptLanguage_example" // String | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q=0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. (optional)
+
+// Registrar a decisão do aluno sobre os dados de saúde do treino
+WorkoutExecutionAPI.setStudentHealthMetricsConsent(ifMatch: ifMatch, setStudentHealthMetricsConsentRequest: setStudentHealthMetricsConsentRequest, acceptLanguage: acceptLanguage) { (response, error) in
+    guard error == nil else {
+        print(error)
+        return
+    }
+
+    if (response) {
+        dump(response)
+    }
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ifMatch** | **String** | &#x60;ETag&#x60; exato do **consentimento de dados de saúde** da conta — o mesmo valor de &#x60;revision&#x60; emitido por &#x60;getStudentHealthMetricsConsent&#x60; ou pelo último &#x60;setStudentHealthMetricsConsent&#x60;, enviado verbatim. Não é o &#x60;ETag&#x60; de outro recurso e nunca se deriva de &#x60;revision&#x60;. O curinga &#x60;*&#x60; não é elegível — quem nunca leu o recurso também o enviaria, e derrubaria a precondição —; ausente, vazio ou &#x60;*&#x60; é &#x60;428 PRECONDITION_REQUIRED&#x60; e divergente é &#x60;412 PRECONDITION_FAILED&#x60; com &#x60;currentRevision&#x60;, sem ato gravado. |
+ **setStudentHealthMetricsConsentRequest** | [**SetStudentHealthMetricsConsentRequest**](SetStudentHealthMetricsConsentRequest.md) |  |
+ **acceptLanguage** | **String** | Preferência conforme RFC 9110. Canonicalizar tags BCP 47; descartar item inválido ou q&#x3D;0; ordenar por q decrescente e primeira posição no empate; consolidar duplicatas pela maior preferência e primeira posição associada a ela; selecionar somente match exato em {pt-BR, en-US}. pt, en, pt-PT e en-GB não implicam região. Wildcard elegível, ausência, valor integralmente inválido ou falta de match resolvem para pt-BR. Influencia somente server_localized e formatação autorizada; nunca altera client_owned, editorial, authored_preserved ou machine_code. | [optional]
+
+### Return type
+
+[**HealthMetricsConsentView**](HealthMetricsConsentView.md)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
